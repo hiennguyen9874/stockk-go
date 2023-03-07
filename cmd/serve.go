@@ -29,6 +29,13 @@ func init() {
 	viper.SetDefault("port", "3000")
 	viper.SetDefault("log_level", "debug")
 
+	viper.SetDefault("MASTER_DB_NAME", "db")
+	viper.SetDefault("MASTER_DB_USER", "root")
+	viper.SetDefault("MASTER_DB_PASSWORD", "123")
+	viper.SetDefault("MASTER_DB_HOST", "localhost")
+	viper.SetDefault("MASTER_DB_PORT", "5432")
+	viper.SetDefault("MASTER_SSL_MODE", "disable")
+
 	viper.SetDefault("auth_login_url", "http://localhost:3000/login")
 	viper.SetDefault("auth_login_token_length", 8)
 	viper.SetDefault("auth_login_token_expiry", "11m")

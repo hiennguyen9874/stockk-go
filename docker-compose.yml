@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15.2-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=db
+    volumes:
+      - app_postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    restart: always
+
+volumes:
+  app_postgres_data:
