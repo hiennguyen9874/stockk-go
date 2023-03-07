@@ -7,13 +7,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/hiennguyen9874/stockk-go/config"
-	"gorm.io/driver/postgres"
+	"github.com/hiennguyen9874/stockk-go/db"
 	"gorm.io/gorm"
+
+	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
+	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
+	userUsecase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 )
 
 func New(enableCORS bool) (*chi.Mux, error) {
-	db, err := gorm.Open(postgres.Open(config.GetDNSConfig()), &gorm.Config{})
+	db, err := db.GetPostgres()
 
 	if err != nil {
 		return nil, err
@@ -38,5 +41,16 @@ func RegisterRoutes(router *chi.Mux, db *gorm.DB) {
 		w.Write([]byte("pong"))
 	})
 
-	UserRoute(router, db)
+	// routes.UserRoute(router, db)
+
+	// Repository
+	userRepo := userRepository.CreateUserRepository(db)
+
+	// UseCase
+	userUC := userUsecase.CreateUserUseCaseI(userRepo)
+
+	// Handler
+	userHandler := userHttp.CreateUserHandler(userUC)
+
+	userHttp.MapUserRoute(router, db, userHandler)
 }

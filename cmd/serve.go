@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	"github.com/hiennguyen9874/stockk-go/api"
+	"github.com/hiennguyen9874/stockk-go/internal/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

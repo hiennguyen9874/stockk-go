@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"github.com/hiennguyen9874/stockk-go/config"
-	"github.com/hiennguyen9874/stockk-go/models"
+	"github.com/hiennguyen9874/stockk-go/db"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/spf13/cobra"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +12,7 @@ var migrateCmd = &cobra.Command{
 	Short: "Migrate data",
 	Long:  "Migrate data",
 	Run: func(cmd *cobra.Command, args []string) {
-		db, err := gorm.Open(postgres.Open(config.GetDNSConfig()), &gorm.Config{})
+		db, err := db.GetPostgres()
 
 		if err == nil {
 			Migrate(db)
