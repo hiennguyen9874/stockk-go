@@ -22,13 +22,16 @@ type Config struct {
 
 // Server config struct
 type ServerConfig struct {
-	AppVersion   string
-	Port         string
-	Mode         string
-	CookieName   string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	Debug        bool
+	AppVersion        string
+	Port              string
+	Mode              string
+	CookieName        string
+	ReadTimeout       time.Duration
+	WriteTimeout      time.Duration
+	Debug             bool
+	JwtSecretKey      string
+	JwtExpireDuration int64
+	JwtIssuer         string
 }
 
 // Logger config

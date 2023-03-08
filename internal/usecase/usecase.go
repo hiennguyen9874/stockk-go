@@ -6,18 +6,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 )
 
 type UseCase[M any] struct {
-	// TODO: Logger
-	cfg    *config.Config
+	Cfg    *config.Config
 	pgRepo internal.PgRepository[M]
+	Logger logger.Logger
 }
 
-func CreateUseCase[M any](repo internal.PgRepository[M], cfg *config.Config) UseCase[M] {
+func CreateUseCase[M any](repo internal.PgRepository[M], cfg *config.Config, logger logger.Logger) UseCase[M] {
 	return UseCase[M]{
 		pgRepo: repo,
-		cfg:    cfg,
+		Cfg:    cfg,
+		Logger: logger,
 	}
 }
 

@@ -31,7 +31,19 @@ var (
 	ErrorNotAllowedImageHeader = errors.New("not allowed image header")
 	ErrorNoCookie              = errors.New("not found cookie header")
 	ErrorValidation            = errors.New("validation")
+	ErrorWrongPassword         = errors.New("wrong password")
+	ErrorTokenNotFound         = errors.New("token not found")
 )
+
+// Rest error interface
+type ErrRest interface {
+	GetErr() error
+	GetStatus() int
+	GetStatusText() string
+	GetMsg() string
+	Error() string
+	Render(w http.ResponseWriter, r *http.Request) error
+}
 
 //--
 // Error response payloads & renderers
@@ -49,17 +61,34 @@ type ErrResponse struct {
 	Msg        string `json:"msg,omitempty"` // application-level error message, for debugging
 }
 
-// Error  Error() interface method
-func (e ErrResponse) Error() string {
+func (e *ErrResponse) GetErr() error {
+	return e.Err
+}
+
+func (e *ErrResponse) GetStatus() int {
+	return e.Status
+}
+
+func (e *ErrResponse) GetStatusText() string {
+	return e.StatusText
+}
+
+func (e *ErrResponse) GetMsg() string {
+	return e.Msg
+}
+
+// Error Error() interface method
+func (e *ErrResponse) Error() string {
 	return fmt.Sprintf("status: %d - statusText: %s - msg: %s - error: %v", e.Status, e.StatusText, e.Msg, e.Err)
 }
 
+// render.Renderer Render() interface method
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	render.Status(r, e.Status)
 	return nil
 }
 
-func Err(err error, status int, statusText string) render.Renderer {
+func Err(err error, status int, statusText string) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     status,
@@ -68,7 +97,7 @@ func Err(err error, status int, statusText string) render.Renderer {
 	}
 }
 
-func ErrBadRequest(err error) render.Renderer {
+func ErrBadRequest(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusBadRequest,
@@ -77,7 +106,7 @@ func ErrBadRequest(err error) render.Renderer {
 	}
 }
 
-func ErrNotFound(err error) render.Renderer {
+func ErrNotFound(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusNotFound,
@@ -86,7 +115,7 @@ func ErrNotFound(err error) render.Renderer {
 	}
 }
 
-func ErrUnauthorized(err error) render.Renderer {
+func ErrUnauthorized(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusUnauthorized,
@@ -95,7 +124,7 @@ func ErrUnauthorized(err error) render.Renderer {
 	}
 }
 
-func ErrForbidden(err error) render.Renderer {
+func ErrForbidden(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusForbidden,
@@ -104,7 +133,7 @@ func ErrForbidden(err error) render.Renderer {
 	}
 }
 
-func ErrInternalServer(err error) render.Renderer {
+func ErrInternalServer(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusInternalServerError,
@@ -113,7 +142,7 @@ func ErrInternalServer(err error) render.Renderer {
 	}
 }
 
-func ErrValidation(err error) render.Renderer {
+func ErrValidation(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
 		Status:     http.StatusUnprocessableEntity,
@@ -123,7 +152,7 @@ func ErrValidation(err error) render.Renderer {
 }
 
 // Parser of error string messages returns RestError
-func ParseErrors(err error) render.Renderer {
+func ParseErrors(err error) ErrRest {
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return ErrNotFound(err)
@@ -132,20 +161,37 @@ func ParseErrors(err error) render.Renderer {
 	case strings.Contains(err.Error(), "SQLSTATE"):
 		return parseSqlErrors(err)
 	default:
-		if restErr, ok := err.(render.Renderer); ok {
+		if restErr, ok := err.(ErrRest); ok {
 			return restErr
 		}
 		return ErrBadRequest(err)
 	}
 }
 
-func parseSqlErrors(err error) render.Renderer {
+func parseSqlErrors(err error) ErrRest {
 	if strings.Contains(err.Error(), "23505") {
 		return &ErrResponse{
 			Err:        err,
 			Status:     http.StatusBadRequest,
 			StatusText: ErrorExistsEmailError.Error(),
 			Msg:        err.Error(),
+		}
+	}
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorBadRequest.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrRender(err error) render.Renderer {
+	if restErr, ok := err.(ErrRest); ok {
+		return &ErrResponse{
+			Err:        restErr.GetErr(),
+			Status:     restErr.GetStatus(),
+			StatusText: restErr.GetStatusText(),
+			Msg:        restErr.GetMsg(),
 		}
 	}
 	return &ErrResponse{

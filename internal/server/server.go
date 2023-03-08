@@ -29,7 +29,7 @@ type Server struct {
 // NewServer creates and configures an APIServer serving all application routes.
 func NewServer(cfg *config.Config, db *gorm.DB, logger logger.Logger) (*Server, error) {
 	logger.Info("configuring server...")
-	api, err := New(db, cfg)
+	api, err := New(db, cfg, logger)
 
 	if err != nil {
 		return nil, err
