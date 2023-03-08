@@ -1,8 +1,6 @@
 # TODO
 
-- HotReload
 - Docker
-- Logger
 - Swagger
 - Cors
 
