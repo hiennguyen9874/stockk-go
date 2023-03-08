@@ -6,10 +6,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"gorm.io/gorm"
 
 	"github.com/hiennguyen9874/stockk-go/config"
+	apiMiddlewares "github.com/hiennguyen9874/stockk-go/internal/middleware"
 	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
 	userUsecase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
@@ -24,6 +26,7 @@ func New(db *gorm.DB, cfg *config.Config) (*chi.Mux, error) {
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Timeout(15 * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+	r.Use(cors.Handler(apiMiddlewares.Cors(cfg)))
 
 	RegisterRoutes(r, db, cfg)
 

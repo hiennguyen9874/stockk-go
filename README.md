@@ -1,8 +1,6 @@
 # TODO
 
-- Docker
 - Swagger
-- Cors
 
 # Acknowledgements
 

@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  web:
+    build:
+      context: .
+      # Correct the path to your Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    # Important to bind/mount your codebase dir to /app dir for live reload
+    volumes:
+      - ./:/app
+
   postgres:
     image: postgres:15.2-alpine
     environment:
@@ -9,8 +20,6 @@ services:
       - POSTGRES_DB=db
     volumes:
       - app_postgres_data:/var/lib/postgresql/data/
-    ports:
-      - 5432:5432
     restart: always
 
 volumes:
