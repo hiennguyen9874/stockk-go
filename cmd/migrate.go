@@ -1,8 +1,11 @@
 package cmd
 
 import (
-	"github.com/hiennguyen9874/stockk-go/db"
+	"log"
+
+	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 )
@@ -12,11 +15,16 @@ var migrateCmd = &cobra.Command{
 	Short: "Migrate data",
 	Long:  "Migrate data",
 	Run: func(cmd *cobra.Command, args []string) {
-		db, err := db.GetPostgres()
+		cfg := config.GetCfg()
 
-		if err == nil {
-			Migrate(db)
+		psqlDB, err := postgres.NewPsqlDB(cfg)
+		if err != nil {
+			log.Fatalf("Postgresql init: %s", err)
+		} else {
+			log.Println("Postgres connected")
 		}
+
+		Migrate(psqlDB)
 	},
 }
 

@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"net/http"
@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/hiennguyen9874/stockk-go/db"
 	"gorm.io/gorm"
 
 	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
@@ -15,13 +14,7 @@ import (
 	userUsecase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 )
 
-func New(enableCORS bool) (*chi.Mux, error) {
-	db, err := db.GetPostgres()
-
-	if err != nil {
-		return nil, err
-	}
-
+func New(db *gorm.DB) (*chi.Mux, error) {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)

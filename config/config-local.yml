@@ -1,0 +1,34 @@
+server:
+  AppVersion: 1.0.0
+  Port: :5000
+  Mode: Development
+  CookieName: jwt-token
+  ReadTimeout: 5
+  WriteTimeout: 5
+  Debug: false
+
+logger:
+  Development: true
+  DisableCaller: false
+  DisableStacktrace: false
+  Encoding: json
+  Level: info
+
+postgres:
+  PostgresqlHost: localhost
+  PostgresqlPort: 5432
+  PostgresqlUser: postgres
+  PostgresqlPassword: postgres
+  PostgresqlDbname: db
+  PostgresqlSslmode: disable
+
+cookie:
+  Name: jwt-token
+  MaxAge: 86400
+  Secure: false
+  HttpOnly: true
+
+session:
+  Name: session-id
+  Prefix: api-session
+  Expire: 3600

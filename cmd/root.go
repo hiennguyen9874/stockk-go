@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -37,8 +38,6 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go-base.yaml)")
-	RootCmd.PersistentFlags().Bool("db_debug", false, "log sql to console")
-	viper.BindPFlag("db_debug", RootCmd.PersistentFlags().Lookup("db_debug"))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -47,23 +46,22 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+	var cfgPath string
+	if cfgFile == "docker" {
+		cfgPath = "./config/config-docker"
+	} else if cfgFile == "local" || cfgFile == "" {
+		cfgPath = "./config/config-local"
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
-		// Search config in home directory with name ".go-base" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".stockk-go")
+		cfgPath = cfgFile
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	cfgViper, err := config.LoadConfig(cfgPath)
+	if err != nil {
+		log.Fatalf("LoadConfig: %v", err)
+	}
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	_, err = config.ParseConfig(cfgViper)
+	if err != nil {
+		log.Fatalf("ParseConfig: %v", err)
 	}
 }

@@ -3,9 +3,10 @@ package cmd
 import (
 	"log"
 
-	"github.com/hiennguyen9874/stockk-go/internal/api"
+	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/internal/server"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // serveCmd represents the serve command
@@ -14,7 +15,16 @@ var serveCmd = &cobra.Command{
 	Short: "start http server with configured api",
 	Long:  `Starts a http server and serves the configured api`,
 	Run: func(cmd *cobra.Command, args []string) {
-		server, err := api.NewServer()
+		cfg := config.GetCfg()
+
+		psqlDB, err := postgres.NewPsqlDB(cfg)
+		if err != nil {
+			log.Fatalf("Postgresql init: %s", err)
+		} else {
+			log.Println("Postgres connected")
+		}
+
+		server, err := server.NewServer(cfg, psqlDB)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -24,30 +34,4 @@ var serveCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(serveCmd)
-
-	// Here you will define your flags and configuration settings.
-	viper.SetDefault("port", "3000")
-	viper.SetDefault("log_level", "debug")
-
-	viper.SetDefault("MASTER_DB_NAME", "db")
-	viper.SetDefault("MASTER_DB_USER", "root")
-	viper.SetDefault("MASTER_DB_PASSWORD", "123")
-	viper.SetDefault("MASTER_DB_HOST", "localhost")
-	viper.SetDefault("MASTER_DB_PORT", "5432")
-	viper.SetDefault("MASTER_SSL_MODE", "disable")
-
-	viper.SetDefault("auth_login_url", "http://localhost:3000/login")
-	viper.SetDefault("auth_login_token_length", 8)
-	viper.SetDefault("auth_login_token_expiry", "11m")
-	viper.SetDefault("auth_jwt_secret", "random")
-	viper.SetDefault("auth_jwt_expiry", "15m")
-	viper.SetDefault("auth_jwt_refresh_expiry", "1h")
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

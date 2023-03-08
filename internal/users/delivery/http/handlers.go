@@ -30,7 +30,7 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewDecoder(r.Body).Decode(&user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrBadRequest(err))
+			render.Render(w, r, httpErrors.ParseErrors(err))
 			return
 		}
 
@@ -43,7 +43,7 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 
 		newUser, err := h.usersUC.Create(r.Context(), mapModel(user))
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrBadRequest(err))
+			render.Render(w, r, httpErrors.ParseErrors(err))
 			return
 		}
 		render.Respond(w, r, mapModelResponse(newUser))
@@ -60,7 +60,7 @@ func (h *userHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 		}
 		user, err := h.usersUC.Get(r.Context(), id)
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrBadRequest(err))
+			render.Render(w, r, httpErrors.ParseErrors(err))
 			return
 		}
 		render.Respond(w, r, mapModelResponse(user))
@@ -77,7 +77,7 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 		users, err := h.usersUC.GetMulti(r.Context(), limit, offset)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrBadRequest(err))
+			render.Render(w, r, httpErrors.ParseErrors(err))
 			return
 		}
 
@@ -95,7 +95,7 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 		}
 		user, err := h.usersUC.Delete(r.Context(), id)
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrBadRequest(err))
+			render.Render(w, r, httpErrors.ParseErrors(err))
 			return
 		}
 		render.Respond(w, r, mapModelResponse(user))

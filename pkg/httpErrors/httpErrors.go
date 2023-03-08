@@ -1,11 +1,14 @@
 package httpErrors
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/render"
+	"gorm.io/gorm"
 )
 
 var (
@@ -115,6 +118,40 @@ func ErrValidation(err error) render.Renderer {
 		Err:        err,
 		Status:     http.StatusUnprocessableEntity,
 		StatusText: ErrorValidation.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+// Parser of error string messages returns RestError
+func ParseErrors(err error) render.Renderer {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return ErrNotFound(err)
+	case errors.Is(err, context.DeadlineExceeded):
+		return Err(err, http.StatusRequestTimeout, ErrorRequestTimeoutError.Error())
+	case strings.Contains(err.Error(), "SQLSTATE"):
+		return parseSqlErrors(err)
+	default:
+		if restErr, ok := err.(render.Renderer); ok {
+			return restErr
+		}
+		return ErrBadRequest(err)
+	}
+}
+
+func parseSqlErrors(err error) render.Renderer {
+	if strings.Contains(err.Error(), "23505") {
+		return &ErrResponse{
+			Err:        err,
+			Status:     http.StatusBadRequest,
+			StatusText: ErrorExistsEmailError.Error(),
+			Msg:        err.Error(),
+		}
+	}
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorBadRequest.Error(),
 		Msg:        err.Error(),
 	}
 }
