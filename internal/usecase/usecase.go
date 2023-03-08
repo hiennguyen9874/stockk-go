@@ -4,18 +4,20 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal"
 )
 
 type UseCase[M any] struct {
-	// TODO: Config
 	// TODO: Logger
+	cfg    *config.Config
 	pgRepo internal.PgRepository[M]
 }
 
-func CreateUseCase[M any](repo internal.PgRepository[M]) UseCase[M] {
+func CreateUseCase[M any](repo internal.PgRepository[M], cfg *config.Config) UseCase[M] {
 	return UseCase[M]{
 		pgRepo: repo,
+		cfg:    cfg,
 	}
 }
 

@@ -9,12 +9,13 @@ import (
 	"github.com/go-chi/render"
 	"gorm.io/gorm"
 
+	"github.com/hiennguyen9874/stockk-go/config"
 	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
 	userUsecase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 )
 
-func New(db *gorm.DB) (*chi.Mux, error) {
+func New(db *gorm.DB, cfg *config.Config) (*chi.Mux, error) {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
@@ -24,12 +25,12 @@ func New(db *gorm.DB) (*chi.Mux, error) {
 	r.Use(middleware.Timeout(15 * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
-	RegisterRoutes(r, db)
+	RegisterRoutes(r, db, cfg)
 
 	return r, nil
 }
 
-func RegisterRoutes(router *chi.Mux, db *gorm.DB) {
+func RegisterRoutes(router *chi.Mux, db *gorm.DB, cfg *config.Config) {
 	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
@@ -40,7 +41,7 @@ func RegisterRoutes(router *chi.Mux, db *gorm.DB) {
 	userRepo := userRepository.CreateUserRepository(db)
 
 	// UseCase
-	userUC := userUsecase.CreateUserUseCaseI(userRepo)
+	userUC := userUsecase.CreateUserUseCaseI(userRepo, cfg)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC)
