@@ -1,9 +1,6 @@
 # TODO
 
-- Error
 - HotReload
-- Validation
-- Config
 - Docker
 - Logger
 - Swagger

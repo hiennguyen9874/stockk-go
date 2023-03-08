@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"gorm.io/gorm"
 )
 
@@ -23,11 +23,12 @@ type Server struct {
 	server *http.Server
 	cfg    *config.Config
 	db     *gorm.DB
+	logger logger.Logger
 }
 
 // NewServer creates and configures an APIServer serving all application routes.
-func NewServer(cfg *config.Config, db *gorm.DB) (*Server, error) {
-	log.Println("configuring server...")
+func NewServer(cfg *config.Config, db *gorm.DB, logger logger.Logger) (*Server, error) {
+	logger.Info("configuring server...")
 	api, err := New(db, cfg)
 
 	if err != nil {
@@ -42,17 +43,18 @@ func NewServer(cfg *config.Config, db *gorm.DB) (*Server, error) {
 			WriteTimeout:   time.Second * cfg.Server.WriteTimeout,
 			MaxHeaderBytes: maxHeaderBytes,
 		},
-		cfg: cfg,
-		db:  db,
+		cfg:    cfg,
+		db:     db,
+		logger: logger,
 	}, nil
 }
 
 // Start runs ListenAndServe on the http.Server with graceful shutdown.
 func (srv *Server) Start() {
-	log.Println("starting server...")
+	srv.logger.Info("starting server...")
 
 	go func() {
-		log.Printf("Listening on %s\n", srv.server.Addr)
+		srv.logger.Infof("Listening on %s\n", srv.server.Addr)
 		if err := srv.server.ListenAndServe(); err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -62,7 +64,7 @@ func (srv *Server) Start() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	sig := <-quit
 
-	log.Println("Shutting down server... Reason:", sig)
+	srv.logger.Infof("Shutting down server... Reason: %s", sig)
 
 	ctx, shutdown := context.WithTimeout(context.Background(), ctxTimeout*time.Second)
 	defer shutdown()
@@ -70,5 +72,5 @@ func (srv *Server) Start() {
 	if err := srv.server.Shutdown(ctx); err != nil {
 		panic(err)
 	}
-	log.Println("Server gracefully stopped")
+	srv.logger.Info("Server gracefully stopped")
 }

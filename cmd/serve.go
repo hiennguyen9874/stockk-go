@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/server"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -17,16 +16,20 @@ var serveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.GetCfg()
 
+		appLogger := logger.NewApiLogger(cfg)
+		appLogger.InitLogger()
+		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+
 		psqlDB, err := postgres.NewPsqlDB(cfg)
 		if err != nil {
-			log.Fatalf("Postgresql init: %s", err)
+			appLogger.Fatalf("Postgresql init: %s", err)
 		} else {
-			log.Println("Postgres connected")
+			appLogger.Infof("Postgres connected")
 		}
 
-		server, err := server.NewServer(cfg, psqlDB)
+		server, err := server.NewServer(cfg, psqlDB, appLogger)
 		if err != nil {
-			log.Fatal(err)
+			appLogger.Fatal(err)
 		}
 		server.Start()
 	},
