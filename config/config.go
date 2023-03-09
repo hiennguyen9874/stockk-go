@@ -13,25 +13,24 @@ var (
 )
 
 type Config struct {
-	Server   ServerConfig
-	Postgres PostgresConfig
-	Cookie   Cookie
-	Session  Session
-	Logger   Logger
+	Server         ServerConfig
+	Postgres       PostgresConfig
+	Jwt            JwtConfig
+	FirstSuperUser FirstSuperUserConfig
+	Cookie         Cookie
+	Session        Session
+	Logger         Logger
 }
 
 // Server config struct
 type ServerConfig struct {
-	AppVersion        string
-	Port              string
-	Mode              string
-	CookieName        string
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	Debug             bool
-	JwtSecretKey      string
-	JwtExpireDuration int64
-	JwtIssuer         string
+	AppVersion   string
+	Port         string
+	Mode         string
+	CookieName   string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	Debug        bool
 }
 
 // Logger config
@@ -51,6 +50,20 @@ type PostgresConfig struct {
 	PostgresqlPassword string
 	PostgresqlDbname   string
 	PostgresqlSSLMode  string
+}
+
+// Jwt config
+type JwtConfig struct {
+	SecretKey      string
+	ExpireDuration int64
+	Issuer         string
+}
+
+// First Super User
+type FirstSuperUserConfig struct {
+	Email    string
+	Name     string
+	Password string
 }
 
 // Cookie config

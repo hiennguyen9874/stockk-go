@@ -1,6 +1,8 @@
 # TODO
 
 - Swagger
+- Cookie
+- Session using redis
 
 # Acknowledgements
 

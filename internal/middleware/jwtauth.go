@@ -57,7 +57,7 @@ func (mw *MiddlewareManager) Verifier(next http.Handler) http.Handler {
 			err := httpErrors.ErrorTokenNotFound
 			ctx = context.WithValue(ctx, ErrorCtxKey, err)
 		} else {
-			id, email, err := jwt.ParseToken(token, mw.cfg.Server.JwtSecretKey)
+			id, email, err := jwt.ParseToken(token, mw.cfg.Jwt.SecretKey)
 			ctx = context.WithValue(ctx, TokenCtxKey, token)
 			ctx = context.WithValue(ctx, IdCtxKey, id)
 			ctx = context.WithValue(ctx, EmailCtxKey, email)
