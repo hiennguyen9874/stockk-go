@@ -3,6 +3,8 @@
 - Swagger
 - Cookie
 - Session using redis
+- Traefik
+- Celery
 
 # Acknowledgements
 
