@@ -2,10 +2,13 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
 )
@@ -15,6 +18,7 @@ var (
 	IdCtxKey    = &contextKey{"Id"}
 	EmailCtxKey = &contextKey{"Email"}
 	ErrorCtxKey = &contextKey{"Error"}
+	UserCtxKey  = &contextKey{"User"}
 )
 
 // contextKey is a value for use with context.WithValue. It's used as
@@ -26,9 +30,6 @@ type contextKey struct {
 
 func (k *contextKey) String() string {
 	return "jwtauth context value " + k.name
-}
-
-type JWTAuth struct {
 }
 
 // Verifier http middleware handler will verify a JWT string from a http request.
@@ -51,6 +52,7 @@ func (mw *MiddlewareManager) Verifier(next http.Handler) http.Handler {
 		ctx := r.Context()
 
 		token := TokenFromHeader(r)
+
 		if token == "" {
 			err := httpErrors.ErrorTokenNotFound
 			ctx = context.WithValue(ctx, ErrorCtxKey, err)
@@ -84,6 +86,78 @@ func (mw *MiddlewareManager) Authenticator(next http.Handler) http.Handler {
 	})
 }
 
+func (mw *MiddlewareManager) CurrentUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		id, _ := r.Context().Value(IdCtxKey).(string)
+		err, _ := r.Context().Value(ErrorCtxKey).(error)
+
+		if err != nil || id == "" {
+			render.Render(w, r, httpErrors.ErrRender(err))
+			return
+		}
+
+		idParsed, err := uuid.Parse(id)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.Err(err, http.StatusBadRequest, httpErrors.ErrorInvalidJWTClaims.Error())))
+			return
+		}
+
+		user, err := mw.usersUC.Get(ctx, idParsed)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(err))
+			return
+		}
+
+		ctx = context.WithValue(ctx, UserCtxKey, user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (mw *MiddlewareManager) SuperUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		user, err := GetUserFromCtx(ctx)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		if !mw.usersUC.IsSuper(ctx, *user) {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrNotEnoughPrivileges(errors.New("not enough privileges"))))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (mw *MiddlewareManager) ActiveUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		user, err := GetUserFromCtx(ctx)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		if !mw.usersUC.IsActive(ctx, *user) {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrInactiveUser(errors.New("inactive user"))))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // TokenFromHeader tries to retreive the token string from the
 // "Authorization" reqeust header: "Authorization: BEARER T".
 func TokenFromHeader(r *http.Request) string {
@@ -93,4 +167,13 @@ func TokenFromHeader(r *http.Request) string {
 		return bearer[7:]
 	}
 	return ""
+}
+
+// Get user from context
+func GetUserFromCtx(ctx context.Context) (*models.User, error) {
+	user, ok := ctx.Value(UserCtxKey).(*models.User)
+	if !ok {
+		return nil, httpErrors.ErrUnauthorized(errors.New("Can convert user from context"))
+	}
+	return user, nil
 }

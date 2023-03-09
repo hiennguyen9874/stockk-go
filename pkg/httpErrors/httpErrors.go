@@ -33,6 +33,8 @@ var (
 	ErrorValidation            = errors.New("validation")
 	ErrorWrongPassword         = errors.New("wrong password")
 	ErrorTokenNotFound         = errors.New("token not found")
+	ErrorInactiveUser          = errors.New("inactive user")
+	ErrorNotEnoughPrivileges   = errors.New("not enough privileges")
 )
 
 // Rest error interface
@@ -147,6 +149,24 @@ func ErrValidation(err error) ErrRest {
 		Err:        err,
 		Status:     http.StatusUnprocessableEntity,
 		StatusText: ErrorValidation.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrInactiveUser(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorInactiveUser.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrNotEnoughPrivileges(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorNotEnoughPrivileges.Error(),
 		Msg:        err.Error(),
 	}
 }

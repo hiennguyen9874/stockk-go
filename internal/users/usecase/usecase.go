@@ -54,3 +54,11 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 
 	return jwt.CreateAccessToken(user.Id.String(), user.Email, u.Cfg.Server.JwtSecretKey, u.Cfg.Server.JwtExpireDuration*int64(time.Minute), u.Cfg.Server.JwtIssuer)
 }
+
+func (u *userUseCase) IsActive(ctx context.Context, exp models.User) bool {
+	return exp.IsActive
+}
+
+func (u *userUseCase) IsSuper(ctx context.Context, exp models.User) bool {
+	return exp.IsSuperUser
+}

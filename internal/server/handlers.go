@@ -11,10 +11,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/hiennguyen9874/stockk-go/config"
-	apiMiddlewares "github.com/hiennguyen9874/stockk-go/internal/middleware"
+	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
 	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
-	userUsecase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
+	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 )
 
@@ -27,7 +27,7 @@ func New(db *gorm.DB, cfg *config.Config, logger logger.Logger) (*chi.Mux, error
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Timeout(15 * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
-	r.Use(cors.Handler(apiMiddlewares.Cors(cfg)))
+	r.Use(cors.Handler(apiMiddleware.Cors(cfg)))
 
 	RegisterRoutes(r, db, cfg, logger)
 
@@ -45,13 +45,13 @@ func RegisterRoutes(router *chi.Mux, db *gorm.DB, cfg *config.Config, logger log
 	userRepo := userRepository.CreateUserRepository(db)
 
 	// UseCase
-	userUC := userUsecase.CreateUserUseCaseI(userRepo, cfg, logger)
+	userUC := userUseCase.CreateUserUseCaseI(userRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
 
-	//middlewares
-	mw := apiMiddlewares.CreateMiddlewareManager(cfg, logger)
+	// middleware
+	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
 
 	userHttp.MapUserRoute(router, db, userHandler, mw)
 }

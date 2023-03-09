@@ -8,4 +8,5 @@ type Handlers interface {
 	GetMulti() func(w http.ResponseWriter, r *http.Request)
 	Delete() func(w http.ResponseWriter, r *http.Request)
 	SignIn() func(w http.ResponseWriter, r *http.Request)
+	Me() func(w http.ResponseWriter, r *http.Request)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/internal/middleware"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/users"
 	"github.com/hiennguyen9874/stockk-go/internal/users/presenter"
@@ -129,6 +130,21 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		render.Respond(w, r, presenter.Token{AccessToken: token, TokenType: "bearer"})
+	}
+}
+
+func (h *userHandler) Me() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		user, err := middleware.GetUserFromCtx(ctx)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		render.Respond(w, r, mapModelResponse(user))
 	}
 }
 
