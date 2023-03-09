@@ -2,10 +2,8 @@ server:
   AppVersion: 1.0.0
   Port: :5000
   Mode: Development
-  CookieName: jwt-token
   ReadTimeout: 5
   WriteTimeout: 5
-  Debug: false
 
 jwt:
   SecretKey: 9056b94a8611363c2c43aa3760d65a48c834744b877b5041fa99a919d5aaf635
@@ -18,9 +16,6 @@ firstSuperUser:
   Password: root_password
 
 logger:
-  Development: true
-  DisableCaller: false
-  DisableStacktrace: false
   Encoding: console
   Level: debug
 
@@ -30,15 +25,3 @@ postgres:
   PostgresqlUser: postgres
   PostgresqlPassword: postgres
   PostgresqlDbname: db
-  PostgresqlSslmode: disable
-
-cookie:
-  Name: jwt-token
-  MaxAge: 86400
-  Secure: false
-  HttpOnly: true
-
-session:
-  Name: session-id
-  Prefix: api-session
-  Expire: 3600

@@ -17,8 +17,6 @@ type Config struct {
 	Postgres       PostgresConfig
 	Jwt            JwtConfig
 	FirstSuperUser FirstSuperUserConfig
-	Cookie         Cookie
-	Session        Session
 	Logger         Logger
 }
 
@@ -27,19 +25,14 @@ type ServerConfig struct {
 	AppVersion   string
 	Port         string
 	Mode         string
-	CookieName   string
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	Debug        bool
 }
 
 // Logger config
 type Logger struct {
-	Development       bool
-	DisableCaller     bool
-	DisableStacktrace bool
-	Encoding          string
-	Level             string
+	Encoding string
+	Level    string
 }
 
 // Postgresql config
@@ -64,21 +57,6 @@ type FirstSuperUserConfig struct {
 	Email    string
 	Name     string
 	Password string
-}
-
-// Cookie config
-type Cookie struct {
-	Name     string
-	MaxAge   int
-	Secure   bool
-	HTTPOnly bool
-}
-
-// Session config
-type Session struct {
-	Prefix string
-	Name   string
-	Expire int
 }
 
 // Load config file from given path
