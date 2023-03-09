@@ -2,10 +2,9 @@ package middleware
 
 import (
 	"github.com/go-chi/cors"
-	"github.com/hiennguyen9874/stockk-go/config"
 )
 
-func Cors(cfg *config.Config) cors.Options {
+func (mw *MiddlewareManager) Cors() cors.Options {
 	// Basic CORS
 	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
 	return cors.Options{

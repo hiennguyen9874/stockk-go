@@ -2,10 +2,12 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/usecase"
@@ -80,4 +82,25 @@ func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, erro
 		return true, nil
 	}
 	return false, nil
+}
+
+func (u *userUseCase) UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (*models.User, error) {
+	user, err := u.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(user.Password, oldPassword, newPassword)
+
+	if !jwt.ComparePassword(oldPassword, user.Password) {
+		return nil, httpErrors.Err(httpErrors.ErrorWrongPassword, http.StatusBadRequest, httpErrors.ErrorWrongPassword.Error())
+	}
+
+	hashedPassword, err := jwt.HashPassword(newPassword)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u.pgRepo.UpdatePassword(ctx, user, hashedPassword)
 }

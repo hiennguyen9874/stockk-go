@@ -10,4 +10,5 @@ import (
 type UserRepository interface {
 	internal.PgRepository[models.User]
 	GetByEmail(ctx context.Context, email string) (res *models.User, err error)
+	UpdatePassword(ctx context.Context, exp *models.User, newPassword string) (res *models.User, err error)
 }

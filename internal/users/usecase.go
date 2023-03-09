@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/internal"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 )
@@ -13,4 +14,5 @@ type UserUseCaseI interface {
 	IsActive(ctx context.Context, exp models.User) bool
 	IsSuper(ctx context.Context, exp models.User) bool
 	CreateSuperUserIfNotExist(context.Context) (bool, error)
+	UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (*models.User, error)
 }

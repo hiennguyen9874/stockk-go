@@ -23,6 +23,8 @@ func CreateAccessToken(id string, email string, secretKey string, expireDuration
 			IssuedAt:  time.Now().Unix(),
 			Issuer:    issuer,
 			ExpiresAt: time.Now().Add(time.Duration(expireDuration)).Unix(),
+			Subject:   id,
+			NotBefore: time.Now().Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -26,3 +26,10 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (res *models.Us
 	}
 	return obj, nil
 }
+
+func (r *UserRepo) UpdatePassword(ctx context.Context, exp *models.User, newPassword string) (res *models.User, err error) {
+	if result := r.DB.WithContext(ctx).Model(&exp).Select("password").Updates(map[string]interface{}{"password": newPassword}); result.Error != nil {
+		return nil, result.Error
+	}
+	return exp, nil
+}

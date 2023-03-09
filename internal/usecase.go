@@ -11,4 +11,5 @@ type UseCaseI[M any] interface {
 	Get(ctx context.Context, id uuid.UUID) (*M, error)
 	GetMulti(ctx context.Context, limit int, offset int) ([]*M, error)
 	Delete(ctx context.Context, id uuid.UUID) (*M, error)
+	Update(ctx context.Context, id uuid.UUID, values map[string]interface{}) (*M, error)
 }

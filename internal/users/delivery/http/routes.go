@@ -16,6 +16,8 @@ func MapUserRoute(router *chi.Mux, db *gorm.DB, h users.Handlers, mw *middleware
 			r.Use(mw.CurrentUser)
 			r.Use(mw.ActiveUser)
 			r.Get("/me", h.Me())
+			r.Post("/me", h.UpdateMe())
+			r.Post("/me/pass", h.UpdatePasswordMe())
 			// Admin routes
 			r.Group(func(r chi.Router) {
 				r.Use(mw.SuperUser)
@@ -29,6 +31,8 @@ func MapUserRoute(router *chi.Mux, db *gorm.DB, h users.Handlers, mw *middleware
 				r.Group(func(r chi.Router) {
 					r.Use(mw.SuperUser)
 					r.Delete("/", h.Delete())
+					r.Post("/", h.Update())
+					r.Post("/pass", h.UpdatePassword())
 				})
 			})
 		})

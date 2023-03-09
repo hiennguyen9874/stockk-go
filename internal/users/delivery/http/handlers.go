@@ -107,6 +107,81 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := uuid.Parse(chi.URLParam(r, "id"))
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		user := new(presenter.UserUpdate)
+
+		err = json.NewDecoder(r.Body).Decode(&user)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), user)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		values := make(map[string]interface{})
+		if user.Name != "" {
+			values["name"] = user.Name
+		}
+
+		updatedUser, err := h.usersUC.Update(r.Context(), id, values)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+		render.Respond(w, r, mapModelResponse(updatedUser))
+	}
+}
+
+func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := uuid.Parse(chi.URLParam(r, "id"))
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		user := new(presenter.UserUpdatePassword)
+
+		err = json.NewDecoder(r.Body).Decode(&user)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), user)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), id, user.OldPassword, user.NewPassword)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+		render.Respond(w, r, mapModelResponse(updatedUser))
+	}
+}
+
 func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := new(presenter.UserSignIn)
@@ -145,6 +220,85 @@ func (h *userHandler) Me() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		render.Respond(w, r, mapModelResponse(user))
+	}
+}
+
+func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		user, err := middleware.GetUserFromCtx(ctx)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		userUpdate := new(presenter.UserUpdate)
+
+		err = json.NewDecoder(r.Body).Decode(&userUpdate)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), userUpdate)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		values := make(map[string]interface{})
+		if userUpdate.Name != "" {
+			values["name"] = userUpdate.Name
+		}
+
+		updatedUser, err := h.usersUC.Update(r.Context(), user.Id, values)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+		render.Respond(w, r, mapModelResponse(updatedUser))
+	}
+}
+
+func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		user, err := middleware.GetUserFromCtx(ctx)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		userUpdate := new(presenter.UserUpdatePassword)
+
+		err = json.NewDecoder(r.Body).Decode(&userUpdate)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), userUpdate)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), user.Id, userUpdate.OldPassword, userUpdate.NewPassword)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+		render.Respond(w, r, mapModelResponse(updatedUser))
 	}
 }
 

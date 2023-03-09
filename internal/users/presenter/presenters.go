@@ -7,10 +7,20 @@ import (
 )
 
 type UserCreate struct {
-	Name            string `json:"name" validate:"required"`
-	Email           string `json:"email" validate:"required"`
-	Password        string `json:"password" validate:"required,min=8"`
-	PasswordConfirm string `json:"password_confirm" validate:"required,min=8"`
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required,min=8"`
+	// PasswordConfirm string `json:"password_confirm" validate:"required,min=8"`
+}
+
+type UserUpdate struct {
+	Name string `json:"name"`
+}
+
+type UserUpdatePassword struct {
+	OldPassword string `json:"old_password" validate:"required,min=8"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+	// PasswordConfirm string `json:"password_confirm" validate:"required,min=8"`
 }
 
 type UserResponse struct {

@@ -20,26 +20,6 @@ import (
 
 func New(db *gorm.DB, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {
 	r := chi.NewRouter()
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.URLFormat)
-	r.Use(middleware.Timeout(15 * time.Second))
-	r.Use(render.SetContentType(render.ContentTypeJSON))
-	r.Use(cors.Handler(apiMiddleware.Cors(cfg)))
-
-	RegisterRoutes(r, db, cfg, logger)
-
-	return r, nil
-}
-
-func RegisterRoutes(router *chi.Mux, db *gorm.DB, cfg *config.Config, logger logger.Logger) {
-	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
-	})
-
-	// routes.UserRoute(router, db)
 
 	// Repository
 	userRepo := userRepository.CreateUserRepository(db)
@@ -53,5 +33,20 @@ func RegisterRoutes(router *chi.Mux, db *gorm.DB, cfg *config.Config, logger log
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
 
-	userHttp.MapUserRoute(router, db, userHandler, mw)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.URLFormat)
+	r.Use(middleware.Timeout(15 * time.Second))
+	r.Use(render.SetContentType(render.ContentTypeJSON))
+	r.Use(cors.Handler(mw.Cors()))
+
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("pong"))
+	})
+
+	userHttp.MapUserRoute(r, db, userHandler, mw)
+
+	return r, nil
 }

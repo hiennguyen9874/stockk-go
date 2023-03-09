@@ -48,3 +48,10 @@ func (r *PgRepo[M]) Delete(ctx context.Context, id uuid.UUID) (res *M, err error
 	}
 	return obj, nil
 }
+
+func (r *PgRepo[M]) Update(ctx context.Context, exp *M, values map[string]interface{}) (res *M, err error) {
+	if result := r.DB.WithContext(ctx).Model(&exp).Updates(values); result.Error != nil {
+		return nil, result.Error
+	}
+	return exp, nil
+}

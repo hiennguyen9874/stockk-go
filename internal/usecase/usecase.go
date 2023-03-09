@@ -44,3 +44,11 @@ func (u *UseCase[M]) GetMulti(ctx context.Context, limit int, offset int) ([]*M,
 func (u *UseCase[M]) Delete(ctx context.Context, id uuid.UUID) (*M, error) {
 	return u.pgRepo.Delete(ctx, id)
 }
+
+func (u *UseCase[M]) Update(ctx context.Context, id uuid.UUID, values map[string]interface{}) (res *M, err error) {
+	obj, err := u.Get(ctx, id)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+	return u.pgRepo.Update(ctx, obj, values)
+}
