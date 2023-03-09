@@ -13,9 +13,9 @@ jwt:
   Issuer: stockk-go
 
 firstSuperUser:
-  Email: admin@gmail.com
+  Email: root@gmail.com
   Name: root
-  Password: admin_password
+  Password: root_password
 
 logger:
   Development: true
