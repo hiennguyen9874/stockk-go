@@ -47,9 +47,14 @@ type PostgresConfig struct {
 
 // Jwt config
 type JwtConfig struct {
-	SecretKey      string
-	ExpireDuration int64
-	Issuer         string
+	// SecretKey                string
+	Issuer                        string
+	JwtAccessTokenExpireDuration  int64
+	JwtAccessTokenPrivateKey      string
+	JwtAccessTokenPublicKey       string
+	JwtRefreshTokenExpireDuration int64
+	JwtRefreshTokenPrivateKey     string
+	JwtRefreshTokenPublicKey      string
 }
 
 // First Super User

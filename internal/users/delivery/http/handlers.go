@@ -197,14 +197,14 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		token, err := h.usersUC.SignIn(r.Context(), user.Email, user.Password)
+		accessToken, refreshToken, err := h.usersUC.SignIn(r.Context(), user.Email, user.Password)
 
 		if err != nil {
 			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
 			return
 		}
 
-		render.Respond(w, r, presenter.Token{AccessToken: token, TokenType: "bearer"})
+		render.Respond(w, r, presenter.Token{AccessToken: accessToken, RefreshToken: refreshToken, TokenType: "bearer"})
 	}
 }
 
@@ -299,6 +299,23 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 			return
 		}
 		render.Respond(w, r, mapModelResponse(updatedUser))
+	}
+}
+
+func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		refreshToken := middleware.TokenFromHeader(r)
+
+		accessToken, refreshToken, err := h.usersUC.Refresh(ctx, refreshToken)
+
+		if err != nil {
+			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			return
+		}
+
+		render.Respond(w, r, presenter.Token{AccessToken: accessToken, RefreshToken: refreshToken, TokenType: "bearer"})
 	}
 }
 

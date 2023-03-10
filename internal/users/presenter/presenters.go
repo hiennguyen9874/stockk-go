@@ -29,8 +29,8 @@ type UserResponse struct {
 	Email       string    `json:"email,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-	IsActive    bool      `json:"is_active"`
-	IsSuperUser bool      `json:"is_superuser"`
+	IsActive    bool      `json:"is_active,omitempty"`
+	IsSuperUser bool      `json:"is_superuser,omitempty"`
 }
 
 type UserSignIn struct {
@@ -39,6 +39,7 @@ type UserSignIn struct {
 }
 
 type Token struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	TokenType    string `json:"token_type,omitempty"`
 }

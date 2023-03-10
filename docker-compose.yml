@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  web:
+  backend:
     build:
       context: .
       # Correct the path to your Dockerfile
@@ -12,16 +12,35 @@ services:
     # Important to bind/mount your codebase dir to /app dir for live reload
     volumes:
       - ./:/app
+    depends_on:
+      - db
 
-  postgres:
+  db:
     image: postgres:15.2-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=db
     volumes:
-      - app_postgres_data:/var/lib/postgresql/data/
-    restart: always
+      - app-postgres-data:/var/lib/postgresql/data/
+    restart: unless-stopped
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   depends_on:
+  #     - db
+  #   expose:
+  #     - 5050
+  #   ports:
+  #     - 5050:5050
+  #   environment:
+  #     - PGADMIN_LISTEN_PORT=5050
+  #     - PGADMIN_DEFAULT_EMAIL=admin@gmail.com
+  #     - PGADMIN_DEFAULT_PASSWORD=admin
+  #   volumes:
+  #     - app-pgadmin-data:/var/lib/pgadmin
+  #   restart: unless-stopped
 
 volumes:
-  app_postgres_data:
+  app-postgres-data:
+  # app-pgadmin-data:

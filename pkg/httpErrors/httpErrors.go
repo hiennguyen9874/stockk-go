@@ -35,6 +35,7 @@ var (
 	ErrorTokenNotFound         = errors.New("token not found")
 	ErrorInactiveUser          = errors.New("inactive user")
 	ErrorNotEnoughPrivileges   = errors.New("not enough privileges")
+	ErrGenToken                = errors.New("error when generate token")
 )
 
 // Rest error interface
