@@ -140,7 +140,7 @@ func ErrRequestTimeoutError(err error) ErrRest {
 func ErrInactiveUser(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusForbidden,
 		StatusText: ErrorInactiveUser.Error(),
 		Msg:        err.Error(),
 	}
@@ -149,7 +149,7 @@ func ErrInactiveUser(err error) ErrRest {
 func ErrNotEnoughPrivileges(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusForbidden,
 		StatusText: ErrorNotEnoughPrivileges.Error(),
 		Msg:        err.Error(),
 	}
@@ -158,7 +158,7 @@ func ErrNotEnoughPrivileges(err error) ErrRest {
 func ErrInvalidJWTToken(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusUnauthorized,
 		StatusText: ErrorInvalidJWTToken.Error(),
 		Msg:        err.Error(),
 	}
@@ -167,7 +167,7 @@ func ErrInvalidJWTToken(err error) ErrRest {
 func ErrInvalidJWTClaims(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusUnauthorized,
 		StatusText: ErrorInvalidJWTClaims.Error(),
 		Msg:        err.Error(),
 	}
@@ -176,7 +176,7 @@ func ErrInvalidJWTClaims(err error) ErrRest {
 func ErrWrongPassword(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusUnauthorized,
 		StatusText: ErrorWrongPassword.Error(),
 		Msg:        err.Error(),
 	}
@@ -194,7 +194,7 @@ func ErrGenToken(err error) ErrRest {
 func ErrTokenNotFound(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
-		Status:     http.StatusBadRequest,
+		Status:     http.StatusUnauthorized,
 		StatusText: ErrorTokenNotFound.Error(),
 		Msg:        err.Error(),
 	}
