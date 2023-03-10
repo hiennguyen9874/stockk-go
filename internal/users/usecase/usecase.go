@@ -42,7 +42,7 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	return u.pgRepo.Create(ctx, exp)
 }
 
-func (u *userUseCase) CreateToken(ctx context.Context, exp models.User) (string, string, error) {
+func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string, string, error) {
 	accessToken, err := jwt.CreateAccessTokenRS256(exp.Id.String(), exp.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
 
 	if err != nil {
@@ -69,7 +69,7 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 		return "", "", httpErrors.ErrWrongPassword(errors.New("wrong password"))
 	}
 
-	return u.CreateToken(ctx, *user)
+	return u.createToken(ctx, *user)
 }
 
 func (u *userUseCase) IsActive(ctx context.Context, exp models.User) bool {
@@ -137,5 +137,5 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	return u.CreateToken(ctx, *user)
+	return u.createToken(ctx, *user)
 }
