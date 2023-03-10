@@ -31,8 +31,8 @@ type ServerConfig struct {
 
 // Logger config
 type Logger struct {
-	Encoding string
-	Level    string
+	LoggerEncoding string
+	LoggerLevel    string
 }
 
 // Postgresql config
@@ -47,8 +47,8 @@ type PostgresConfig struct {
 
 // Jwt config
 type JwtConfig struct {
-	// SecretKey                string
-	Issuer                        string
+	// JwtSecretKey                string
+	JwtIssuer                     string
 	JwtAccessTokenExpireDuration  int64
 	JwtAccessTokenPrivateKey      string
 	JwtAccessTokenPublicKey       string
@@ -59,9 +59,9 @@ type JwtConfig struct {
 
 // First Super User
 type FirstSuperUserConfig struct {
-	Email    string
-	Name     string
-	Password string
+	FirstSuperUserEmail    string
+	FirstSuperUserName     string
+	FirstSuperUserPassword string
 }
 
 // Load config file from given path

@@ -20,7 +20,7 @@ var initDataCmd = &cobra.Command{
 
 		appLogger := logger.NewApiLogger(cfg)
 		appLogger.InitLogger()
-		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.LoggerLevel, cfg.Server.Mode)
 
 		psqlDB, err := postgres.NewPsqlDB(cfg)
 		if err != nil {

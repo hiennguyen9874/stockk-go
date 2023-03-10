@@ -53,13 +53,13 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 		return "", "", httpErrors.Err(httpErrors.ErrorWrongPassword, http.StatusBadRequest, "wrong password")
 	}
 
-	accessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.Issuer)
+	accessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
 
 	if err != nil {
 		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate access token")
 	}
 
-	refreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.Issuer)
+	refreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
 
 	if err != nil {
 		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate refresh token")
@@ -77,13 +77,13 @@ func (u *userUseCase) IsSuper(ctx context.Context, exp models.User) bool {
 }
 
 func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, error) {
-	user, err := u.pgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.Email)
+	user, err := u.pgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.FirstSuperUserEmail)
 
 	if err != nil || user == nil {
 		_, err := u.Create(ctx, &models.User{
-			Name:        u.Cfg.FirstSuperUser.Name,
-			Email:       u.Cfg.FirstSuperUser.Email,
-			Password:    u.Cfg.FirstSuperUser.Password,
+			Name:        u.Cfg.FirstSuperUser.FirstSuperUserName,
+			Email:       u.Cfg.FirstSuperUser.FirstSuperUserEmail,
+			Password:    u.Cfg.FirstSuperUser.FirstSuperUserPassword,
 			IsActive:    true,
 			IsSuperUser: true,
 		})
@@ -133,13 +133,13 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	newAccessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.Issuer)
+	newAccessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
 
 	if err != nil {
 		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate access token")
 	}
 
-	newRefreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.Issuer)
+	newRefreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
 
 	if err != nil {
 		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate refresh token")
