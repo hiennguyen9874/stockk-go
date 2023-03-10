@@ -11,21 +11,20 @@ import (
 )
 
 var (
-	ErrorBadRequest          = errors.New("bad request")
-	ErrorNotFound            = errors.New("not found")
+	ErrorBadRequest          = errors.New("bad_request")
+	ErrorNotFound            = errors.New("not_found")
 	ErrorUnauthorized        = errors.New("unauthorized")
-	ErrorForbidden           = errors.New("forbidden")
-	ErrorInternalServerError = errors.New("internal server error")
-	ErrorRequestTimeoutError = errors.New("request timeout")
-	ErrorExistsEmailError    = errors.New("user with given email already exists")
-	ErrorInvalidJWTToken     = errors.New("invalid jwt token")
-	ErrorInvalidJWTClaims    = errors.New("invalid jwt claims")
+	ErrorInternalServerError = errors.New("internal_server_error")
+	ErrorRequestTimeoutError = errors.New("request_timeout")
+	ErrorExistsEmailError    = errors.New("email_exists")
+	ErrorInvalidJWTToken     = errors.New("invalid_jwt_token")
+	ErrorInvalidJWTClaims    = errors.New("invalid_jwt_claims")
 	ErrorValidation          = errors.New("validation")
-	ErrorWrongPassword       = errors.New("wrong password")
-	ErrorTokenNotFound       = errors.New("token not found")
-	ErrorInactiveUser        = errors.New("inactive user")
-	ErrorNotEnoughPrivileges = errors.New("not enough privileges")
-	ErrorGenToken            = errors.New("error when generate token")
+	ErrorWrongPassword       = errors.New("wrong_password")
+	ErrorTokenNotFound       = errors.New("token_not_found")
+	ErrorInactiveUser        = errors.New("inactive_user")
+	ErrorNotEnoughPrivileges = errors.New("not_enough_privileges")
+	ErrorGenToken            = errors.New("generate_token_error")
 )
 
 // Rest error interface
@@ -97,15 +96,6 @@ func ErrUnauthorized(err error) ErrRest {
 		Err:        err,
 		Status:     http.StatusUnauthorized,
 		StatusText: ErrorUnauthorized.Error(),
-		Msg:        err.Error(),
-	}
-}
-
-func ErrForbidden(err error) ErrRest {
-	return &ErrResponse{
-		Err:        err,
-		Status:     http.StatusForbidden,
-		StatusText: ErrorForbidden.Error(),
 		Msg:        err.Error(),
 	}
 }
