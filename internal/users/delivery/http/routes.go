@@ -8,6 +8,15 @@ import (
 )
 
 func MapUserRoute(router *chi.Mux, db *gorm.DB, h users.Handlers, mw *middleware.MiddlewareManager) {
+	// Auth routes
+	router.Route("/auth", func(r chi.Router) {
+		// Public routes
+		r.Group(func(r chi.Router) {
+			r.Post("/login", h.SignIn())
+			r.Get("/refresh", h.RefreshToken())
+		})
+	})
+	// User routes
 	router.Route("/user", func(r chi.Router) {
 		// Protected routes
 		r.Group(func(r chi.Router) {
@@ -35,11 +44,6 @@ func MapUserRoute(router *chi.Mux, db *gorm.DB, h users.Handlers, mw *middleware
 					r.Patch("/pass", h.UpdatePassword())
 				})
 			})
-		})
-		// Public routes
-		r.Group(func(r chi.Router) {
-			r.Post("/login", h.SignIn())
-			r.Get("/refresh", h.RefreshToken())
 		})
 	})
 }
