@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"net/http"
+	"errors"
 	"strings"
 	"time"
 
@@ -42,6 +42,22 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	return u.pgRepo.Create(ctx, exp)
 }
 
+func (u *userUseCase) CreateToken(ctx context.Context, exp models.User) (string, string, error) {
+	accessToken, err := jwt.CreateAccessTokenRS256(exp.Id.String(), exp.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := jwt.CreateAccessTokenRS256(exp.Id.String(), exp.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
 func (u *userUseCase) SignIn(ctx context.Context, email string, password string) (string, string, error) {
 	user, err := u.pgRepo.GetByEmail(ctx, email)
 
@@ -50,22 +66,10 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 	}
 
 	if !jwt.ComparePassword(password, user.Password) {
-		return "", "", httpErrors.Err(httpErrors.ErrorWrongPassword, http.StatusBadRequest, "wrong password")
+		return "", "", httpErrors.ErrWrongPassword(errors.New("wrong password"))
 	}
 
-	accessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
-
-	if err != nil {
-		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate access token")
-	}
-
-	refreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
-
-	if err != nil {
-		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate refresh token")
-	}
-
-	return accessToken, refreshToken, nil
+	return u.CreateToken(ctx, *user)
 }
 
 func (u *userUseCase) IsActive(ctx context.Context, exp models.User) bool {
@@ -102,7 +106,7 @@ func (u *userUseCase) UpdatePassword(ctx context.Context, id uuid.UUID, oldPassw
 	}
 
 	if !jwt.ComparePassword(oldPassword, user.Password) {
-		return nil, httpErrors.Err(httpErrors.ErrorWrongPassword, http.StatusBadRequest, httpErrors.ErrorWrongPassword.Error())
+		return nil, httpErrors.ErrWrongPassword(errors.New("old password and new password not same"))
 	}
 
 	hashedPassword, err := jwt.HashPassword(newPassword)
@@ -124,7 +128,7 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 	idParsed, err := uuid.Parse(id)
 
 	if err != nil {
-		return "", "", err
+		return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))
 	}
 
 	user, err := u.Get(ctx, idParsed)
@@ -133,17 +137,5 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	newAccessToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
-
-	if err != nil {
-		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate access token")
-	}
-
-	newRefreshToken, err := jwt.CreateAccessTokenRS256(user.Id.String(), user.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
-
-	if err != nil {
-		return "", "", httpErrors.Err(httpErrors.ErrGenToken, http.StatusBadRequest, "wrong when generate refresh token")
-	}
-
-	return newAccessToken, newRefreshToken, nil
+	return u.CreateToken(ctx, *user)
 }

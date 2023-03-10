@@ -7,35 +7,25 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/render"
 	"gorm.io/gorm"
 )
 
 var (
-	ErrorBadRequest            = errors.New("bad request")
-	ErrorWrongCredentials      = errors.New("wrong credentials")
-	ErrorNotFound              = errors.New("not found")
-	ErrorUnauthorized          = errors.New("unauthorized")
-	ErrorForbidden             = errors.New("forbidden")
-	ErrorPermissionDenied      = errors.New("permission denied")
-	ErrorExpiredCSRFError      = errors.New("expired csrf token")
-	ErrorWrongCSRFToken        = errors.New("wrong csrf token")
-	ErrorCSRFNotPresented      = errors.New("csrf not presented")
-	ErrorNotRequiredFields     = errors.New("no such required fields")
-	ErrorBadQueryParams        = errors.New("invalid query params")
-	ErrorInternalServerError   = errors.New("internal server error")
-	ErrorRequestTimeoutError   = errors.New("request timeout")
-	ErrorExistsEmailError      = errors.New("user with given email already exists")
-	ErrorInvalidJWTToken       = errors.New("invalid jwt token")
-	ErrorInvalidJWTClaims      = errors.New("invalid jwt claims")
-	ErrorNotAllowedImageHeader = errors.New("not allowed image header")
-	ErrorNoCookie              = errors.New("not found cookie header")
-	ErrorValidation            = errors.New("validation")
-	ErrorWrongPassword         = errors.New("wrong password")
-	ErrorTokenNotFound         = errors.New("token not found")
-	ErrorInactiveUser          = errors.New("inactive user")
-	ErrorNotEnoughPrivileges   = errors.New("not enough privileges")
-	ErrGenToken                = errors.New("error when generate token")
+	ErrorBadRequest          = errors.New("bad request")
+	ErrorNotFound            = errors.New("not found")
+	ErrorUnauthorized        = errors.New("unauthorized")
+	ErrorForbidden           = errors.New("forbidden")
+	ErrorInternalServerError = errors.New("internal server error")
+	ErrorRequestTimeoutError = errors.New("request timeout")
+	ErrorExistsEmailError    = errors.New("user with given email already exists")
+	ErrorInvalidJWTToken     = errors.New("invalid jwt token")
+	ErrorInvalidJWTClaims    = errors.New("invalid jwt claims")
+	ErrorValidation          = errors.New("validation")
+	ErrorWrongPassword       = errors.New("wrong password")
+	ErrorTokenNotFound       = errors.New("token not found")
+	ErrorInactiveUser        = errors.New("inactive user")
+	ErrorNotEnoughPrivileges = errors.New("not enough privileges")
+	ErrorGenToken            = errors.New("error when generate token")
 )
 
 // Rest error interface
@@ -45,7 +35,6 @@ type ErrRest interface {
 	GetStatusText() string
 	GetMsg() string
 	Error() string
-	Render(w http.ResponseWriter, r *http.Request) error
 }
 
 //--
@@ -83,21 +72,6 @@ func (e *ErrResponse) GetMsg() string {
 // Error Error() interface method
 func (e *ErrResponse) Error() string {
 	return fmt.Sprintf("status: %d - statusText: %s - msg: %s - error: %v", e.Status, e.StatusText, e.Msg, e.Err)
-}
-
-// render.Renderer Render() interface method
-func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.Status)
-	return nil
-}
-
-func Err(err error, status int, statusText string) ErrRest {
-	return &ErrResponse{
-		Err:        err,
-		Status:     status,
-		StatusText: statusText,
-		Msg:        err.Error(),
-	}
 }
 
 func ErrBadRequest(err error) ErrRest {
@@ -154,6 +128,15 @@ func ErrValidation(err error) ErrRest {
 	}
 }
 
+func ErrRequestTimeoutError(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusRequestTimeout,
+		StatusText: ErrorRequestTimeoutError.Error(),
+		Msg:        err.Error(),
+	}
+}
+
 func ErrInactiveUser(err error) ErrRest {
 	return &ErrResponse{
 		Err:        err,
@@ -172,13 +155,58 @@ func ErrNotEnoughPrivileges(err error) ErrRest {
 	}
 }
 
-// Parser of error string messages returns RestError
+func ErrInvalidJWTToken(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorInvalidJWTToken.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrInvalidJWTClaims(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorInvalidJWTClaims.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrWrongPassword(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorWrongPassword.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrGenToken(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorGenToken.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrTokenNotFound(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		StatusText: ErrorTokenNotFound.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+// Parser of error string messages ,returns RestError
 func ParseErrors(err error) ErrRest {
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return ErrNotFound(err)
 	case errors.Is(err, context.DeadlineExceeded):
-		return Err(err, http.StatusRequestTimeout, ErrorRequestTimeoutError.Error())
+		return ErrRequestTimeoutError(err)
 	case strings.Contains(err.Error(), "SQLSTATE"):
 		return parseSqlErrors(err)
 	default:
@@ -189,6 +217,7 @@ func ParseErrors(err error) ErrRest {
 	}
 }
 
+// Parser sql error, returns RestError
 func parseSqlErrors(err error) ErrRest {
 	if strings.Contains(err.Error(), "23505") {
 		return &ErrResponse{
@@ -196,23 +225,6 @@ func parseSqlErrors(err error) ErrRest {
 			Status:     http.StatusBadRequest,
 			StatusText: ErrorExistsEmailError.Error(),
 			Msg:        err.Error(),
-		}
-	}
-	return &ErrResponse{
-		Err:        err,
-		Status:     http.StatusBadRequest,
-		StatusText: ErrorBadRequest.Error(),
-		Msg:        err.Error(),
-	}
-}
-
-func ErrRender(err error) render.Renderer {
-	if restErr, ok := err.(ErrRest); ok {
-		return &ErrResponse{
-			Err:        restErr.GetErr(),
-			Status:     restErr.GetStatus(),
-			StatusText: restErr.GetStatusText(),
-			Msg:        restErr.GetMsg(),
 		}
 	}
 	return &ErrResponse{

@@ -1,11 +1,16 @@
 package jwt
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"errors"
+
+	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"golang.org/x/crypto/bcrypt"
+)
 
 func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", httpErrors.ErrBadRequest(errors.New("can not hash password"))
 	}
 	return string(hashedPassword), nil
 }

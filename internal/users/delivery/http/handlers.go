@@ -15,6 +15,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/users/presenter"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/responses"
 	"github.com/hiennguyen9874/stockk-go/pkg/utils"
 )
 
@@ -35,23 +36,26 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewDecoder(r.Body).Decode(&user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		newUser, err := h.usersUC.Create(r.Context(), mapModel(user))
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(newUser))
+
+		userResponse := *mapModelResponse(newUser)
+
+		render.Respond(w, r, responses.CreateSuccessResponse(userResponse))
 	}
 }
 
@@ -60,15 +64,15 @@ func (h *userHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 		user, err := h.usersUC.Get(r.Context(), id)
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(user))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(user)))
 	}
 }
 
@@ -82,11 +86,11 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 		users, err := h.usersUC.GetMulti(r.Context(), limit, offset)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
-		render.Respond(w, r, mapModelsResponse(users))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelsResponse(users)))
 	}
 }
 
@@ -95,15 +99,15 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 		user, err := h.usersUC.Delete(r.Context(), id)
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(user))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(user)))
 	}
 }
 
@@ -112,7 +116,7 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
@@ -121,14 +125,14 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 		err = json.NewDecoder(r.Body).Decode(&user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
@@ -140,10 +144,10 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 		updatedUser, err := h.usersUC.Update(r.Context(), id, values)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(updatedUser))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
 
@@ -152,7 +156,7 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
@@ -161,24 +165,24 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 		err = json.NewDecoder(r.Body).Decode(&user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), id, user.OldPassword, user.NewPassword)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(updatedUser))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
 
@@ -193,14 +197,14 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 		err := utils.ValidateStruct(r.Context(), user)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		accessToken, refreshToken, err := h.usersUC.SignIn(r.Context(), user.Email, user.Password)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
@@ -215,11 +219,11 @@ func (h *userHandler) Me() func(w http.ResponseWriter, r *http.Request) {
 		user, err := middleware.GetUserFromCtx(ctx)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
-		render.Respond(w, r, mapModelResponse(user))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(user)))
 	}
 }
 
@@ -230,7 +234,7 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		user, err := middleware.GetUserFromCtx(ctx)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
@@ -239,14 +243,14 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		err = json.NewDecoder(r.Body).Decode(&userUpdate)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), userUpdate)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
@@ -258,10 +262,10 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		updatedUser, err := h.usersUC.Update(r.Context(), user.Id, values)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(updatedUser))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
 
@@ -272,7 +276,7 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 		user, err := middleware.GetUserFromCtx(ctx)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
@@ -281,24 +285,24 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 		err = json.NewDecoder(r.Body).Decode(&userUpdate)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), userUpdate)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), user.Id, userUpdate.OldPassword, userUpdate.NewPassword)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
-		render.Respond(w, r, mapModelResponse(updatedUser))
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
 
@@ -311,7 +315,7 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 		accessToken, refreshToken, err := h.usersUC.Refresh(ctx, refreshToken)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 

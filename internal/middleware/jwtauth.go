@@ -11,6 +11,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
+	"github.com/hiennguyen9874/stockk-go/pkg/responses"
 )
 
 var (
@@ -54,7 +55,7 @@ func (mw *MiddlewareManager) Verifier(next http.Handler) http.Handler {
 		token := TokenFromHeader(r)
 
 		if token == "" {
-			err := httpErrors.ErrorTokenNotFound
+			err := httpErrors.ErrTokenNotFound(errors.New("not found token in header"))
 			ctx = context.WithValue(ctx, ErrorCtxKey, err)
 		} else {
 			id, email, err := jwt.ParseTokenRS256(token, mw.cfg.Jwt.JwtAccessTokenPublicKey)
@@ -77,7 +78,7 @@ func (mw *MiddlewareManager) Authenticator(next http.Handler) http.Handler {
 		err, _ := r.Context().Value(ErrorCtxKey).(error)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(err))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
@@ -94,21 +95,21 @@ func (mw *MiddlewareManager) CurrentUser(next http.Handler) http.Handler {
 		err, _ := r.Context().Value(ErrorCtxKey).(error)
 
 		if err != nil || id == "" {
-			render.Render(w, r, httpErrors.ErrRender(err))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ParseErrors(err)))
 			return
 		}
 
 		idParsed, err := uuid.Parse(id)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.Err(err, http.StatusBadRequest, httpErrors.ErrorInvalidJWTClaims.Error())))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))))
 			return
 		}
 
 		user, err := mw.usersUC.Get(ctx, idParsed)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(err))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
@@ -125,12 +126,12 @@ func (mw *MiddlewareManager) SuperUser(next http.Handler) http.Handler {
 		user, err := GetUserFromCtx(ctx)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		if !mw.usersUC.IsSuper(ctx, *user) {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrNotEnoughPrivileges(errors.New("not enough privileges"))))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(errors.New("user is not super user"))))
 			return
 		}
 
@@ -145,12 +146,12 @@ func (mw *MiddlewareManager) ActiveUser(next http.Handler) http.Handler {
 		user, err := GetUserFromCtx(ctx)
 
 		if err != nil {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ParseErrors(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		if !mw.usersUC.IsActive(ctx, *user) {
-			render.Render(w, r, httpErrors.ErrRender(httpErrors.ErrInactiveUser(errors.New("inactive user"))))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInactiveUser(errors.New("user inactive"))))
 			return
 		}
 
@@ -173,7 +174,7 @@ func TokenFromHeader(r *http.Request) string {
 func GetUserFromCtx(ctx context.Context) (*models.User, error) {
 	user, ok := ctx.Value(UserCtxKey).(*models.User)
 	if !ok {
-		return nil, httpErrors.ErrUnauthorized(errors.New("Can convert user from context"))
+		return nil, httpErrors.ErrUnauthorized(errors.New("can convert user from context"))
 	}
 	return user, nil
 }

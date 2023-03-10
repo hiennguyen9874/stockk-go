@@ -2,8 +2,8 @@ package jwt
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -41,18 +41,18 @@ func ParseTokenHS256(tokenString string, secretKey string) (id string, email str
 	})
 
 	if err != nil {
-		return "", "", err
+		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
 	}
 
 	if !token.Valid {
-		return "", "", httpErrors.Err(httpErrors.ErrorInvalidJWTToken, http.StatusBadRequest, httpErrors.ErrorInvalidJWTToken.Error())
+		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
 	}
 
 	if claims, ok := token.Claims.(*AuthClaims); ok {
 		return claims.Id, claims.Email, nil
 	}
 
-	return "", "", httpErrors.Err(httpErrors.ErrorInvalidJWTClaims, http.StatusBadRequest, httpErrors.ErrorInvalidJWTClaims.Error())
+	return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
 }
 
 func CreateAccessTokenRS256(id string, email string, privateKey string, expireDuration int64, issuer string) (string, error) {
@@ -70,18 +70,18 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 
 	decodedPrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {
-		return "", err
+		return "", httpErrors.ErrBadRequest(errors.New("can not decode base64 private key"))
 	}
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
 
 	if err != nil {
-		return "", err
+		return "", httpErrors.ErrBadRequest(errors.New("can not parse rsa private key from pem"))
 	}
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(key)
 
 	if err != nil {
-		return "", err
+		return "", httpErrors.ErrBadRequest(errors.New("can not create token"))
 	}
 
 	return token, nil
@@ -90,13 +90,12 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 func ParseTokenRS256(tokenString string, publicKey string) (id string, email string, err error) {
 	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
-		return "", "", err
+		return "", "", httpErrors.ErrBadRequest(errors.New("can not decode base64 public key"))
 	}
 
 	key, err := jwt.ParseRSAPublicKeyFromPEM(decodedPublicKey)
-
 	if err != nil {
-		return "", "", err
+		return "", "", httpErrors.ErrBadRequest(errors.New("can not parse rsa public key from pem"))
 	}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -105,18 +104,17 @@ func ParseTokenRS256(tokenString string, publicKey string) (id string, email str
 		}
 		return key, nil
 	})
-
 	if err != nil {
-		return "", "", err
+		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
 	}
 
 	if !parsedToken.Valid {
-		return "", "", httpErrors.Err(httpErrors.ErrorInvalidJWTToken, http.StatusBadRequest, httpErrors.ErrorInvalidJWTToken.Error())
+		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
 	}
 
 	if claims, ok := parsedToken.Claims.(*AuthClaims); ok {
 		return claims.Id, claims.Email, nil
 	}
 
-	return "", "", httpErrors.Err(httpErrors.ErrorInvalidJWTClaims, http.StatusBadRequest, httpErrors.ErrorInvalidJWTClaims.Error())
+	return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
 }
