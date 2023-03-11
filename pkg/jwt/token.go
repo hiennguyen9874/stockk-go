@@ -55,6 +55,14 @@ func ParseTokenHS256(tokenString string, secretKey string) (id string, email str
 	return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
 }
 
+func DecodeBase64(base64String string) ([]byte, error) {
+	decodedPrivateKey, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return nil, httpErrors.ErrBadRequest(errors.New("can not decode base64 private key"))
+	}
+	return decodedPrivateKey, err
+}
+
 func CreateAccessTokenRS256(id string, email string, privateKey string, expireDuration int64, issuer string) (string, error) {
 	claims := AuthClaims{
 		Email: email,
@@ -68,9 +76,9 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 		},
 	}
 
-	decodedPrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
+	decodedPrivateKey, err := DecodeBase64(privateKey)
 	if err != nil {
-		return "", httpErrors.ErrBadRequest(errors.New("can not decode base64 private key"))
+		return "", err
 	}
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
 
@@ -88,9 +96,9 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 }
 
 func ParseTokenRS256(tokenString string, publicKey string) (id string, email string, err error) {
-	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKey)
+	decodedPublicKey, err := DecodeBase64(publicKey)
 	if err != nil {
-		return "", "", httpErrors.ErrBadRequest(errors.New("can not decode base64 public key"))
+		return "", "", err
 	}
 
 	key, err := jwt.ParseRSAPublicKeyFromPEM(decodedPublicKey)

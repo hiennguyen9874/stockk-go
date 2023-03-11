@@ -14,6 +14,7 @@ func MapUserRoute(router *chi.Mux, db *gorm.DB, h users.Handlers, mw *middleware
 		r.Group(func(r chi.Router) {
 			r.Post("/login", h.SignIn())
 			r.Get("/refresh", h.RefreshToken())
+			r.Get("/publickey", h.GetPublicKey())
 		})
 	})
 	// User routes

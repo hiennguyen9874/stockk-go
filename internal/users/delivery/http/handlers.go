@@ -14,6 +14,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/users"
 	"github.com/hiennguyen9874/stockk-go/internal/users/presenter"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/hiennguyen9874/stockk-go/pkg/responses"
 	"github.com/hiennguyen9874/stockk-go/pkg/utils"
@@ -320,6 +321,29 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 		}
 
 		render.Respond(w, r, presenter.Token{AccessToken: accessToken, RefreshToken: refreshToken, TokenType: "bearer"})
+	}
+}
+
+func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		publicKeyAccessToken, err := jwt.DecodeBase64(h.cfg.Jwt.JwtAccessTokenPublicKey)
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		publicKeyRefreshToken, err := jwt.DecodeBase64(h.cfg.Jwt.JwtRefreshTokenPublicKey)
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		render.Respond(w, r, presenter.PublicKey{
+			PublicKeyAccessToken:  string(publicKeyAccessToken[:]),
+			PublicKeyRefreshToken: string(publicKeyRefreshToken[:]),
+		})
 	}
 }
 

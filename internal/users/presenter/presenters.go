@@ -43,3 +43,8 @@ type Token struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 	TokenType    string `json:"token_type,omitempty"`
 }
+
+type PublicKey struct {
+	PublicKeyAccessToken  string `json:"public_key_access_token,omitempty"`
+	PublicKeyRefreshToken string `json:"public_key_refresh_token,omitempty"`
+}
