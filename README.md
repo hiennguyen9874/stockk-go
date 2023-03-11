@@ -6,6 +6,7 @@
 - Traefik
 - Celery
 - Config using .env
+- Linter
 
 ## Boilerplate Structure
 
