@@ -1,12 +1,11 @@
 # TODO
 
 - Swagger
-- Cookie
-- Session using redis
+  <!-- - Cookie -->
+  <!-- - Session using redis -->
 - Traefik
 - Celery
 - Config using .env
-- Save refresh token in redis, refresh token will check token available in redis, logout will remove token in redis
 
 ## Boilerplate Structure
 
