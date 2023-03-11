@@ -347,6 +347,62 @@ func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		refreshToken := middleware.TokenFromHeader(r)
+
+		err := h.usersUC.Logout(ctx, refreshToken)
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+	}
+}
+
+func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		refreshToken := middleware.TokenFromHeader(r)
+
+		id, err := h.usersUC.ParseIdFromRefreshToken(ctx, refreshToken)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		err = h.usersUC.LogoutAll(ctx, id)
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+	}
+}
+
+func (h *userHandler) LogoutAllAdmin() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		id, err := uuid.Parse(chi.URLParam(r, "id"))
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		err = h.usersUC.LogoutAll(ctx, id)
+
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+	}
+}
+
 func mapModel(exp *presenter.UserCreate) *models.User {
 	return &models.User{
 		Name:        exp.Name,

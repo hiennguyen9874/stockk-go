@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/hiennguyen9874/stockk-go/internal"
 	"gorm.io/gorm"
 )
 
@@ -13,6 +14,10 @@ type PgRepo[M any] struct {
 
 func CreatePgRepo[M any](db *gorm.DB) PgRepo[M] {
 	return PgRepo[M]{DB: db}
+}
+
+func CreatePgRepository[M any](db *gorm.DB) internal.PgRepository[M] {
+	return &PgRepo[M]{DB: db}
 }
 
 func (r *PgRepo[M]) Get(ctx context.Context, id uuid.UUID) (res *M, err error) {

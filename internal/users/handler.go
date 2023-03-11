@@ -15,4 +15,7 @@ type Handlers interface {
 	UpdatePasswordMe() func(w http.ResponseWriter, r *http.Request)
 	RefreshToken() func(w http.ResponseWriter, r *http.Request)
 	GetPublicKey() func(w http.ResponseWriter, r *http.Request)
+	Logout() func(w http.ResponseWriter, r *http.Request)
+	LogoutAllToken() func(w http.ResponseWriter, r *http.Request)
+	LogoutAllAdmin() func(w http.ResponseWriter, r *http.Request)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
 	"github.com/hiennguyen9874/stockk-go/config"
@@ -18,14 +19,15 @@ import (
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 )
 
-func New(db *gorm.DB, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {
+func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {
 	r := chi.NewRouter()
 
 	// Repository
-	userRepo := userRepository.CreateUserRepository(db)
+	userPgRepo := userRepository.CreateUserPgRepository(db)
+	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 
 	// UseCase
-	userUC := userUseCase.CreateUserUseCaseI(userRepo, cfg, logger)
+	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
@@ -46,7 +48,7 @@ func New(db *gorm.DB, cfg *config.Config, logger logger.Logger) (*chi.Mux, error
 		w.Write([]byte("pong"))
 	})
 
-	userHttp.MapUserRoute(r, db, userHandler, mw)
+	userHttp.MapUserRoute(r, userHandler, mw)
 
 	return r, nil
 }

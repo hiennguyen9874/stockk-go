@@ -15,5 +15,10 @@ type UserUseCaseI interface {
 	IsSuper(ctx context.Context, exp models.User) bool
 	CreateSuperUserIfNotExist(context.Context) (bool, error)
 	UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (*models.User, error)
+	ParseIdFromRefreshToken(ctx context.Context, refreshToken string) (idParsed uuid.UUID, err error)
 	Refresh(ctx context.Context, refreshToken string) (string, string, error)
+	GenerateRedisUserKey(id uuid.UUID) string
+	GenerateRedisRefreshTokenKey(id uuid.UUID) string
+	Logout(ctx context.Context, refreshToken string) error
+	LogoutAll(ctx context.Context, id uuid.UUID) error
 }

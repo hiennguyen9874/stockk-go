@@ -16,3 +16,12 @@ type User struct {
 	IsActive    bool      `gorm:"not null;default:true"`
 	IsSuperUser bool      `gorm:"not null;default:false"`
 }
+
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (User) TableName() string {
+	return "user"
+}

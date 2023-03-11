@@ -23,6 +23,14 @@ func CreateUseCase[M any](repo internal.PgRepository[M], cfg *config.Config, log
 	}
 }
 
+func CreateUseCaseI[M any](repo internal.PgRepository[M], cfg *config.Config, logger logger.Logger) internal.UseCaseI[M] {
+	return &UseCase[M]{
+		pgRepo: repo,
+		Cfg:    cfg,
+		Logger: logger,
+	}
+}
+
 func (u *UseCase[M]) Create(ctx context.Context, exp *M) (*M, error) {
 	return u.pgRepo.Create(ctx, exp)
 }

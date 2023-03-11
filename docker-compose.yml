@@ -14,6 +14,7 @@ services:
       - ./:/app
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:15.2-alpine
@@ -21,9 +22,38 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=db
+    expose:
+      - 5432
     volumes:
       - app-postgres-data:/var/lib/postgresql/data/
     restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    expose:
+      - 6579
+    volumes:
+      - app-redis-data:/data
+    restart: unless-stopped
+
+  # redisinsight:
+  #   image: redislabs/redisinsight:1.13.1
+  #   ports:
+  #     - 8001:8001
+  #   volumes:
+  #     - app-redisinsight-data:/db
+  #   depends_on:
+  #     - redis
+
+  # redis:
+  #   image: redis/redis-stack:7.0.0-RC4
+  #   expose:
+  #     - 6379
+  #   volumes:
+  #     - app-redis-data:/data
+  #   ports:
+  #     - 8001:8001
+  #   restart: unless-stopped
 
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -43,4 +73,6 @@ services:
 
 volumes:
   app-postgres-data:
+  app-redisinsight-data:
+  app-redis-data: 
   # app-pgadmin-data:

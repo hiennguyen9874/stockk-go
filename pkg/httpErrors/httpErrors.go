@@ -11,20 +11,22 @@ import (
 )
 
 var (
-	ErrorBadRequest          = errors.New("bad_request")
-	ErrorNotFound            = errors.New("not_found")
-	ErrorUnauthorized        = errors.New("unauthorized")
-	ErrorInternalServerError = errors.New("internal_server_error")
-	ErrorRequestTimeoutError = errors.New("request_timeout")
-	ErrorExistsEmailError    = errors.New("email_exists")
-	ErrorInvalidJWTToken     = errors.New("invalid_jwt_token")
-	ErrorInvalidJWTClaims    = errors.New("invalid_jwt_claims")
-	ErrorValidation          = errors.New("validation")
-	ErrorWrongPassword       = errors.New("wrong_password")
-	ErrorTokenNotFound       = errors.New("token_not_found")
-	ErrorInactiveUser        = errors.New("inactive_user")
-	ErrorNotEnoughPrivileges = errors.New("not_enough_privileges")
-	ErrorGenToken            = errors.New("generate_token_error")
+	ErrorBadRequest                = errors.New("bad_request")
+	ErrorNotFound                  = errors.New("not_found")
+	ErrorUnauthorized              = errors.New("unauthorized")
+	ErrorInternalServerError       = errors.New("internal_server_error")
+	ErrorRequestTimeoutError       = errors.New("request_timeout")
+	ErrorExistsEmailError          = errors.New("email_exists")
+	ErrorInvalidJWTToken           = errors.New("invalid_jwt_token")
+	ErrorInvalidJWTClaims          = errors.New("invalid_jwt_claims")
+	ErrorValidation                = errors.New("validation")
+	ErrorWrongPassword             = errors.New("wrong_password")
+	ErrorTokenNotFound             = errors.New("token_not_found")
+	ErrorInactiveUser              = errors.New("inactive_user")
+	ErrorNotEnoughPrivileges       = errors.New("not_enough_privileges")
+	ErrorGenToken                  = errors.New("generate_token_error")
+	ErrorJson                      = errors.New("error_json_marshal")
+	ErrorNotFoundRefreshTokenRedis = errors.New("not_found_refresh_token_redis")
 )
 
 // Rest error interface
@@ -186,6 +188,24 @@ func ErrTokenNotFound(err error) ErrRest {
 		Err:        err,
 		Status:     http.StatusUnauthorized,
 		StatusText: ErrorTokenNotFound.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrJson(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorJson.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrNotFoundRefreshTokenRedis(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorNotFoundRefreshTokenRedis.Error(),
 		Msg:        err.Error(),
 	}
 }

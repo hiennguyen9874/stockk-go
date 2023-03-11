@@ -15,6 +15,7 @@ var (
 type Config struct {
 	Server         ServerConfig
 	Postgres       PostgresConfig
+	Redis          RedisConfig
 	Jwt            JwtConfig
 	FirstSuperUser FirstSuperUserConfig
 	Logger         Logger
@@ -43,6 +44,19 @@ type PostgresConfig struct {
 	PostgresqlPassword string
 	PostgresqlDbname   string
 	PostgresqlSSLMode  string
+}
+
+// Redis config
+type RedisConfig struct {
+	RedisAddr      string
+	RedisPassword  string
+	RedisDB        string
+	RedisDefaultdb string
+	MinIdleConns   int
+	PoolSize       int
+	PoolTimeout    int
+	Password       string
+	DB             int
 }
 
 // Jwt config

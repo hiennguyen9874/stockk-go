@@ -7,6 +7,7 @@ import (
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
 	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/spf13/cobra"
 )
@@ -29,11 +30,14 @@ var initDataCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
+		redisClient := redis.NewRedis(cfg)
+
 		// Repository
-		userRepo := userRepository.CreateUserRepository(psqlDB)
+		userPgRepo := userRepository.CreateUserPgRepository(psqlDB)
+		userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 
 		// UseCase
-		userUC := userUseCase.CreateUserUseCaseI(userRepo, cfg, appLogger)
+		userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, appLogger)
 
 		// Create super user if not exists
 		isCreated, _ := userUC.CreateSuperUserIfNotExist(context.Background())

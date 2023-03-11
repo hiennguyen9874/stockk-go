@@ -48,115 +48,131 @@ func (k *contextKey) String() string {
 // be the generic `jwtauth.Authenticator` middleware or your own custom handler
 // which checks the request context jwt token and error to prepare a custom
 // http response.
-func (mw *MiddlewareManager) Verifier(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (mw *MiddlewareManager) Verifier(requireAccessToken bool) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 
-		token := TokenFromHeader(r)
+			token := TokenFromHeader(r)
 
-		if token == "" {
-			err := httpErrors.ErrTokenNotFound(errors.New("not found token in header"))
-			ctx = context.WithValue(ctx, ErrorCtxKey, err)
-		} else {
-			id, email, err := jwt.ParseTokenRS256(token, mw.cfg.Jwt.JwtAccessTokenPublicKey)
-			ctx = context.WithValue(ctx, TokenCtxKey, token)
-			ctx = context.WithValue(ctx, IdCtxKey, id)
-			ctx = context.WithValue(ctx, EmailCtxKey, email)
-			ctx = context.WithValue(ctx, ErrorCtxKey, err)
-		}
+			if token == "" {
+				err := httpErrors.ErrTokenNotFound(errors.New("not found token in header"))
+				ctx = context.WithValue(ctx, ErrorCtxKey, err)
+			} else {
+				var publicKey string
+				if requireAccessToken {
+					publicKey = mw.cfg.Jwt.JwtAccessTokenPublicKey
+				} else {
+					publicKey = mw.cfg.Jwt.JwtRefreshTokenPublicKey
+				}
+				id, email, err := jwt.ParseTokenRS256(token, publicKey)
+				ctx = context.WithValue(ctx, TokenCtxKey, token)
+				ctx = context.WithValue(ctx, IdCtxKey, id)
+				ctx = context.WithValue(ctx, EmailCtxKey, email)
+				ctx = context.WithValue(ctx, ErrorCtxKey, err)
+			}
 
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 // Authenticator is a default authentication middleware to enforce access from the
 // Verifier middleware request context values. The Authenticator sends a 401 Unauthorized
 // response for any unverified tokens and passes the good ones through. It's just fine
 // until you decide to write something similar and customize your client response.
-func (mw *MiddlewareManager) Authenticator(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err, _ := r.Context().Value(ErrorCtxKey).(error)
+func (mw *MiddlewareManager) Authenticator() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err, _ := r.Context().Value(ErrorCtxKey).(error)
 
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
+			if err != nil {
+				render.Render(w, r, responses.CreateErrorResponse(err))
+				return
+			}
 
-		// Token is authenticated, pass it through
-		next.ServeHTTP(w, r)
-	})
+			// Token is authenticated, pass it through
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func (mw *MiddlewareManager) CurrentUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (mw *MiddlewareManager) CurrentUser() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 
-		id, _ := r.Context().Value(IdCtxKey).(string)
-		err, _ := r.Context().Value(ErrorCtxKey).(error)
+			id, _ := r.Context().Value(IdCtxKey).(string)
+			err, _ := r.Context().Value(ErrorCtxKey).(error)
 
-		if err != nil || id == "" {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ParseErrors(err)))
-			return
-		}
+			if err != nil || id == "" {
+				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ParseErrors(err)))
+				return
+			}
 
-		idParsed, err := uuid.Parse(id)
+			idParsed, err := uuid.Parse(id)
 
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))))
-			return
-		}
+			if err != nil {
+				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))))
+				return
+			}
 
-		user, err := mw.usersUC.Get(ctx, idParsed)
+			user, err := mw.usersUC.Get(ctx, idParsed)
 
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
+			if err != nil {
+				render.Render(w, r, responses.CreateErrorResponse(err))
+				return
+			}
 
-		ctx = context.WithValue(ctx, UserCtxKey, user)
+			ctx = context.WithValue(ctx, UserCtxKey, user)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
-func (mw *MiddlewareManager) SuperUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (mw *MiddlewareManager) SuperUser() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 
-		user, err := GetUserFromCtx(ctx)
+			user, err := GetUserFromCtx(ctx)
 
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
+			if err != nil {
+				render.Render(w, r, responses.CreateErrorResponse(err))
+				return
+			}
 
-		if !mw.usersUC.IsSuper(ctx, *user) {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(errors.New("user is not super user"))))
-			return
-		}
+			if !mw.usersUC.IsSuper(ctx, *user) {
+				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(errors.New("user is not super user"))))
+				return
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func (mw *MiddlewareManager) ActiveUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (mw *MiddlewareManager) ActiveUser() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 
-		user, err := GetUserFromCtx(ctx)
+			user, err := GetUserFromCtx(ctx)
 
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
+			if err != nil {
+				render.Render(w, r, responses.CreateErrorResponse(err))
+				return
+			}
 
-		if !mw.usersUC.IsActive(ctx, *user) {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInactiveUser(errors.New("user inactive"))))
-			return
-		}
+			if !mw.usersUC.IsActive(ctx, *user) {
+				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInactiveUser(errors.New("user inactive"))))
+				return
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // TokenFromHeader tries to retreive the token string from the

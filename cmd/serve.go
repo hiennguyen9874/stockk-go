@@ -4,6 +4,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/server"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,9 @@ var serveCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
-		server, err := server.NewServer(cfg, psqlDB, appLogger)
+		redisClient := redis.NewRedis(cfg)
+
+		server, err := server.NewServer(cfg, psqlDB, redisClient, appLogger)
 		if err != nil {
 			appLogger.Fatal(err)
 		}
