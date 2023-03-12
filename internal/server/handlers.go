@@ -13,6 +13,9 @@ import (
 
 	"github.com/hiennguyen9874/go-boilerplate/config"
 	apiMiddleware "github.com/hiennguyen9874/go-boilerplate/internal/middleware"
+	tickerHttp "github.com/hiennguyen9874/go-boilerplate/internal/tickers/delivery/http"
+	tickerRepository "github.com/hiennguyen9874/go-boilerplate/internal/tickers/repository"
+	tickerUseCase "github.com/hiennguyen9874/go-boilerplate/internal/tickers/usecase"
 	userHttp "github.com/hiennguyen9874/go-boilerplate/internal/users/delivery/http"
 	userRepository "github.com/hiennguyen9874/go-boilerplate/internal/users/repository"
 	userUseCase "github.com/hiennguyen9874/go-boilerplate/internal/users/usecase"
@@ -26,11 +29,15 @@ func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logg
 	userPgRepo := userRepository.CreateUserPgRepository(db)
 	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 
+	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
+
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
+	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
+	tickerHandler := tickerHttp.CreateTickerHandler(tickerUC, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -49,6 +56,7 @@ func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logg
 	})
 
 	userHttp.MapUserRoute(r, userHandler, mw)
+	tickerHttp.MapTickerRoute(r, tickerHandler, mw)
 
 	return r, nil
 }
