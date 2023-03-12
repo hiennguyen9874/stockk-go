@@ -16,10 +16,10 @@ func MapTickerRoute(router *chi.Mux, h tickers.Handlers, mw *middleware.Middlewa
 			r.Use(mw.CurrentUser())
 			r.Use(mw.ActiveUser())
 			r.Get("/", h.GetMulti())
-			// Per id routes
-			r.Route("/{id}", func(r chi.Router) {
-				r.Get("/", h.Get())
-				r.Delete("/", h.Delete())
+			// Per symbol routes
+			r.Route("/{symbol}", func(r chi.Router) {
+				r.Get("/", h.GetBySymbol())
+				r.Patch("/", h.UpdateIsActiveBySymbol())
 			})
 		})
 	})
