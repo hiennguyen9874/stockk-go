@@ -1,10 +1,13 @@
 package tickers
 
 import (
-	"github.com/hiennguyen9874/go-boilerplate/internal"
-	"github.com/hiennguyen9874/go-boilerplate/internal/models"
+	"context"
+
+	"github.com/hiennguyen9874/stockk-go/internal"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
 )
 
 type TickerUseCaseI interface {
 	internal.UseCaseI[models.Ticker]
+	CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error)
 }

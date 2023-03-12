@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"github.com/hiennguyen9874/go-boilerplate/internal/models"
-	"github.com/hiennguyen9874/go-boilerplate/internal/repository"
-	"github.com/hiennguyen9874/go-boilerplate/internal/tickers"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
+	"github.com/hiennguyen9874/stockk-go/internal/repository"
+	"github.com/hiennguyen9874/stockk-go/internal/tickers"
 	"gorm.io/gorm"
 )
 

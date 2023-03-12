@@ -2,8 +2,8 @@ package http
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/hiennguyen9874/go-boilerplate/internal/middleware"
-	"github.com/hiennguyen9874/go-boilerplate/internal/tickers"
+	"github.com/hiennguyen9874/stockk-go/internal/middleware"
+	"github.com/hiennguyen9874/stockk-go/internal/tickers"
 )
 
 func MapTickerRoute(router *chi.Mux, h tickers.Handlers, mw *middleware.MiddlewareManager) {

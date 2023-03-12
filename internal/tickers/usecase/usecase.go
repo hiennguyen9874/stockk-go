@@ -1,16 +1,24 @@
 package usecase
 
 import (
-	"github.com/hiennguyen9874/go-boilerplate/config"
-	"github.com/hiennguyen9874/go-boilerplate/internal/models"
-	"github.com/hiennguyen9874/go-boilerplate/internal/tickers"
-	"github.com/hiennguyen9874/go-boilerplate/internal/usecase"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
+	"context"
+
+	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
+	"github.com/hiennguyen9874/stockk-go/internal/tickers"
+	"github.com/hiennguyen9874/stockk-go/internal/usecase"
+	"github.com/hiennguyen9874/stockk-go/pkg/crawlers"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+)
+
+const (
+	batchSizeSaveTickers = 500
 )
 
 type tickerUseCase struct {
 	usecase.UseCase[models.Ticker]
-	pgRepo tickers.TickerPgRepository
+	pgRepo  tickers.TickerPgRepository
+	crawler crawlers.Crawler
 }
 
 func CreateTickerUseCaseI(
@@ -21,5 +29,44 @@ func CreateTickerUseCaseI(
 	return &tickerUseCase{
 		UseCase: usecase.CreateUseCase[models.Ticker](pgRepo, cfg, logger),
 		pgRepo:  pgRepo,
+		crawler: crawlers.NewCrawler(cfg),
 	}
+}
+
+func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error) {
+	tickers, err := u.crawler.VNDCrawlStockSymbols()
+	if err != nil {
+		return nil, err
+	}
+
+	inDBTickers, err := u.pgRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	keyTickers := make(map[string]bool)
+	for _, ticker := range inDBTickers {
+		keyTickers[ticker.Symbol] = true
+	}
+
+	var mustCreateTickers []*models.Ticker
+	for _, ticker := range tickers {
+		if _, ok := keyTickers[ticker.Symbol]; !ok {
+			mustCreateTickers = append(mustCreateTickers, &models.Ticker{
+				Symbol:    ticker.Symbol,
+				Exchange:  ticker.Exchange,
+				FullName:  ticker.FullName,
+				ShortName: ticker.ShortName,
+				Type:      ticker.Type,
+				IsActive:  false,
+			})
+		}
+	}
+
+	savedTickers, err := u.pgRepo.CreateMulti(ctx, mustCreateTickers, batchSizeSaveTickers)
+	if err != nil {
+		return nil, err
+	}
+
+	return savedTickers, nil
 }

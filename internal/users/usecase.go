@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/hiennguyen9874/go-boilerplate/internal"
-	"github.com/hiennguyen9874/go-boilerplate/internal/models"
+	"github.com/hiennguyen9874/stockk-go/internal"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
 )
 
 type UserUseCaseI interface {

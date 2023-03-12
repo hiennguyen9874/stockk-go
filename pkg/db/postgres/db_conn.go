@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 
-	"github.com/hiennguyen9874/go-boilerplate/config"
+	"github.com/hiennguyen9874/stockk-go/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

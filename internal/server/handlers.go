@@ -11,15 +11,15 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/hiennguyen9874/go-boilerplate/config"
-	apiMiddleware "github.com/hiennguyen9874/go-boilerplate/internal/middleware"
-	tickerHttp "github.com/hiennguyen9874/go-boilerplate/internal/tickers/delivery/http"
-	tickerRepository "github.com/hiennguyen9874/go-boilerplate/internal/tickers/repository"
-	tickerUseCase "github.com/hiennguyen9874/go-boilerplate/internal/tickers/usecase"
-	userHttp "github.com/hiennguyen9874/go-boilerplate/internal/users/delivery/http"
-	userRepository "github.com/hiennguyen9874/go-boilerplate/internal/users/repository"
-	userUseCase "github.com/hiennguyen9874/go-boilerplate/internal/users/usecase"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/config"
+	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
+	tickerHttp "github.com/hiennguyen9874/stockk-go/internal/tickers/delivery/http"
+	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
+	tickerUseCase "github.com/hiennguyen9874/stockk-go/internal/tickers/usecase"
+	userHttp "github.com/hiennguyen9874/stockk-go/internal/users/delivery/http"
+	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
+	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 )
 
 func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {

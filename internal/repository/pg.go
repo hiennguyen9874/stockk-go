@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/hiennguyen9874/go-boilerplate/internal"
+	"github.com/hiennguyen9874/stockk-go/internal"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +34,12 @@ func (r *PgRepo[M]) GetMulti(ctx context.Context, limit, offset int) ([]*M, erro
 	return objs, nil
 }
 
+func (r *PgRepo[M]) GetAll(ctx context.Context) ([]*M, error) {
+	var objs []*M
+	r.DB.WithContext(ctx).Find(&objs)
+	return objs, nil
+}
+
 func (r *PgRepo[M]) Create(ctx context.Context, exp *M) (*M, error) {
 	if result := r.DB.WithContext(ctx).Create(exp); result.Error != nil {
 		return nil, result.Error
@@ -59,4 +65,13 @@ func (r *PgRepo[M]) Update(ctx context.Context, exp *M, values map[string]interf
 		return nil, result.Error
 	}
 	return exp, nil
+}
+
+func (r *PgRepo[M]) CreateMulti(ctx context.Context, exps []*M, batchSize int) ([]*M, error) {
+	result := r.DB.WithContext(ctx).Session(&gorm.Session{CreateBatchSize: batchSize}).Create(exps)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return exps, nil
 }

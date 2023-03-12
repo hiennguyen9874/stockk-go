@@ -7,13 +7,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/hiennguyen9874/go-boilerplate/config"
-	"github.com/hiennguyen9874/go-boilerplate/internal/models"
-	"github.com/hiennguyen9874/go-boilerplate/internal/tickers"
-	"github.com/hiennguyen9874/go-boilerplate/internal/tickers/presenter"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/responses"
+	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
+	"github.com/hiennguyen9874/stockk-go/internal/tickers"
+	"github.com/hiennguyen9874/stockk-go/internal/tickers/presenter"
+	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/responses"
 )
 
 type tickerHandler struct {
