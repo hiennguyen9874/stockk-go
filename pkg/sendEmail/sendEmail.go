@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 
-	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/go-boilerplate/config"
 	"gopkg.in/gomail.v2"
 )
 

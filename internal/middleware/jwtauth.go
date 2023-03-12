@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/hiennguyen9874/stockk-go/internal/models"
-	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
-	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
-	"github.com/hiennguyen9874/stockk-go/pkg/responses"
+	"github.com/hiennguyen9874/go-boilerplate/internal/models"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/jwt"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/responses"
 )
 
 var (

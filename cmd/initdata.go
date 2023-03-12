@@ -3,12 +3,12 @@ package cmd
 import (
 	"context"
 
-	"github.com/hiennguyen9874/stockk-go/config"
-	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
-	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
-	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
-	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
-	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	userRepository "github.com/hiennguyen9874/go-boilerplate/internal/users/repository"
+	userUseCase "github.com/hiennguyen9874/go-boilerplate/internal/users/usecase"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/postgres"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/redis"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
 	"github.com/spf13/cobra"
 )
 

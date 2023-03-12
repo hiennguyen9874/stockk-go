@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hiennguyen9874/stockk-go/config"
-	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )

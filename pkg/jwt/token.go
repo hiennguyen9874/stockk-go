@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
 )
 
 type AuthClaims struct {

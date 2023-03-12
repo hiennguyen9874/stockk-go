@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"github.com/hiennguyen9874/stockk-go/config"
-	"github.com/hiennguyen9874/stockk-go/internal/users"
-	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	"github.com/hiennguyen9874/go-boilerplate/internal/users"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
 )
 
 type MiddlewareManager struct {

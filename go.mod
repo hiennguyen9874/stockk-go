@@ -1,4 +1,4 @@
-module github.com/hiennguyen9874/stockk-go
+module github.com/hiennguyen9874/go-boilerplate
 
 go 1.20
 

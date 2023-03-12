@@ -1,8 +1,6 @@
 # TODO
 
 - Swagger
-  <!-- - Cookie -->
-  <!-- - Session using redis -->
 - Traefik
 - Celery
 - Config using .env

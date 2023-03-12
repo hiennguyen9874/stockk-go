@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/hiennguyen9874/stockk-go/config"
-	"github.com/hiennguyen9874/stockk-go/internal/server"
-	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
-	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
-	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	"github.com/hiennguyen9874/go-boilerplate/internal/server"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/postgres"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/redis"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
 	"github.com/spf13/cobra"
 )
 

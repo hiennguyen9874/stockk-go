@@ -3,7 +3,7 @@ package emailTemplates
 import (
 	"context"
 
-	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/go-boilerplate/config"
 	"github.com/matcornic/hermes/v2"
 )
 

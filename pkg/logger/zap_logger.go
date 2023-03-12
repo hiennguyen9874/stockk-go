@@ -3,7 +3,7 @@ package logger
 import (
 	"os"
 
-	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/go-boilerplate/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

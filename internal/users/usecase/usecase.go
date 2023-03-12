@@ -8,16 +8,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hiennguyen9874/stockk-go/config"
-	"github.com/hiennguyen9874/stockk-go/internal/models"
-	"github.com/hiennguyen9874/stockk-go/internal/usecase"
-	"github.com/hiennguyen9874/stockk-go/internal/users"
-	"github.com/hiennguyen9874/stockk-go/pkg/emailTemplates"
-	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
-	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
-	"github.com/hiennguyen9874/stockk-go/pkg/logger"
-	"github.com/hiennguyen9874/stockk-go/pkg/secureRandom"
-	"github.com/hiennguyen9874/stockk-go/pkg/sendEmail"
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	"github.com/hiennguyen9874/go-boilerplate/internal/models"
+	"github.com/hiennguyen9874/go-boilerplate/internal/usecase"
+	"github.com/hiennguyen9874/go-boilerplate/internal/users"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/emailTemplates"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/jwt"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/secureRandom"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/sendEmail"
 )
 
 type userUseCase struct {
