@@ -79,6 +79,44 @@ func (h *tickerHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		symbol := chi.URLParam(r, "symbol")
+
+		ticker, err := h.tickersUC.GetBySymbol(r.Context(), symbol)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(ticker)))
+	}
+}
+
+func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		symbol := chi.URLParam(r, "symbol")
+
+		q := r.URL.Query()
+		isActiveString := q.Get("is_active")
+		isActive, err := strconv.ParseBool(isActiveString)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		updatedTicker, err := h.tickersUC.UpdateIsActiveBySymbol(ctx, symbol, isActive)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedTicker)))
+	}
+}
+
 func mapModelResponse(exp *models.Ticker) *presenter.TickerResponse {
 	return &presenter.TickerResponse{
 		Id:        exp.Id,
@@ -87,6 +125,7 @@ func mapModelResponse(exp *models.Ticker) *presenter.TickerResponse {
 		FullName:  exp.FullName,
 		ShortName: exp.ShortName,
 		Type:      exp.Type,
+		IsActive:  exp.IsActive,
 	}
 }
 

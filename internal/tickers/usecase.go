@@ -9,5 +9,7 @@ import (
 
 type TickerUseCaseI interface {
 	internal.UseCaseI[models.Ticker]
+	GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error)
+	UpdateIsActiveBySymbol(ctx context.Context, symbol string, isActive bool) (*models.Ticker, error)
 	CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error)
 }
