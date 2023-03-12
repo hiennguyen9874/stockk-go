@@ -1,6 +1,6 @@
 package responses
 
-import "github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
+import "github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 
 type Response struct {
 	Data      interface{}             `json:"data,omitempty"`

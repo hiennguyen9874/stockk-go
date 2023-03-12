@@ -29,6 +29,9 @@ var (
 	ErrorNotFoundRefreshTokenRedis = errors.New("not_found_refresh_token_redis")
 	ErrorUserAlreadyVerified       = errors.New("user_already_verified")
 	ErrorUserNotVerified           = errors.New("user_not_verified")
+	ErrorMakeRequest               = errors.New("make_request_error")
+	ErrorCallRequest               = errors.New("call_request_error")
+	ErrorReadBodyRequest           = errors.New("read_body_request_error")
 )
 
 // Rest error interface
@@ -226,6 +229,33 @@ func ErrUserNotVerified(err error) ErrRest {
 		Err:        err,
 		Status:     http.StatusUnauthorized,
 		StatusText: ErrorUserNotVerified.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrMakeRequest(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorMakeRequest.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrCallRequest(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorCallRequest.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrReadBodyRequest(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorReadBodyRequest.Error(),
 		Msg:        err.Error(),
 	}
 }

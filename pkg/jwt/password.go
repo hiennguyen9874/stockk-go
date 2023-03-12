@@ -3,7 +3,7 @@ package jwt
 import (
 	"errors"
 
-	"github.com/hiennguyen9874/go-boilerplate/pkg/httpErrors"
+	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"golang.org/x/crypto/bcrypt"
 )
 
