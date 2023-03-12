@@ -2,18 +2,17 @@ package cmd
 
 import (
 	"github.com/hiennguyen9874/go-boilerplate/config"
-	"github.com/hiennguyen9874/go-boilerplate/internal/server"
+	"github.com/hiennguyen9874/go-boilerplate/internal/models"
 	"github.com/hiennguyen9874/go-boilerplate/pkg/db/postgres"
-	"github.com/hiennguyen9874/go-boilerplate/pkg/db/redis"
 	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
-// serveCmd represents the serve command
-var serveCmd = &cobra.Command{
-	Use:   "serve",
-	Short: "start http server with configured api",
-	Long:  `Starts a http server and serves the configured api`,
+var migrateCmd = &cobra.Command{
+	Use:   "migrate",
+	Short: "Migrate data",
+	Long:  "Migrate data",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.GetCfg()
 
@@ -28,26 +27,26 @@ var serveCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
-		if cfg.Server.MigrateOnStart {
-			err = Migrate(psqlDB)
+		err = Migrate(psqlDB)
 
-			if err != nil {
-				appLogger.Info("Can not migrate data")
-			} else {
-				appLogger.Info("Data migrated")
-			}
-		}
-
-		redisClient := redis.NewRedis(cfg)
-
-		server, err := server.NewServer(cfg, psqlDB, redisClient, appLogger)
 		if err != nil {
-			appLogger.Fatal(err)
+			appLogger.Info("Can not migrate data")
+		} else {
+			appLogger.Info("Data migrated")
 		}
-		server.Start()
 	},
 }
 
+func Migrate(db *gorm.DB) error {
+	var migrationModels = []interface{}{&models.User{}}
+
+	err := db.AutoMigrate(migrationModels...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func init() {
-	RootCmd.AddCommand(serveCmd)
+	RootCmd.AddCommand(migrateCmd)
 }

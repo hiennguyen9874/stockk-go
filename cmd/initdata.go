@@ -1,0 +1,55 @@
+package cmd
+
+import (
+	"context"
+
+	"github.com/hiennguyen9874/go-boilerplate/config"
+	userRepository "github.com/hiennguyen9874/go-boilerplate/internal/users/repository"
+	userUseCase "github.com/hiennguyen9874/go-boilerplate/internal/users/usecase"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/postgres"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/db/redis"
+	"github.com/hiennguyen9874/go-boilerplate/pkg/logger"
+	"github.com/spf13/cobra"
+)
+
+var initDataCmd = &cobra.Command{
+	Use:   "initdata",
+	Short: "Init data",
+	Long:  "Init data",
+	Run: func(cmd *cobra.Command, args []string) {
+		cfg := config.GetCfg()
+
+		appLogger := logger.NewApiLogger(cfg)
+		appLogger.InitLogger()
+		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.LoggerLevel, cfg.Server.Mode)
+
+		psqlDB, err := postgres.NewPsqlDB(cfg)
+		if err != nil {
+			appLogger.Fatalf("Postgresql init: %s", err)
+		} else {
+			appLogger.Infof("Postgres connected")
+		}
+
+		redisClient := redis.NewRedis(cfg)
+
+		// Repository
+		userPgRepo := userRepository.CreateUserPgRepository(psqlDB)
+		userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
+
+		// UseCase
+		userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, appLogger)
+
+		// Create super user if not exists
+		isCreated, _ := userUC.CreateSuperUserIfNotExist(context.Background())
+
+		if !isCreated {
+			appLogger.Info("Super user is exists, skip create")
+		} else {
+			appLogger.Info("Created super user")
+		}
+	},
+}
+
+func init() {
+	RootCmd.AddCommand(initDataCmd)
+}
