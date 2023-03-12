@@ -53,7 +53,7 @@ func (u *UseCase[M]) Delete(ctx context.Context, id uuid.UUID) (*M, error) {
 	return u.pgRepo.Delete(ctx, id)
 }
 
-func (u *UseCase[M]) Update(ctx context.Context, id uuid.UUID, values map[string]interface{}) (res *M, err error) {
+func (u *UseCase[M]) Update(ctx context.Context, id uuid.UUID, values map[string]interface{}) (*M, error) {
 	obj, err := u.Get(ctx, id)
 	if err != nil || obj == nil {
 		return nil, err

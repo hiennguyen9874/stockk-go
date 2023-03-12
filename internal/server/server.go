@@ -40,8 +40,8 @@ func NewServer(cfg *config.Config, db *gorm.DB, redisClient *redis.Client, logge
 		server: &http.Server{
 			Addr:           cfg.Server.Port,
 			Handler:        api,
-			ReadTimeout:    time.Second * cfg.Server.ReadTimeout,
-			WriteTimeout:   time.Second * cfg.Server.WriteTimeout,
+			ReadTimeout:    time.Second * time.Duration(cfg.Server.ReadTimeout),
+			WriteTimeout:   time.Second * time.Duration(cfg.Server.WriteTimeout),
 			MaxHeaderBytes: maxHeaderBytes,
 		},
 		cfg:    cfg,

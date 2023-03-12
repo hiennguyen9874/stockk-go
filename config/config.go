@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"log"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -19,15 +18,19 @@ type Config struct {
 	Jwt            JwtConfig
 	FirstSuperUser FirstSuperUserConfig
 	Logger         Logger
+	SmtpEmail      SmtpEmailConfig
+	Email          EmailConfig
 }
 
 // Server config struct
 type ServerConfig struct {
-	AppVersion   string
-	Port         string
-	Mode         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	AppVersion     string
+	Port           string
+	Mode           string
+	ProcessTimeout int
+	ReadTimeout    int
+	WriteTimeout   int
+	MigrateOnStart bool
 }
 
 // Logger config
@@ -76,6 +79,25 @@ type FirstSuperUserConfig struct {
 	FirstSuperUserEmail    string
 	FirstSuperUserName     string
 	FirstSuperUserPassword string
+}
+
+type EmailConfig struct {
+	EmailFrom                string
+	EmailName                string
+	EmailLink                string
+	EmailLogoLink            string
+	EmailCopyright           string
+	EmailVerificationSubject string
+	EmailResetSubject        string
+}
+
+type SmtpEmailConfig struct {
+	SmtpHost     string
+	SmtpPort     int
+	SmtpUser     string
+	SmtpPassword string
+	SmtpUseTls   bool
+	SmtpUseSsl   bool
 }
 
 // Load config file from given path

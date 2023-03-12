@@ -4,12 +4,10 @@ services:
   backend:
     build:
       context: .
-      # Correct the path to your Dockerfile
       dockerfile: Dockerfile
     command: sh -c "go run main.go migrate && go run main.go initdata && air -c .air.toml serve"
     ports:
       - 5000:5000
-    # Important to bind/mount your codebase dir to /app dir for live reload
     volumes:
       - ./:/app
     depends_on:

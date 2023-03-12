@@ -12,22 +12,34 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/usecase"
 	"github.com/hiennguyen9874/stockk-go/internal/users"
+	"github.com/hiennguyen9874/stockk-go/pkg/emailTemplates"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/secureRandom"
+	"github.com/hiennguyen9874/stockk-go/pkg/sendEmail"
 )
 
 type userUseCase struct {
 	usecase.UseCase[models.User]
-	pgRepo    users.UserPgRepository
-	redisRepo users.UserRedisRepository
+	pgRepo                 users.UserPgRepository
+	redisRepo              users.UserRedisRepository
+	emailSender            sendEmail.EmailSender
+	emailTemplateGenerator emailTemplates.EmailTemplatesGenerator
 }
 
-func CreateUserUseCaseI(pgRepo users.UserPgRepository, redisRepo users.UserRedisRepository, cfg *config.Config, logger logger.Logger) users.UserUseCaseI {
+func CreateUserUseCaseI(
+	pgRepo users.UserPgRepository,
+	redisRepo users.UserRedisRepository,
+	cfg *config.Config,
+	logger logger.Logger,
+) users.UserUseCaseI {
 	return &userUseCase{
-		UseCase:   usecase.CreateUseCase[models.User](pgRepo, cfg, logger),
-		pgRepo:    pgRepo,
-		redisRepo: redisRepo,
+		UseCase:                usecase.CreateUseCase[models.User](pgRepo, cfg, logger),
+		pgRepo:                 pgRepo,
+		redisRepo:              redisRepo,
+		emailSender:            sendEmail.NewEmailSender(cfg),
+		emailTemplateGenerator: emailTemplates.NewEmailTemplatesGenerator(cfg),
 	}
 }
 
@@ -73,7 +85,11 @@ func (u *userUseCase) Delete(ctx context.Context, id uuid.UUID) (*models.User, e
 	return user, nil
 }
 
-func (u *userUseCase) Update(ctx context.Context, id uuid.UUID, values map[string]interface{}) (res *models.User, err error) {
+func (u *userUseCase) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	values map[string]interface{},
+) (*models.User, error) {
 	obj, err := u.Get(ctx, id)
 	if err != nil || obj == nil {
 		return nil, err
@@ -102,17 +118,80 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	}
 	exp.Password = hashedPassword
 
-	return u.pgRepo.Create(ctx, exp)
+	user, err := u.pgRepo.Create(ctx, exp)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Verified {
+		return user, nil
+	}
+
+	verificationCode, err := secureRandom.RandomHex(16)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update user in database
+	updatedUser, err := u.pgRepo.UpdateVerificationCode(ctx, user, verificationCode)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyHtml, bodyPlain, err := u.emailTemplateGenerator.GenerateVerificationCodeTemplate(
+		ctx,
+		updatedUser.Name,
+		fmt.Sprintf(
+			"http://localhost:5000/auth/verifyemail?code=%s",
+			verificationCode,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = u.emailSender.SendEmail(
+		ctx,
+		u.Cfg.Email.EmailFrom,
+		updatedUser.Email,
+		u.Cfg.Email.EmailVerificationSubject,
+		bodyHtml,
+		bodyPlain,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
+}
+
+func (u *userUseCase) CreateUser(ctx context.Context, exp *models.User, confirmPassword string) (*models.User, error) {
+	if exp.Password != confirmPassword {
+		return nil, httpErrors.ErrValidation(errors.New("password do not match"))
+	}
+	return u.Create(ctx, exp)
 }
 
 func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string, string, error) {
-	accessToken, err := jwt.CreateAccessTokenRS256(exp.Id.String(), exp.Email, u.Cfg.Jwt.JwtAccessTokenPrivateKey, u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
+	accessToken, err := jwt.CreateAccessTokenRS256(
+		exp.Id.String(),
+		exp.Email,
+		u.Cfg.Jwt.JwtAccessTokenPrivateKey,
+		u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute),
+		u.Cfg.Jwt.JwtIssuer,
+	)
 
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.CreateAccessTokenRS256(exp.Id.String(), exp.Email, u.Cfg.Jwt.JwtRefreshTokenPrivateKey, u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute), u.Cfg.Jwt.JwtIssuer)
+	refreshToken, err := jwt.CreateAccessTokenRS256(
+		exp.Id.String(),
+		exp.Email,
+		u.Cfg.Jwt.JwtRefreshTokenPrivateKey,
+		u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute),
+		u.Cfg.Jwt.JwtIssuer,
+	)
 
 	if err != nil {
 		return "", "", err
@@ -137,7 +216,11 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 		return "", "", err
 	}
 
-	if err = u.redisRepo.Sadd(ctx, u.GenerateRedisRefreshTokenKey(user.Id), refreshToken); err != nil {
+	if err = u.redisRepo.Sadd(
+		ctx,
+		u.GenerateRedisRefreshTokenKey(user.Id),
+		refreshToken,
+	); err != nil {
 		return "", "", err
 	}
 
@@ -156,12 +239,14 @@ func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, erro
 	user, err := u.pgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.FirstSuperUserEmail)
 
 	if err != nil || user == nil {
+
 		_, err := u.Create(ctx, &models.User{
 			Name:        u.Cfg.FirstSuperUser.FirstSuperUserName,
 			Email:       u.Cfg.FirstSuperUser.FirstSuperUserEmail,
 			Password:    u.Cfg.FirstSuperUser.FirstSuperUserPassword,
 			IsActive:    true,
 			IsSuperUser: true,
+			Verified:    true,
 		})
 		if err != nil {
 			return false, err
@@ -171,7 +256,17 @@ func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, erro
 	return false, nil
 }
 
-func (u *userUseCase) UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (*models.User, error) {
+func (u *userUseCase) UpdatePassword(
+	ctx context.Context,
+	id uuid.UUID,
+	oldPassword string,
+	newPassword string,
+	confirmPassword string,
+) (*models.User, error) {
+	if newPassword != confirmPassword {
+		return nil, httpErrors.ErrValidation(errors.New("password do not match"))
+	}
+
 	user, err := u.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -204,17 +299,21 @@ func (u *userUseCase) UpdatePassword(ctx context.Context, id uuid.UUID, oldPassw
 	return updatedUser, nil
 }
 
-func (u *userUseCase) ParseIdFromRefreshToken(ctx context.Context, refreshToken string) (idParsed uuid.UUID, err error) {
+func (u *userUseCase) ParseIdFromRefreshToken(
+	ctx context.Context,
+	refreshToken string,
+) (uuid.UUID, error) {
 	id, _, err := jwt.ParseTokenRS256(refreshToken, u.Cfg.Jwt.JwtRefreshTokenPublicKey)
 
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	idParsed, err = uuid.Parse(id)
+	idParsed, err := uuid.Parse(id)
 
 	if err != nil {
-		return uuid.UUID{}, httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))
+		return uuid.UUID{},
+			httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))
 	}
 
 	return idParsed, nil
@@ -226,16 +325,25 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	isMember, err := u.redisRepo.SIsMember(ctx, u.GenerateRedisRefreshTokenKey(idParsed), refreshToken)
+	isMember, err := u.redisRepo.SIsMember(
+		ctx,
+		u.GenerateRedisRefreshTokenKey(idParsed),
+		refreshToken,
+	)
 	if err != nil {
 		return "", "", err
 	}
 
 	if !isMember {
-		return "", "", httpErrors.ErrNotFoundRefreshTokenRedis(errors.New("not found refresh token in redis"))
+		return "", "",
+			httpErrors.ErrNotFoundRefreshTokenRedis(errors.New("not found refresh token in redis"))
 	}
 
-	if err = u.redisRepo.Srem(ctx, u.GenerateRedisRefreshTokenKey(idParsed), refreshToken); err != nil {
+	if err = u.redisRepo.Srem(
+		ctx,
+		u.GenerateRedisRefreshTokenKey(idParsed),
+		refreshToken,
+	); err != nil {
 		return "", "", err
 	}
 
@@ -250,7 +358,11 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	if err = u.redisRepo.Sadd(ctx, u.GenerateRedisRefreshTokenKey(user.Id), refreshToken); err != nil {
+	if err = u.redisRepo.Sadd(
+		ctx,
+		u.GenerateRedisRefreshTokenKey(user.Id),
+		refreshToken,
+	); err != nil {
 		return "", "", err
 	}
 
@@ -263,7 +375,11 @@ func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {
 		return err
 	}
 
-	if err = u.redisRepo.Srem(ctx, u.GenerateRedisRefreshTokenKey(idParsed), refreshToken); err != nil {
+	if err = u.redisRepo.Srem(
+		ctx,
+		u.GenerateRedisRefreshTokenKey(idParsed),
+		refreshToken,
+	); err != nil {
 		return err
 	}
 
@@ -272,6 +388,124 @@ func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {
 
 func (u *userUseCase) LogoutAll(ctx context.Context, id uuid.UUID) error {
 	if err := u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) Verify(ctx context.Context, verificationCode string) error {
+	user, err := u.pgRepo.GetByVerificationCode(ctx, verificationCode)
+	if err != nil {
+		return err
+	}
+
+	if user.Verified {
+		return httpErrors.ErrUserAlreadyVerified(errors.New("user already verified"))
+	}
+
+	updatedUser, err := u.pgRepo.UpdateVerification(ctx, user, "", true)
+	if err != nil {
+		return err
+	}
+
+	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) ForgotPassword(ctx context.Context, email string) error {
+	user, err := u.pgRepo.GetByEmail(ctx, email)
+
+	if err != nil {
+		return httpErrors.ErrNotFound(err)
+	}
+
+	if !user.Verified {
+		return httpErrors.ErrUserNotVerified(errors.New("user not verified"))
+	}
+
+	resetToken, err := secureRandom.RandomHex(16)
+	if err != nil {
+		return err
+	}
+
+	updatedUser, err := u.pgRepo.UpdatePasswordReset(
+		ctx,
+		user,
+		resetToken,
+		time.Now().Add(time.Minute*15),
+	)
+	if err != nil {
+		return err
+	}
+	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+		return err
+	}
+
+	bodyHtml, bodyPlain, err := u.emailTemplateGenerator.GeneratePasswordResetTemplate(
+		ctx,
+		updatedUser.Name,
+		fmt.Sprintf("http://localhost:5000/auth/resetpassword?code=%s", resetToken),
+	)
+	if err != nil {
+		return err
+	}
+
+	err = u.emailSender.SendEmail(
+		ctx,
+		u.Cfg.Email.EmailFrom,
+		updatedUser.Email,
+		u.Cfg.Email.EmailResetSubject,
+		bodyHtml,
+		bodyPlain,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) ResetPassword(
+	ctx context.Context,
+	resetToken string,
+	newPassword string,
+	confirmPassword string,
+) error {
+	if newPassword != confirmPassword {
+		return httpErrors.ErrValidation(errors.New("password do not match"))
+	}
+
+	user, err := u.pgRepo.GetByResetTokenResetAt(ctx, resetToken, time.Now())
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := jwt.HashPassword(newPassword)
+
+	if err != nil {
+		return err
+	}
+
+	updatedUser, err := u.pgRepo.UpdatePasswordResetToken(
+		ctx,
+		user,
+		hashedPassword,
+		"",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+		return err
+	}
+
+	if err = u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(updatedUser.Id)); err != nil {
 		return err
 	}
 

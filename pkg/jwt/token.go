@@ -32,7 +32,7 @@ func CreateAccessTokenHS256(id string, email string, secretKey string, expireDur
 	return token.SignedString([]byte(secretKey))
 }
 
-func ParseTokenHS256(tokenString string, secretKey string) (id string, email string, err error) {
+func ParseTokenHS256(tokenString string, secretKey string) (string, string, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -95,7 +95,7 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 	return token, nil
 }
 
-func ParseTokenRS256(tokenString string, publicKey string) (id string, email string, err error) {
+func ParseTokenRS256(tokenString string, publicKey string) (string, string, error) {
 	decodedPublicKey, err := DecodeBase64(publicKey)
 	if err != nil {
 		return "", "", err

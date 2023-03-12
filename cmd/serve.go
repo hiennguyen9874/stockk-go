@@ -28,6 +28,16 @@ var serveCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
+		if cfg.Server.MigrateOnStart {
+			err = Migrate(psqlDB)
+
+			if err != nil {
+				appLogger.Info("Can not migrate data")
+			} else {
+				appLogger.Info("Data migrated")
+			}
+		}
+
 		redisClient := redis.NewRedis(cfg)
 
 		server, err := server.NewServer(cfg, psqlDB, redisClient, appLogger)

@@ -42,3 +42,6 @@
 - https://github.com/bxcodec/go-clean-arch
 - https://codevoweb.com/golang-and-gorm-user-registration-email-verification/
 - https://codevoweb.com/golang-gorm-postgresql-user-registration-with-refresh-tokens/
+- https://codevoweb.com/how-to-implement-google-oauth2-in-golang/
+- https://codevoweb.com/how-to-upload-single-and-multiple-files-in-golang/
+- https://codevoweb.com/forgot-reset-passwords-in-golang-with-html-email/

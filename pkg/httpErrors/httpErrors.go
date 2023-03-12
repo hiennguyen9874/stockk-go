@@ -27,6 +27,8 @@ var (
 	ErrorGenToken                  = errors.New("generate_token_error")
 	ErrorJson                      = errors.New("error_json_marshal")
 	ErrorNotFoundRefreshTokenRedis = errors.New("not_found_refresh_token_redis")
+	ErrorUserAlreadyVerified       = errors.New("user_already_verified")
+	ErrorUserNotVerified           = errors.New("user_not_verified")
 )
 
 // Rest error interface
@@ -206,6 +208,24 @@ func ErrNotFoundRefreshTokenRedis(err error) ErrRest {
 		Err:        err,
 		Status:     http.StatusUnauthorized,
 		StatusText: ErrorNotFoundRefreshTokenRedis.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrUserAlreadyVerified(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorUserAlreadyVerified.Error(),
+		Msg:        err.Error(),
+	}
+}
+
+func ErrUserNotVerified(err error) ErrRest {
+	return &ErrResponse{
+		Err:        err,
+		Status:     http.StatusUnauthorized,
+		StatusText: ErrorUserNotVerified.Error(),
 		Msg:        err.Error(),
 	}
 }

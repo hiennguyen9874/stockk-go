@@ -23,7 +23,7 @@ func CreateRedisRepository[M any](redisClient *redis.Client) internal.RedisRepos
 	return &RedisRepo[M]{RedisClient: redisClient}
 }
 
-func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds int) (err error) {
+func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds int) error {
 	objBytes, err := json.Marshal(exp)
 
 	if err != nil {
@@ -37,7 +37,7 @@ func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds i
 	return nil
 }
 
-func (r *RedisRepo[M]) Get(ctx context.Context, key string) (res *M, err error) {
+func (r *RedisRepo[M]) Get(ctx context.Context, key string) (*M, error) {
 	objBytes, err := r.RedisClient.Get(ctx, key).Bytes()
 
 	if err != nil {
@@ -56,7 +56,7 @@ func (r *RedisRepo[M]) Get(ctx context.Context, key string) (res *M, err error) 
 	return &obj, nil
 }
 
-func (r *RedisRepo[M]) Delete(ctx context.Context, key string) (err error) {
+func (r *RedisRepo[M]) Delete(ctx context.Context, key string) error {
 	if err := r.RedisClient.Del(ctx, key).Err(); err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil
@@ -67,28 +67,28 @@ func (r *RedisRepo[M]) Delete(ctx context.Context, key string) (err error) {
 	return nil
 }
 
-func (r *RedisRepo[M]) Sadd(ctx context.Context, key string, value string) (err error) {
+func (r *RedisRepo[M]) Sadd(ctx context.Context, key string, value string) error {
 	if err := r.RedisClient.SAdd(ctx, key, value).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RedisRepo[M]) Sadds(ctx context.Context, key string, values []string) (err error) {
+func (r *RedisRepo[M]) Sadds(ctx context.Context, key string, values []string) error {
 	if err := r.RedisClient.SAdd(ctx, key, values).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RedisRepo[M]) Srem(ctx context.Context, key string, value string) (err error) {
+func (r *RedisRepo[M]) Srem(ctx context.Context, key string, value string) error {
 	if err := r.RedisClient.SRem(ctx, key, value).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RedisRepo[M]) SIsMember(ctx context.Context, key string, value string) (isMember bool, err error) {
+func (r *RedisRepo[M]) SIsMember(ctx context.Context, key string, value string) (bool, error) {
 	result := r.RedisClient.SIsMember(ctx, key, value)
 	if result.Err() != nil {
 		return false, result.Err()
@@ -96,7 +96,7 @@ func (r *RedisRepo[M]) SIsMember(ctx context.Context, key string, value string) 
 	return result.Val(), nil
 }
 
-// func (r *RedisRepo[M]) SMembers(ctx context.Context, key string) (values []string, err error) {
+// func (r *RedisRepo[M]) SMembers(ctx context.Context, key string) ([]string, error) {
 // 	result := r.RedisClient.SPop(ctx, key)
 // 	if result.Err() != nil {
 // 		return nil, result.Err()

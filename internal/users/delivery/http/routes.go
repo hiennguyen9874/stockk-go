@@ -13,6 +13,9 @@ func MapUserRoute(router *chi.Mux, h users.Handlers, mw *middleware.MiddlewareMa
 		r.Group(func(r chi.Router) {
 			r.Post("/login", h.SignIn())
 			r.Get("/publickey", h.GetPublicKey())
+			r.Get("/verifyemail", h.VerifyEmail())
+			r.Post("/forgotpassword", h.ForgotPassword())
+			r.Patch("/resetpassword", h.ResetPassword())
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(mw.Verifier(false))
@@ -32,7 +35,7 @@ func MapUserRoute(router *chi.Mux, h users.Handlers, mw *middleware.MiddlewareMa
 			r.Use(mw.ActiveUser())
 			r.Get("/me", h.Me())
 			r.Put("/me", h.UpdateMe())
-			r.Patch("/me/pass", h.UpdatePasswordMe())
+			// r.Patch("/me/updatepass", h.UpdatePasswordMe())
 			// Admin routes
 			r.Group(func(r chi.Router) {
 				r.Use(mw.SuperUser())
@@ -47,7 +50,7 @@ func MapUserRoute(router *chi.Mux, h users.Handlers, mw *middleware.MiddlewareMa
 					r.Use(mw.SuperUser())
 					r.Delete("/", h.Delete())
 					r.Put("/", h.Update())
-					r.Patch("/pass", h.UpdatePassword())
+					r.Patch("/updatepass", h.UpdatePassword())
 					r.Get("/logoutall", h.LogoutAllAdmin())
 				})
 			})

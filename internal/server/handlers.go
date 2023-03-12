@@ -35,12 +35,12 @@ func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logg
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
 
+	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
 	r.Use(middleware.URLFormat)
-	r.Use(middleware.Timeout(15 * time.Second))
+	r.Use(middleware.Timeout(time.Duration(cfg.Server.ProcessTimeout) * time.Second))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(cors.Handler(mw.Cors()))
 

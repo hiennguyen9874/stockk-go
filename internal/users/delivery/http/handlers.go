@@ -48,7 +48,11 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newUser, err := h.usersUC.Create(r.Context(), mapModel(user))
+		newUser, err := h.usersUC.CreateUser(
+			r.Context(),
+			mapModel(user),
+			user.ConfirmPassword,
+		)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -177,7 +181,13 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), id, user.OldPassword, user.NewPassword)
+		updatedUser, err := h.usersUC.UpdatePassword(
+			r.Context(),
+			id,
+			user.OldPassword,
+			user.NewPassword,
+			user.ConfirmPassword,
+		)
 
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
@@ -202,14 +212,22 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		accessToken, refreshToken, err := h.usersUC.SignIn(r.Context(), user.Email, user.Password)
+		accessToken, refreshToken, err := h.usersUC.SignIn(
+			r.Context(),
+			user.Email,
+			user.Password,
+		)
 
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
-		render.Respond(w, r, presenter.Token{AccessToken: accessToken, RefreshToken: refreshToken, TokenType: "bearer"})
+		render.Respond(w, r, presenter.Token{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+			TokenType:    "bearer",
+		})
 	}
 }
 
@@ -297,7 +315,13 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		updatedUser, err := h.usersUC.UpdatePassword(r.Context(), user.Id, userUpdate.OldPassword, userUpdate.NewPassword)
+		updatedUser, err := h.usersUC.UpdatePassword(
+			r.Context(),
+			user.Id,
+			userUpdate.OldPassword,
+			userUpdate.NewPassword,
+			userUpdate.ConfirmPassword,
+		)
 
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
@@ -320,7 +344,11 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		render.Respond(w, r, presenter.Token{AccessToken: accessToken, RefreshToken: refreshToken, TokenType: "bearer"})
+		render.Respond(w, r, presenter.Token{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+			TokenType:    "bearer",
+		})
 	}
 }
 
@@ -383,6 +411,23 @@ func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		q := r.URL.Query()
+		verificationCode := q.Get("code")
+
+		err := h.usersUC.Verify(ctx, verificationCode)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		render.Respond(w, r, responses.CreateSuccessResponse("Email verified successfully"))
+	}
+}
+
 func (h *userHandler) LogoutAllAdmin() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -400,6 +445,70 @@ func (h *userHandler) LogoutAllAdmin() func(w http.ResponseWriter, r *http.Reque
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+	}
+}
+
+func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		forgotPassword := new(presenter.ForgotPassword)
+
+		err := json.NewDecoder(r.Body).Decode(&forgotPassword)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), forgotPassword)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		err = h.usersUC.ForgotPassword(ctx, forgotPassword.Email)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+		render.Respond(w, r,
+			responses.CreateSuccessResponse("You will receive a reset email if user with that email exist"))
+	}
+}
+
+func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		q := r.URL.Query()
+		resetToken := q.Get("code")
+
+		resetPassword := new(presenter.ResetPassword)
+
+		err := json.NewDecoder(r.Body).Decode(&resetPassword)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+
+		err = utils.ValidateStruct(r.Context(), resetPassword)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			return
+		}
+
+		err = h.usersUC.ResetPassword(
+			ctx,
+			resetToken,
+			resetPassword.NewPassword,
+			resetPassword.ConfirmPassword,
+		)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err))
+			return
+		}
+		render.Respond(w, r,
+			responses.CreateSuccessResponse("Password data updated successfully, please re-login"))
 	}
 }
 
@@ -422,6 +531,7 @@ func mapModelResponse(exp *models.User) *presenter.UserResponse {
 		UpdatedAt:   exp.UpdatedAt,
 		IsActive:    exp.IsActive,
 		IsSuperUser: exp.IsSuperUser,
+		Verified:    exp.Verified,
 	}
 }
 

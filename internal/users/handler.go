@@ -18,4 +18,7 @@ type Handlers interface {
 	Logout() func(w http.ResponseWriter, r *http.Request)
 	LogoutAllToken() func(w http.ResponseWriter, r *http.Request)
 	LogoutAllAdmin() func(w http.ResponseWriter, r *http.Request)
+	VerifyEmail() func(w http.ResponseWriter, r *http.Request)
+	ForgotPassword() func(w http.ResponseWriter, r *http.Request)
+	ResetPassword() func(w http.ResponseWriter, r *http.Request)
 }
