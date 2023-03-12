@@ -45,7 +45,6 @@ func CreateUserUseCaseI(
 
 func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	cachedUser, err := u.redisRepo.Get(ctx, u.GenerateRedisUserKey(id))
-
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +54,6 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 	}
 
 	user, err := u.pgRepo.Get(ctx, id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +67,6 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 
 func (u *userUseCase) Delete(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	user, err := u.pgRepo.Delete(ctx, id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +93,6 @@ func (u *userUseCase) Update(
 	}
 
 	user, err := u.pgRepo.Update(ctx, obj, values)
-
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +100,7 @@ func (u *userUseCase) Update(
 	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
@@ -112,7 +109,6 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	exp.Password = strings.TrimSpace(exp.Password)
 
 	hashedPassword, err := jwt.HashPassword(exp.Password)
-
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +176,6 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 		u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute),
 		u.Cfg.Jwt.JwtIssuer,
 	)
-
 	if err != nil {
 		return "", "", err
 	}
@@ -192,7 +187,6 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 		u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute),
 		u.Cfg.Jwt.JwtIssuer,
 	)
-
 	if err != nil {
 		return "", "", err
 	}
@@ -202,7 +196,6 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 
 func (u *userUseCase) SignIn(ctx context.Context, email string, password string) (string, string, error) {
 	user, err := u.pgRepo.GetByEmail(ctx, email)
-
 	if err != nil {
 		return "", "", httpErrors.ErrNotFound(err)
 	}
@@ -239,7 +232,6 @@ func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, erro
 	user, err := u.pgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.FirstSuperUserEmail)
 
 	if err != nil || user == nil {
-
 		_, err := u.Create(ctx, &models.User{
 			Name:        u.Cfg.FirstSuperUser.FirstSuperUserName,
 			Email:       u.Cfg.FirstSuperUser.FirstSuperUserEmail,
@@ -277,13 +269,11 @@ func (u *userUseCase) UpdatePassword(
 	}
 
 	hashedPassword, err := jwt.HashPassword(newPassword)
-
 	if err != nil {
 		return nil, err
 	}
 
 	updatedUser, err := u.pgRepo.UpdatePassword(ctx, user, hashedPassword)
-
 	if err != nil {
 		return nil, err
 	}
@@ -304,13 +294,11 @@ func (u *userUseCase) ParseIdFromRefreshToken(
 	refreshToken string,
 ) (uuid.UUID, error) {
 	id, _, err := jwt.ParseTokenRS256(refreshToken, u.Cfg.Jwt.JwtRefreshTokenPublicKey)
-
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
 	idParsed, err := uuid.Parse(id)
-
 	if err != nil {
 		return uuid.UUID{},
 			httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))
@@ -348,7 +336,6 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 	}
 
 	user, err := u.Get(ctx, idParsed)
-
 	if err != nil {
 		return "", "", err
 	}
@@ -485,7 +472,6 @@ func (u *userUseCase) ResetPassword(
 	}
 
 	hashedPassword, err := jwt.HashPassword(newPassword)
-
 	if err != nil {
 		return err
 	}
@@ -496,7 +482,6 @@ func (u *userUseCase) ResetPassword(
 		hashedPassword,
 		"",
 	)
-
 	if err != nil {
 		return err
 	}

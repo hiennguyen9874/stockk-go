@@ -35,14 +35,12 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 		user := new(presenter.UserCreate)
 
 		err := json.NewDecoder(r.Body).Decode(&user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -67,16 +65,17 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
+
 		user, err := h.usersUC.Get(r.Context(), id)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(user)))
 	}
 }
@@ -89,7 +88,6 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 		offset, _ := strconv.Atoi(q.Get("offset"))
 
 		users, err := h.usersUC.GetMulti(r.Context(), limit, offset)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -102,16 +100,17 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
+
 		user, err := h.usersUC.Delete(r.Context(), id)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(user)))
 	}
 }
@@ -119,7 +118,6 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -128,14 +126,12 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 		user := new(presenter.UserUpdate)
 
 		err = json.NewDecoder(r.Body).Decode(&user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -147,11 +143,11 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		updatedUser, err := h.usersUC.Update(r.Context(), id, values)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
@@ -159,7 +155,6 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -168,14 +163,12 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 		user := new(presenter.UserUpdatePassword)
 
 		err = json.NewDecoder(r.Body).Decode(&user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -188,11 +181,11 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 			user.NewPassword,
 			user.ConfirmPassword,
 		)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
@@ -206,7 +199,6 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 		user.Password = r.FormValue("password")
 
 		err := utils.ValidateStruct(r.Context(), user)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -217,7 +209,6 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			user.Email,
 			user.Password,
 		)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -236,7 +227,6 @@ func (h *userHandler) Me() func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		user, err := middleware.GetUserFromCtx(ctx)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -251,7 +241,6 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		user, err := middleware.GetUserFromCtx(ctx)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -260,14 +249,12 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		userUpdate := new(presenter.UserUpdate)
 
 		err = json.NewDecoder(r.Body).Decode(&userUpdate)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), userUpdate)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -279,11 +266,11 @@ func (h *userHandler) UpdateMe() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		updatedUser, err := h.usersUC.Update(r.Context(), user.Id, values)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
@@ -293,7 +280,6 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 		ctx := r.Context()
 
 		user, err := middleware.GetUserFromCtx(ctx)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -302,14 +288,12 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 		userUpdate := new(presenter.UserUpdatePassword)
 
 		err = json.NewDecoder(r.Body).Decode(&userUpdate)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), userUpdate)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -322,11 +306,11 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 			userUpdate.NewPassword,
 			userUpdate.ConfirmPassword,
 		)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(updatedUser)))
 	}
 }
@@ -338,7 +322,6 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 		refreshToken := middleware.TokenFromHeader(r)
 
 		accessToken, refreshToken, err := h.usersUC.Refresh(ctx, refreshToken)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -355,14 +338,12 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		publicKeyAccessToken, err := jwt.DecodeBase64(h.cfg.Jwt.JwtAccessTokenPublicKey)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 
 		publicKeyRefreshToken, err := jwt.DecodeBase64(h.cfg.Jwt.JwtRefreshTokenPublicKey)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -382,7 +363,6 @@ func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 		refreshToken := middleware.TokenFromHeader(r)
 
 		err := h.usersUC.Logout(ctx, refreshToken)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -403,7 +383,6 @@ func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Reque
 		}
 
 		err = h.usersUC.LogoutAll(ctx, id)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -433,14 +412,12 @@ func (h *userHandler) LogoutAllAdmin() func(w http.ResponseWriter, r *http.Reque
 		ctx := r.Context()
 
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		err = h.usersUC.LogoutAll(ctx, id)
-
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -471,6 +448,7 @@ func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Reque
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r,
 			responses.CreateSuccessResponse("You will receive a reset email if user with that email exist"))
 	}
@@ -507,6 +485,7 @@ func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Reques
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		render.Respond(w, r,
 			responses.CreateSuccessResponse("Password data updated successfully, please re-login"))
 	}

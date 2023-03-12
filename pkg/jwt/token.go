@@ -39,7 +39,6 @@ func ParseTokenHS256(tokenString string, secretKey string) (string, string, erro
 		}
 		return []byte(secretKey), nil
 	})
-
 	if err != nil {
 		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
 	}
@@ -80,14 +79,13 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 	if err != nil {
 		return "", err
 	}
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
 
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
 	if err != nil {
 		return "", httpErrors.ErrBadRequest(errors.New("can not parse rsa private key from pem"))
 	}
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(key)
-
 	if err != nil {
 		return "", httpErrors.ErrBadRequest(errors.New("can not create token"))
 	}

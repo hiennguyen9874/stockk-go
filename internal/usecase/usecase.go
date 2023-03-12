@@ -58,5 +58,6 @@ func (u *UseCase[M]) Update(ctx context.Context, id uuid.UUID, values map[string
 	if err != nil || obj == nil {
 		return nil, err
 	}
+
 	return u.pgRepo.Update(ctx, obj, values)
 }

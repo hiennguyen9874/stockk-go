@@ -85,7 +85,6 @@ func (mw *MiddlewareManager) Authenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err, _ := r.Context().Value(ErrorCtxKey).(error)
-
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return
@@ -111,14 +110,12 @@ func (mw *MiddlewareManager) CurrentUser() func(http.Handler) http.Handler {
 			}
 
 			idParsed, err := uuid.Parse(id)
-
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))))
 				return
 			}
 
 			user, err := mw.usersUC.Get(ctx, idParsed)
-
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return
@@ -137,7 +134,6 @@ func (mw *MiddlewareManager) SuperUser() func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			user, err := GetUserFromCtx(ctx)
-
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return
@@ -159,7 +155,6 @@ func (mw *MiddlewareManager) ActiveUser() func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			user, err := GetUserFromCtx(ctx)
-
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return

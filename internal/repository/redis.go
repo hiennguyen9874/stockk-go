@@ -25,7 +25,6 @@ func CreateRedisRepository[M any](redisClient *redis.Client) internal.RedisRepos
 
 func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds int) error {
 	objBytes, err := json.Marshal(exp)
-
 	if err != nil {
 		return httpErrors.ErrJson(err)
 	}
@@ -39,7 +38,6 @@ func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds i
 
 func (r *RedisRepo[M]) Get(ctx context.Context, key string) (*M, error) {
 	objBytes, err := r.RedisClient.Get(ctx, key).Bytes()
-
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
