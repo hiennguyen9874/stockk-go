@@ -63,16 +63,9 @@ In this project use 3 layer architecture
 
 ## Acknowledgements
 
-- [github.com/dhax/go-base](https://github.com/dhax/go-base)
-- [github.com/akmamun/go-fication](https://github.com/akmamun/go-fication)
-- [github.com/wpcodevo/golang-fiber-jwt](https://github.com/wpcodevo/golang-fiber-jwt)
-- [github.com/wpcodevo/golang-fiber](https://github.com/wpcodevo/golang-fiber)
-- [github.com/kienmatu/togo](https://github.com/kienmatu/togo)
-- [github.com/AleksK1NG/Go-Clean-Architecture-REST-API](https://github.com/AleksK1NG/Go-Clean-Architecture-REST-API)
-- [github.com/bxcodec/go-clean-arch](https://github.com/bxcodec/go-clean-arch)
-- [codevoweb.com/golang-and-gorm-user-registration-email-verification/](https://codevoweb.com/golang-and-gorm-user-registration-email-verification/)
-- [codevoweb.com/golang-gorm-postgresql-user-registration-with-refresh-tokens/](https://codevoweb.com/golang-gorm-postgresql-user-registration-with-refresh-tokens/)
-- [codevoweb.com/how-to-implement-google-oauth2-in-golang/](https://codevoweb.com/how-to-implement-google-oauth2-in-golang/)
-- [codevoweb.com/how-to-upload-single-and-multiple-files-in-golang/](https://codevoweb.com/how-to-upload-single-and-multiple-files-in-golang/)
-- [codevoweb.com/forgot-reset-passwords-in-golang-with-html-email/](https://codevoweb.com/forgot-reset-passwords-in-golang-with-html-email/)
-- [techmaster.vn/posts/34577/kien-truc-sach-voi-golang](https://techmaster.vn/posts/34577/kien-truc-sach-voi-golang)
+- https://github.com/c9s/bbgo
+- https://github.com/Gituser143/cryptgo
+- https://github.com/m1/go-finnhub
+- https://github.com/achannarasappa/ticker
+- https://betterprogramming.pub/build-a-real-time-crypto-ticker-with-go-and-influxdb-2-89e968c65b7e
+- https://ajiybanesij.medium.com/building-go-applications-using-influxdb-87b462fd9d70
