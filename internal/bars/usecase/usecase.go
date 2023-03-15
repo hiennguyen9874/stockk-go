@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/bars"
@@ -95,6 +96,23 @@ func (u *barUseCase) Inserts(ctx context.Context, bucket string, exps []*models.
 
 	// Insert into influxdb
 	return u.influxDBRepo.Inserts(ctx, bucket, exps)
+}
+
+func (u *barUseCase) GetByFromTo(ctx context.Context, bucket string, exchange, symbol string, from time.Time, to time.Time) ([]*models.Bar, error) {
+	return u.influxDBRepo.GetByFromTo(ctx, bucket, symbol, exchange, from, to)
+}
+
+func (u *barUseCase) GetByToLimit(ctx context.Context, bucket string, symbol string, exchange string, to time.Time, limit int) ([]*models.Bar, error) {
+	timestamp, err := u.redisRepo.GetInt64(ctx, u.GenerateRedisLastTimestampKey(symbol))
+	if err != nil {
+		return nil, err
+	}
+
+	if timestamp == nil {
+		return nil, errors.New("last timestamp not saved")
+	}
+
+	return u.influxDBRepo.GetByToLimit(ctx, bucket, symbol, exchange, to, limit, time.Unix(*timestamp, 0))
 }
 
 func (u *barUseCase) GenerateRedisLastTimestampKey(symbol string) string {

@@ -45,6 +45,9 @@ var tempCmd = &cobra.Command{
 		redisClient := redis.NewRedis(cfg)
 
 		status, err := influxDB.Ping(ctx)
+		if err != nil {
+			appLogger.Fatal(err)
+		}
 
 		appLogger.Info(status)
 
@@ -59,10 +62,10 @@ var tempCmd = &cobra.Command{
 
 		bucket := "long"
 
-		from := time.Date(1999, 12, 31, 0, 0, 0, 0, time.UTC).Unix()
-		to := time.Now().UTC().Unix()
+		from := time.Date(1999, 12, 31, 0, 0, 0, 0, time.UTC)
+		to := time.Now().UTC()
 
-		crawlerBars, err := crawler.VNDCrawlStockHistory("VCI", crawlers.RD, from, to)
+		crawlerBars, err := crawler.VNDCrawlStockHistory("VCI", crawlers.RD, from.Unix(), to.Unix())
 		if err != nil {
 			appLogger.Fatal(err)
 		}
@@ -71,7 +74,7 @@ var tempCmd = &cobra.Command{
 		bars := make([]*models.Bar, len(crawlerBars))
 		for i, crawlerBar := range crawlerBars {
 			bars[i] = &models.Bar{
-				Symbol:   "VND",
+				Symbol:   "VCI",
 				Exchange: "HSX",
 				Time:     crawlerBar.Time,
 				Open:     crawlerBar.Open,
@@ -82,10 +85,18 @@ var tempCmd = &cobra.Command{
 			}
 		}
 
-		err = barUseCase.Inserts(ctx, bucket, bars)
+		// err = barUseCase.Inserts(ctx, bucket, bars)
+		// // err = barUseCase.Insert(ctx, bucket, bars[0])
+		// if err != nil {
+		// 	appLogger.Fatal(err)
+		// }
+
+		savedBars, err := barUseCase.GetByToLimit(ctx, bucket, "VCI", "HSX", to, 100)
 		if err != nil {
 			appLogger.Fatal(err)
 		}
+
+		appLogger.Info(savedBars)
 
 		appLogger.Info("Done!")
 	},
