@@ -44,7 +44,7 @@ func CreateUserUseCaseI(
 }
 
 func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	cachedUser, err := u.redisRepo.Get(ctx, u.GenerateRedisUserKey(id))
+	cachedUser, err := u.redisRepo.GetObj(ctx, u.GenerateRedisUserKey(id))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 		return nil, err
 	}
 
-	if err = u.redisRepo.Create(ctx, u.GenerateRedisUserKey(id), user, 3600); err != nil {
+	if err = u.redisRepo.CreateObj(ctx, u.GenerateRedisUserKey(id), user, 3600); err != nil {
 		return nil, err
 	}
 

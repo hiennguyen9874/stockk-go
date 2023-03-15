@@ -60,3 +60,11 @@ smtpEmail:
   SmtpPassword: 9a817b2133d80c
   SmtpUseTls: true
   SmtpUseSsl: false
+
+
+influxDB: 
+  InfluxDBHost: influxdb
+  InfluxDBPort: 8086
+  InfluxDBUsername: admin
+  InfluxDBPassword: admin1234
+  InfluxDBToken: 905d9eaf34914b43ac13fcba47851324ba9887d1b01dc2e866bf4acacc30819c

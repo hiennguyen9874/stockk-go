@@ -23,7 +23,26 @@ func CreateRedisRepository[M any](redisClient *redis.Client) internal.RedisRepos
 	return &RedisRepo[M]{RedisClient: redisClient}
 }
 
-func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds int) error {
+func (r *RedisRepo[M]) CreateInt64(ctx context.Context, key string, value int64, seconds int) error {
+	if err := r.RedisClient.Set(ctx, key, value, time.Second*time.Duration(seconds)).Err(); err != nil {
+		// TODO: Using httpErrors
+		return err
+	}
+	return nil
+}
+
+func (r *RedisRepo[M]) GetInt64(ctx context.Context, key string) (*int64, error) {
+	value, err := r.RedisClient.Get(ctx, key).Int64()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &value, nil
+}
+
+func (r *RedisRepo[M]) CreateObj(ctx context.Context, key string, exp *M, seconds int) error {
 	objBytes, err := json.Marshal(exp)
 	if err != nil {
 		return httpErrors.ErrJson(err)
@@ -36,7 +55,7 @@ func (r *RedisRepo[M]) Create(ctx context.Context, key string, exp *M, seconds i
 	return nil
 }
 
-func (r *RedisRepo[M]) Get(ctx context.Context, key string) (*M, error) {
+func (r *RedisRepo[M]) GetObj(ctx context.Context, key string) (*M, error) {
 	objBytes, err := r.RedisClient.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {

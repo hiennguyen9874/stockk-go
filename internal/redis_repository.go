@@ -5,8 +5,10 @@ import (
 )
 
 type RedisRepository[M any] interface {
-	Create(ctx context.Context, key string, exp *M, seconds int) error
-	Get(ctx context.Context, key string) (*M, error)
+	CreateInt64(ctx context.Context, key string, value int64, seconds int) error
+	GetInt64(ctx context.Context, key string) (*int64, error)
+	CreateObj(ctx context.Context, key string, exp *M, seconds int) error
+	GetObj(ctx context.Context, key string) (*M, error)
 	Delete(ctx context.Context, key string) error
 	Sadd(ctx context.Context, key string, value string) error
 	Sadds(ctx context.Context, key string, values []string) error

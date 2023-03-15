@@ -20,6 +20,7 @@ type Config struct {
 	Logger         Logger
 	SmtpEmail      SmtpEmailConfig
 	Email          EmailConfig
+	InfluxDB       InfluxDBConfig
 }
 
 // Server config struct
@@ -60,6 +61,15 @@ type RedisConfig struct {
 	PoolTimeout    int
 	Password       string
 	DB             int
+}
+
+// InfluxDB config
+type InfluxDBConfig struct {
+	InfluxDBHost     string
+	InfluxDBPort     string
+	InfluxDBUsername string
+	InfluxDBPassword string
+	InfluxDBToken    string
 }
 
 // Jwt config

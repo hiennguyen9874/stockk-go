@@ -133,10 +133,10 @@ func (r *crawler) VNDCrawlStockHistory(symbol string, resolution Resolution, fro
 	}
 
 	type VNDHistoryData struct {
-		C []float32 `json:"c"`
-		H []float32 `json:"h"`
-		L []float32 `json:"l"`
-		O []float32 `json:"o"`
+		C []float64 `json:"c"`
+		H []float64 `json:"h"`
+		L []float64 `json:"l"`
+		O []float64 `json:"o"`
 		T []int64   `json:"t"`
 		V []float64 `json:"v"`
 		S string    `json:"s"`
