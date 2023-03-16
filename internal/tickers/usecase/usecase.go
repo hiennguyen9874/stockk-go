@@ -92,3 +92,7 @@ func (u *tickerUseCase) UpdateIsActiveBySymbol(ctx context.Context, symbol strin
 func (u *tickerUseCase) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
 	return u.tickerPgRepo.GetAllActive(ctx, isActive)
 }
+
+func (u *tickerUseCase) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
+	return u.tickerPgRepo.SearchBySymbol(ctx, symbol, limit, exchange)
+}

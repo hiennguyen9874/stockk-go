@@ -3,7 +3,6 @@ package crawlers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"github.com/hiennguyen9874/stockk-go/pkg/utils"
 )
 
 func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
@@ -95,7 +95,7 @@ func (r *crawler) VNDMapResolutionToString(resolution Resolution) (string, error
 	case RD:
 		return "D", nil
 	default:
-		return "", errors.New(fmt.Sprintf("not support resolution: %v", resolution))
+		return "", fmt.Errorf("not support resolution: %v", resolution)
 	}
 }
 
@@ -143,17 +143,23 @@ func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resol
 		L []float64 `json:"l"`
 		O []float64 `json:"o"`
 		T []int64   `json:"t"`
-		V []float64 `json:"v"`
+		V []int64   `json:"v"`
 		S string    `json:"s"`
 	}
 
 	var response VNDHistoryData
 	json.Unmarshal(responseData, &response)
 
+	//init the loc
+	loc, err := time.LoadLocation(r.cfg.Crawler.VNDTimeZone)
+	if err != nil {
+		return nil, err
+	}
+
 	bars := make([]Bar, len(response.C))
 	for i := 0; i < len(response.C); i++ {
 		bars[i] = Bar{
-			Time:   time.Unix(response.T[i], 0).UTC(),
+			Time:   utils.UpdateTimeZone(time.Unix(response.T[i], 0), loc).UTC(),
 			Open:   response.O[i],
 			High:   response.H[i],
 			Low:    response.L[i],

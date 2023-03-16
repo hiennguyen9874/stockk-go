@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/repository"
@@ -38,5 +39,27 @@ func (r *TickerPgRepo) UpdateIsActive(ctx context.Context, exp *models.Ticker, i
 func (r *TickerPgRepo) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
 	var objs []*models.Ticker
 	r.DB.WithContext(ctx).Where("is_active = ?", isActive).Find(&objs)
+	return objs, nil
+}
+
+func (r *TickerPgRepo) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
+	var objs []*models.Ticker
+
+	query := r.DB.WithContext(ctx)
+
+	if symbol != "" {
+		query = query.Where("symbol LIKE ?", fmt.Sprintf("%v%v", symbol, "%"))
+	}
+
+	if exchange != "" {
+		query = query.Where("exchange = ?", exchange)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	query.Order("symbol").Find(&objs)
+
 	return objs, nil
 }

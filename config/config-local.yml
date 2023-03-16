@@ -6,6 +6,7 @@ server:
   ReadTimeout: 5
   WriteTimeout: 5
   MigrateOnStart: true
+  TimeZone: Asia/Ho_Chi_Minh
 
 jwt:
   # JwtSecretKey: 9056b94a8611363c2c43aa3760d65a48c834744b877b5041fa99a919d5aaf635
@@ -61,10 +62,12 @@ smtpEmail:
   SmtpUseTls: true
   SmtpUseSsl: false
 
-
-influxDB: 
+influxDB:
   InfluxDBHost: influxdb
   InfluxDBPort: 8086
   InfluxDBUsername: admin
   InfluxDBPassword: admin1234
   InfluxDBToken: 905d9eaf34914b43ac13fcba47851324ba9887d1b01dc2e866bf4acacc30819c
+
+crawler:
+  VNDTimeZone: Asia/Ho_Chi_Minh

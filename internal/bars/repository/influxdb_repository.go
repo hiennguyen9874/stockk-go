@@ -122,7 +122,7 @@ func (r *BarInfluxDBRepo) ParseResultFromInfluxDB(result *influxdb2API.QueryTabl
 		High     float64
 		Low      float64
 		Close    float64
-		Volume   float64
+		Volume   int64
 	}
 
 	records := make(map[time.Time]Record)
@@ -144,7 +144,7 @@ func (r *BarInfluxDBRepo) ParseResultFromInfluxDB(result *influxdb2API.QueryTabl
 		case "close":
 			val.Close = result.Record().Value().(float64)
 		case "volume":
-			val.Volume = result.Record().Value().(float64)
+			val.Volume = result.Record().Value().(int64)
 		}
 		records[result.Record().Time()] = val
 	}

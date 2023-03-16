@@ -44,7 +44,7 @@ type Bar struct {
 	High   float64
 	Low    float64
 	Close  float64
-	Volume float64
+	Volume int64
 }
 
 func NewCrawler(cfg *config.Config) Crawler {

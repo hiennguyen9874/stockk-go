@@ -21,6 +21,7 @@ type Config struct {
 	SmtpEmail      SmtpEmailConfig
 	Email          EmailConfig
 	InfluxDB       InfluxDBConfig
+	Crawler        CrawlerConfig
 }
 
 // Server config struct
@@ -32,6 +33,7 @@ type ServerConfig struct {
 	ReadTimeout    int
 	WriteTimeout   int
 	MigrateOnStart bool
+	TimeZone       string
 }
 
 // Logger config
@@ -108,6 +110,10 @@ type SmtpEmailConfig struct {
 	SmtpPassword string
 	SmtpUseTls   bool
 	SmtpUseSsl   bool
+}
+
+type CrawlerConfig struct {
+	VNDTimeZone string
 }
 
 // Load config file from given path
