@@ -1,6 +1,7 @@
 package crawlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 )
 
-func (cr *crawler) VNDCrawlStockSymbols() ([]Ticker, error) {
+func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "https://api-finfo.vndirect.com.vn/v4/stocks?q=type:IFC,ETF,STOCK~status:LISTED&fields=code,companyName,companyNameEng,shortName,floor,industryName&size=3000", nil)
@@ -32,6 +33,8 @@ func (cr *crawler) VNDCrawlStockSymbols() ([]Ticker, error) {
 	req.Header.Set("sec-ch-ua", `"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"`)
 	req.Header.Set("sec-ch-ua-mobile", "?0")
 	req.Header.Set("sec-ch-ua-platform", `"Linux"`)
+
+	req = req.WithContext(ctx)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -96,7 +99,7 @@ func (r *crawler) VNDMapResolutionToString(resolution Resolution) (string, error
 	}
 }
 
-func (r *crawler) VNDCrawlStockHistory(symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
+func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
 	strResolution, err := r.VNDMapResolutionToString(resolution)
 	if err != nil {
 		return nil, err
@@ -119,6 +122,8 @@ func (r *crawler) VNDCrawlStockHistory(symbol string, resolution Resolution, fro
 	req.Header.Set("sec-ch-ua", `"Google Chrome";v="111", "Not(A:Brand";v="8", "Chromium";v="111"`)
 	req.Header.Set("sec-ch-ua-mobile", "?0")
 	req.Header.Set("sec-ch-ua-platform", `"Linux"`)
+
+	req = req.WithContext(ctx)
 
 	resp, err := client.Do(req)
 	if err != nil {

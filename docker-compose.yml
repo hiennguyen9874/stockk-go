@@ -13,17 +13,31 @@ services:
     depends_on:
       - db
       - redis
+      - influxdb
 
-  crawler:
+  symbol-crawler:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "go run main.go migrate && go run main.go crawl"
+    command: sh -c "go run main.go migrate && go run main.go crawlsymbol"
     volumes:
       - ./:/app
     depends_on:
       - db
       - redis
+      - influxdb
+
+  history-crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "go run main.go migrate && go run main.go crawlhistory"
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+      - redis
+      - influxdb
 
   db:
     image: postgres:15.2-alpine
@@ -88,7 +102,7 @@ services:
       DOCKER_INFLUXDB_INIT_PASSWORD: admin1234
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 905d9eaf34914b43ac13fcba47851324ba9887d1b01dc2e866bf4acacc30819c
       DOCKER_INFLUXDB_INIT_ORG: history
-      DOCKER_INFLUXDB_INIT_BUCKET: long
+      DOCKER_INFLUXDB_INIT_BUCKET: ResolutionD
     expose:
       - 8086
     ports:

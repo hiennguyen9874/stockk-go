@@ -1,6 +1,7 @@
 package crawlers
 
 import (
+	"context"
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
@@ -20,8 +21,8 @@ const (
 )
 
 type Crawler interface {
-	VNDCrawlStockSymbols() ([]Ticker, error)
-	VNDCrawlStockHistory(symbol string, resolution Resolution, from int64, to int64) ([]Bar, error)
+	VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error)
+	VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error)
 	VNDMapResolutionToString(resolution Resolution) (string, error)
 }
 

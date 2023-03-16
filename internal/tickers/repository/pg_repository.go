@@ -34,3 +34,9 @@ func (r *TickerPgRepo) UpdateIsActive(ctx context.Context, exp *models.Ticker, i
 	}
 	return exp, nil
 }
+
+func (r *TickerPgRepo) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
+	var objs []*models.Ticker
+	r.DB.WithContext(ctx).Where("is_active = ?", isActive).Find(&objs)
+	return objs, nil
+}

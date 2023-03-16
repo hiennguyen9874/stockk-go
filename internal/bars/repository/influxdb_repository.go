@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/internal/bars"
@@ -41,7 +42,7 @@ func (r *BarInfluxDBRepo) Insert(ctx context.Context, bucket string, exp *models
 	return writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
 }
 
-func (r *BarInfluxDBRepo) Inserts(ctx context.Context, bucket string, exps []*models.Bar) error {
+func (r *BarInfluxDBRepo) Inserts(ctx context.Context, bucket string, exps []*models.Bar, batchSize int) error {
 	writeAPI := r.influxDBClient.WriteAPIBlocking(r.org, bucket)
 
 	// var wg sync.WaitGroup
@@ -59,14 +60,56 @@ func (r *BarInfluxDBRepo) Inserts(ctx context.Context, bucket string, exps []*mo
 	// }
 	// wg.Wait()
 
-	for _, exp := range exps {
-		err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
-		if err != nil {
-			return err
-		}
-	}
+	// for _, exp := range exps {
+	// 	err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	return nil
+	// Ticker queue
+	expsCh := make(chan *models.Bar, batchSize)
+	doneCh := make(chan bool)
+	errCh := make(chan error)
+
+	// Ticker producer
+	go func() {
+		var wg sync.WaitGroup
+		for _, bar := range exps {
+			wg.Add(1)
+			go func(expsCh chan<- *models.Bar, ticker *models.Bar) {
+				defer wg.Done()
+				expsCh <- ticker
+			}(expsCh, bar)
+		}
+		wg.Wait()
+		close(expsCh)
+	}()
+
+	// Ticker consumer
+	go func(expsCh <-chan *models.Bar, doneCh chan<- bool, errCh chan<- error) {
+		var wg sync.WaitGroup
+		for exp := range expsCh {
+			wg.Add(1)
+			go func(exp *models.Bar) {
+				defer wg.Done()
+
+				err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
+				if err != nil {
+					errCh <- err
+				}
+			}(exp)
+		}
+		wg.Wait()
+		doneCh <- true
+	}(expsCh, doneCh, errCh)
+
+	select {
+	case err := <-errCh:
+		return err
+	case <-doneCh:
+		return nil
+	}
 }
 
 func (r *BarInfluxDBRepo) ParseResultFromInfluxDB(result *influxdb2API.QueryTableResult) ([]*models.Bar, error) {
