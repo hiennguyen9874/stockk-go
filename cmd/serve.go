@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/server"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/influxdb"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
@@ -40,7 +41,14 @@ var serveCmd = &cobra.Command{
 
 		redisClient := redis.NewRedis(cfg)
 
-		server, err := server.NewServer(cfg, psqlDB, redisClient, appLogger)
+		influxDB, err := influxdb.NewInfluxDB(cfg)
+		if err != nil {
+			appLogger.Fatalf("InfluxDB init: %s", err)
+		} else {
+			appLogger.Infof("InfluxDB connected")
+		}
+
+		server, err := server.NewServer(cfg, psqlDB, redisClient, influxDB, appLogger)
 		if err != nil {
 			appLogger.Fatal(err)
 		}

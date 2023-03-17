@@ -11,4 +11,6 @@ type TickerPgRepository interface {
 	internal.PgRepository[models.Ticker]
 	GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error)
 	UpdateIsActive(ctx context.Context, exp *models.Ticker, isActive bool) (*models.Ticker, error)
+	GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error)
+	SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error)
 }

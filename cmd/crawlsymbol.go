@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
@@ -13,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var crawlCmd = &cobra.Command{
-	Use:   "crawl",
-	Short: "crawl",
-	Long:  "crawl",
+var crawlSymbolCmd = &cobra.Command{
+	Use:   "crawlsymbol",
+	Short: "crawl symbol",
+	Long:  "crawl symbol",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := config.GetCfg()
 
@@ -38,29 +37,19 @@ var crawlCmd = &cobra.Command{
 		tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, appLogger)
 
 		for {
-			var wg sync.WaitGroup
+			// Crawl tickers from vnd and save into database
+			savedTickers, err := tickerUC.CrawlAllStockTicker(context.Background())
+			if err != nil {
+				appLogger.Fatal(err)
+			}
 
-			wg.Add(1)
+			appLogger.Infof("Save %v ticker", len(savedTickers))
 
-			go func() {
-				defer wg.Done()
-
-				// Crawl tickers from vnd and save into database
-				savedTickers, err := tickerUC.CrawlAllStockTicker(context.Background())
-				if err != nil {
-					appLogger.Fatal(err)
-				}
-
-				appLogger.Infof("Save %v ticker", len(savedTickers))
-			}()
-
-			wg.Wait()
-
-			time.Sleep(1 * time.Minute)
+			time.Sleep(10 * time.Minute)
 		}
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(crawlCmd)
+	RootCmd.AddCommand(crawlSymbolCmd)
 }

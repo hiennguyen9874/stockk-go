@@ -12,4 +12,6 @@ type TickerUseCaseI interface {
 	GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error)
 	UpdateIsActiveBySymbol(ctx context.Context, symbol string, isActive bool) (*models.Ticker, error)
 	CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error)
+	GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error)
+	SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error)
 }

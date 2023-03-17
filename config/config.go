@@ -20,6 +20,8 @@ type Config struct {
 	Logger         Logger
 	SmtpEmail      SmtpEmailConfig
 	Email          EmailConfig
+	InfluxDB       InfluxDBConfig
+	Crawler        CrawlerConfig
 }
 
 // Server config struct
@@ -31,6 +33,7 @@ type ServerConfig struct {
 	ReadTimeout    int
 	WriteTimeout   int
 	MigrateOnStart bool
+	TimeZone       string
 }
 
 // Logger config
@@ -60,6 +63,15 @@ type RedisConfig struct {
 	PoolTimeout    int
 	Password       string
 	DB             int
+}
+
+// InfluxDB config
+type InfluxDBConfig struct {
+	InfluxDBHost     string
+	InfluxDBPort     string
+	InfluxDBUsername string
+	InfluxDBPassword string
+	InfluxDBToken    string
 }
 
 // Jwt config
@@ -98,6 +110,10 @@ type SmtpEmailConfig struct {
 	SmtpPassword string
 	SmtpUseTls   bool
 	SmtpUseSsl   bool
+}
+
+type CrawlerConfig struct {
+	VNDTimeZone string
 }
 
 // Load config file from given path

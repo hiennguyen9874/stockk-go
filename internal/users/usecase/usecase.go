@@ -22,29 +22,29 @@ import (
 
 type userUseCase struct {
 	usecase.UseCase[models.User]
-	pgRepo                 users.UserPgRepository
-	redisRepo              users.UserRedisRepository
+	userPgRepo             users.UserPgRepository
+	userRedisRepo          users.UserRedisRepository
 	emailSender            sendEmail.EmailSender
 	emailTemplateGenerator emailTemplates.EmailTemplatesGenerator
 }
 
 func CreateUserUseCaseI(
-	pgRepo users.UserPgRepository,
-	redisRepo users.UserRedisRepository,
+	userPgRepo users.UserPgRepository,
+	userRedisRepo users.UserRedisRepository,
 	cfg *config.Config,
 	logger logger.Logger,
 ) users.UserUseCaseI {
 	return &userUseCase{
-		UseCase:                usecase.CreateUseCase[models.User](pgRepo, cfg, logger),
-		pgRepo:                 pgRepo,
-		redisRepo:              redisRepo,
+		UseCase:                usecase.CreateUseCase[models.User](userPgRepo, cfg, logger),
+		userPgRepo:             userPgRepo,
+		userRedisRepo:          userRedisRepo,
 		emailSender:            sendEmail.NewEmailSender(cfg),
 		emailTemplateGenerator: emailTemplates.NewEmailTemplatesGenerator(cfg),
 	}
 }
 
 func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	cachedUser, err := u.redisRepo.Get(ctx, u.GenerateRedisUserKey(id))
+	cachedUser, err := u.userRedisRepo.GetObj(ctx, u.GenerateRedisUserKey(id))
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +53,12 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 		return cachedUser, nil
 	}
 
-	user, err := u.pgRepo.Get(ctx, id)
+	user, err := u.userPgRepo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Create(ctx, u.GenerateRedisUserKey(id), user, 3600); err != nil {
+	if err = u.userRedisRepo.CreateObj(ctx, u.GenerateRedisUserKey(id), user, 3600); err != nil {
 		return nil, err
 	}
 
@@ -66,16 +66,16 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 }
 
 func (u *userUseCase) Delete(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	user, err := u.pgRepo.Delete(ctx, id)
+	user, err := u.userPgRepo.Delete(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
 		return nil, err
 	}
 
@@ -92,12 +92,12 @@ func (u *userUseCase) Update(
 		return nil, err
 	}
 
-	user, err := u.pgRepo.Update(ctx, obj, values)
+	user, err := u.userPgRepo.Update(ctx, obj, values)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
 		return nil, err
 	}
 
@@ -114,7 +114,7 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	}
 	exp.Password = hashedPassword
 
-	user, err := u.pgRepo.Create(ctx, exp)
+	user, err := u.userPgRepo.Create(ctx, exp)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 	}
 
 	// Update user in database
-	updatedUser, err := u.pgRepo.UpdateVerificationCode(ctx, user, verificationCode)
+	updatedUser, err := u.userPgRepo.UpdateVerificationCode(ctx, user, verificationCode)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 }
 
 func (u *userUseCase) SignIn(ctx context.Context, email string, password string) (string, string, error) {
-	user, err := u.pgRepo.GetByEmail(ctx, email)
+	user, err := u.userPgRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return "", "", httpErrors.ErrNotFound(err)
 	}
@@ -209,7 +209,7 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 		return "", "", err
 	}
 
-	if err = u.redisRepo.Sadd(
+	if err = u.userRedisRepo.Sadd(
 		ctx,
 		u.GenerateRedisRefreshTokenKey(user.Id),
 		refreshToken,
@@ -229,7 +229,7 @@ func (u *userUseCase) IsSuper(ctx context.Context, exp models.User) bool {
 }
 
 func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, error) {
-	user, err := u.pgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.FirstSuperUserEmail)
+	user, err := u.userPgRepo.GetByEmail(ctx, u.Cfg.FirstSuperUser.FirstSuperUserEmail)
 
 	if err != nil || user == nil {
 		_, err := u.Create(ctx, &models.User{
@@ -273,16 +273,16 @@ func (u *userUseCase) UpdatePassword(
 		return nil, err
 	}
 
-	updatedUser, err := u.pgRepo.UpdatePassword(ctx, user, hashedPassword)
+	updatedUser, err := u.userPgRepo.UpdatePassword(ctx, user, hashedPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(id)); err != nil {
 		return nil, err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
 		return nil, err
 	}
 
@@ -313,7 +313,7 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	isMember, err := u.redisRepo.SIsMember(
+	isMember, err := u.userRedisRepo.SIsMember(
 		ctx,
 		u.GenerateRedisRefreshTokenKey(idParsed),
 		refreshToken,
@@ -327,7 +327,7 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 			httpErrors.ErrNotFoundRefreshTokenRedis(errors.New("not found refresh token in redis"))
 	}
 
-	if err = u.redisRepo.Srem(
+	if err = u.userRedisRepo.Srem(
 		ctx,
 		u.GenerateRedisRefreshTokenKey(idParsed),
 		refreshToken,
@@ -345,7 +345,7 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		return "", "", err
 	}
 
-	if err = u.redisRepo.Sadd(
+	if err = u.userRedisRepo.Sadd(
 		ctx,
 		u.GenerateRedisRefreshTokenKey(user.Id),
 		refreshToken,
@@ -362,7 +362,7 @@ func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {
 		return err
 	}
 
-	if err = u.redisRepo.Srem(
+	if err = u.userRedisRepo.Srem(
 		ctx,
 		u.GenerateRedisRefreshTokenKey(idParsed),
 		refreshToken,
@@ -374,7 +374,7 @@ func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {
 }
 
 func (u *userUseCase) LogoutAll(ctx context.Context, id uuid.UUID) error {
-	if err := u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
+	if err := u.userRedisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
 		return err
 	}
 
@@ -382,7 +382,7 @@ func (u *userUseCase) LogoutAll(ctx context.Context, id uuid.UUID) error {
 }
 
 func (u *userUseCase) Verify(ctx context.Context, verificationCode string) error {
-	user, err := u.pgRepo.GetByVerificationCode(ctx, verificationCode)
+	user, err := u.userPgRepo.GetByVerificationCode(ctx, verificationCode)
 	if err != nil {
 		return err
 	}
@@ -391,12 +391,12 @@ func (u *userUseCase) Verify(ctx context.Context, verificationCode string) error
 		return httpErrors.ErrUserAlreadyVerified(errors.New("user already verified"))
 	}
 
-	updatedUser, err := u.pgRepo.UpdateVerification(ctx, user, "", true)
+	updatedUser, err := u.userPgRepo.UpdateVerification(ctx, user, "", true)
 	if err != nil {
 		return err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
 		return err
 	}
 
@@ -404,7 +404,7 @@ func (u *userUseCase) Verify(ctx context.Context, verificationCode string) error
 }
 
 func (u *userUseCase) ForgotPassword(ctx context.Context, email string) error {
-	user, err := u.pgRepo.GetByEmail(ctx, email)
+	user, err := u.userPgRepo.GetByEmail(ctx, email)
 
 	if err != nil {
 		return httpErrors.ErrNotFound(err)
@@ -419,7 +419,7 @@ func (u *userUseCase) ForgotPassword(ctx context.Context, email string) error {
 		return err
 	}
 
-	updatedUser, err := u.pgRepo.UpdatePasswordReset(
+	updatedUser, err := u.userPgRepo.UpdatePasswordReset(
 		ctx,
 		user,
 		resetToken,
@@ -428,7 +428,7 @@ func (u *userUseCase) ForgotPassword(ctx context.Context, email string) error {
 	if err != nil {
 		return err
 	}
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
 		return err
 	}
 
@@ -466,7 +466,7 @@ func (u *userUseCase) ResetPassword(
 		return httpErrors.ErrValidation(errors.New("password do not match"))
 	}
 
-	user, err := u.pgRepo.GetByResetTokenResetAt(ctx, resetToken, time.Now())
+	user, err := u.userPgRepo.GetByResetTokenResetAt(ctx, resetToken, time.Now())
 	if err != nil {
 		return err
 	}
@@ -476,7 +476,7 @@ func (u *userUseCase) ResetPassword(
 		return err
 	}
 
-	updatedUser, err := u.pgRepo.UpdatePasswordResetToken(
+	updatedUser, err := u.userPgRepo.UpdatePasswordResetToken(
 		ctx,
 		user,
 		hashedPassword,
@@ -486,11 +486,11 @@ func (u *userUseCase) ResetPassword(
 		return err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisUserKey(updatedUser.Id)); err != nil {
 		return err
 	}
 
-	if err = u.redisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(updatedUser.Id)); err != nil {
+	if err = u.userRedisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(updatedUser.Id)); err != nil {
 		return err
 	}
 

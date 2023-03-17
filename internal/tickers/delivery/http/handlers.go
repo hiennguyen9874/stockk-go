@@ -109,7 +109,7 @@ func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *
 
 		updatedTicker, err := h.tickersUC.UpdateIsActiveBySymbol(ctx, symbol, isActive)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
 

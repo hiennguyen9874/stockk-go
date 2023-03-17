@@ -10,6 +10,7 @@ import (
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -28,10 +29,10 @@ type Server struct {
 }
 
 // NewServer creates and configures an APIServer serving all application routes.
-func NewServer(cfg *config.Config, db *gorm.DB, redisClient *redis.Client, logger logger.Logger) (*Server, error) {
+func NewServer(cfg *config.Config, db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, logger logger.Logger) (*Server, error) {
 	logger.Info("configuring server...")
 
-	api, err := New(db, redisClient, cfg, logger)
+	api, err := New(db, redisClient, influxDB, cfg, logger)
 	if err != nil {
 		return nil, err
 	}

@@ -17,33 +17,33 @@ const (
 
 type tickerUseCase struct {
 	usecase.UseCase[models.Ticker]
-	pgRepo  tickers.TickerPgRepository
-	crawler crawlers.Crawler
+	tickerPgRepo tickers.TickerPgRepository
+	crawler      crawlers.Crawler
 }
 
 func CreateTickerUseCaseI(
-	pgRepo tickers.TickerPgRepository,
+	tickerPgRepo tickers.TickerPgRepository,
 	cfg *config.Config,
 	logger logger.Logger,
 ) tickers.TickerUseCaseI {
 	return &tickerUseCase{
-		UseCase: usecase.CreateUseCase[models.Ticker](pgRepo, cfg, logger),
-		pgRepo:  pgRepo,
-		crawler: crawlers.NewCrawler(cfg),
+		UseCase:      usecase.CreateUseCase[models.Ticker](tickerPgRepo, cfg, logger),
+		tickerPgRepo: tickerPgRepo,
+		crawler:      crawlers.NewCrawler(cfg),
 	}
 }
 
 func (u *tickerUseCase) GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error) {
-	return u.pgRepo.GetBySymbol(ctx, symbol)
+	return u.tickerPgRepo.GetBySymbol(ctx, symbol)
 }
 
 func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error) {
-	tickers, err := u.crawler.VNDCrawlStockSymbols()
+	tickers, err := u.crawler.VNDCrawlStockSymbols(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	inDBTickers, err := u.pgRepo.GetAll(ctx)
+	inDBTickers, err := u.tickerPgRepo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Tick
 		}
 	}
 
-	savedTickers, err := u.pgRepo.CreateMulti(ctx, mustCreateTickers, batchSizeSaveTickers)
+	savedTickers, err := u.tickerPgRepo.CreateMulti(ctx, mustCreateTickers, batchSizeSaveTickers)
 	if err != nil {
 		return nil, err
 	}
@@ -76,15 +76,23 @@ func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Tick
 }
 
 func (u *tickerUseCase) UpdateIsActiveBySymbol(ctx context.Context, symbol string, isActive bool) (*models.Ticker, error) {
-	ticker, err := u.pgRepo.GetBySymbol(ctx, symbol)
+	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return nil, err
 	}
 
 	u.Logger.Info(isActive)
-	updatedTicker, err := u.pgRepo.UpdateIsActive(ctx, ticker, isActive)
+	updatedTicker, err := u.tickerPgRepo.UpdateIsActive(ctx, ticker, isActive)
 	if err != nil {
 		return nil, err
 	}
 	return updatedTicker, nil
+}
+
+func (u *tickerUseCase) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
+	return u.tickerPgRepo.GetAllActive(ctx, isActive)
+}
+
+func (u *tickerUseCase) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
+	return u.tickerPgRepo.SearchBySymbol(ctx, symbol, limit, exchange)
 }
