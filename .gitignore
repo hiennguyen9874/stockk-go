@@ -1,6 +1,6 @@
 # File created using '.gitignore Generator' for Visual Studio Code: https://bit.ly/vscode-gig
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,go
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,linux,go
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,go,react
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,linux,go,react
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -40,6 +40,22 @@ go.work
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
+
+*.sublime*
+
+psd
+thumb
+sketch
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -59,7 +75,8 @@ go.work
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,go
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,go,react
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
+
 tmp/
