@@ -26,15 +26,15 @@ type dchartHandler struct {
 	logger    logger.Logger
 }
 
-func CreateDchartHandler(uc tickers.TickerUseCaseI, cfg *config.Config, logger logger.Logger) dchart.Handlers {
-	return &dchartHandler{cfg: cfg, tickersUC: uc, logger: logger}
+func CreateDchartHandler(tickersUC tickers.TickerUseCaseI, barUC bars.BarUseCaseI, cfg *config.Config, logger logger.Logger) dchart.Handlers {
+	return &dchartHandler{cfg: cfg, tickersUC: tickersUC, barUC: barUC, logger: logger}
 }
 
 func (h *dchartHandler) GetTime() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		loc, _ := time.LoadLocation(h.cfg.Server.TimeZone)
 
-		render.Respond(w, r, time.Now().In(loc))
+		render.Respond(w, r, time.Now().In(loc).Unix())
 	}
 }
 
@@ -140,10 +140,12 @@ func (h *dchartHandler) Search() func(w http.ResponseWriter, r *http.Request) {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
-		queryQ := q.Get("query")
-		typeQ := q.Get("type")
-		exchangeQ := q.Get("type")
 
+		queryQ := q.Get("query")
+
+		exchangeQ := q.Get("exchange")
+
+		typeQ := q.Get("type")
 		if typeQ != "stock" {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrBadRequest(fmt.Errorf("not support type: %v", typeQ))))
 			return
@@ -191,11 +193,13 @@ func (h *dchartHandler) History() func(w http.ResponseWriter, r *http.Request) {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		toQ, err := strconv.ParseInt(q.Get("to"), 10, 64)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
 		}
+
 		countbackQ, err := strconv.Atoi(q.Get("countback"))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))

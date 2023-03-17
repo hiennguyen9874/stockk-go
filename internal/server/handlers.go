@@ -12,6 +12,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/hiennguyen9874/stockk-go/config"
+	authHttp "github.com/hiennguyen9874/stockk-go/internal/auth/delivery/http"
+	barRepository "github.com/hiennguyen9874/stockk-go/internal/bars/repository"
+	barUseCase "github.com/hiennguyen9874/stockk-go/internal/bars/usecase"
+	dchartHttp "github.com/hiennguyen9874/stockk-go/internal/dchart/delivery/http"
 	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
 	tickerHttp "github.com/hiennguyen9874/stockk-go/internal/tickers/delivery/http"
 	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
@@ -20,24 +24,29 @@ import (
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
 	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {
+func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg *config.Config, logger logger.Logger) (*chi.Mux, error) {
 	r := chi.NewRouter()
 
 	// Repository
 	userPgRepo := userRepository.CreateUserPgRepository(db)
 	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
-
 	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
+	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
+	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
 	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, logger)
+	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
+	authHandler := authHttp.CreateAuthHandler(userUC, cfg, logger)
 	tickerHandler := tickerHttp.CreateTickerHandler(tickerUC, cfg, logger)
+	dchartHanlder := dchartHttp.CreateDchartHandler(tickerUC, barUseCase, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -55,8 +64,10 @@ func New(db *gorm.DB, redisClient *redis.Client, cfg *config.Config, logger logg
 		w.Write([]byte("pong"))
 	})
 
+	authHttp.MapAuthRoute(r, authHandler, mw)
 	userHttp.MapUserRoute(r, userHandler, mw)
 	tickerHttp.MapTickerRoute(r, tickerHandler, mw)
+	dchartHttp.MapDchartRoute(r, dchartHanlder, mw)
 
 	return r, nil
 }

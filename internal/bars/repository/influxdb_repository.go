@@ -187,7 +187,7 @@ func (r *BarInfluxDBRepo) GetByFromTo(ctx context.Context, bucket string, symbol
 func (r *BarInfluxDBRepo) GetByToLimit(ctx context.Context, bucket string, symbol, exchange string, to time.Time, limit int, lastTime time.Time) ([]*models.Bar, error) {
 	queryAPI := r.influxDBClient.QueryAPI(r.org)
 
-	startTime, err := r.estimateStart(to, limit, "D")
+	startTime, err := r.estimateStart(lastTime, limit, "D")
 	if err != nil {
 		return nil, err
 	}
