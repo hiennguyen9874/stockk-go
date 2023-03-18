@@ -19,6 +19,9 @@ import (
 	chartRepository "github.com/hiennguyen9874/stockk-go/internal/charts/repository"
 	chartUseCase "github.com/hiennguyen9874/stockk-go/internal/charts/usecase"
 	dchartHttp "github.com/hiennguyen9874/stockk-go/internal/dchart/delivery/http"
+	drawingTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/delivery/http"
+	drawingTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/repository"
+	drawingTemplateUseCase "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/usecase"
 	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
 	studyTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/studytemplates/delivery/http"
 	studyTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/studytemplates/repository"
@@ -44,6 +47,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 	chartPgRepo := chartRepository.CreateChartPgRepository(db)
 	studyTemplatePgRepo := studyTemplateRepository.CreateStudyTemplatePgRepository(db)
+	drawingTemplatePgRepo := drawingTemplateRepository.CreateDrawingTemplatePgRepository(db)
 
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
@@ -51,6 +55,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, logger)
 	chartUseCase := chartUseCase.CreateChartUseCaseI(chartPgRepo, cfg, logger)
 	studyTemplateUseCase := studyTemplateUseCase.StudyTemplateUseCaseI(studyTemplatePgRepo, cfg, logger)
+	drawingTemplateUseCase := drawingTemplateUseCase.DrawingTemplateUseCaseI(drawingTemplatePgRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
@@ -59,6 +64,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	dchartHandler := dchartHttp.CreateDchartHandler(tickerUC, barUseCase, cfg, logger)
 	chartHandler := chartHttp.CreateChartHandler(chartUseCase, cfg, logger)
 	studyTemplateHandler := studyTemplateHttp.CreateStudyTemplateHandler(studyTemplateUseCase, cfg, logger)
+	drawingTemplateHandler := drawingTemplateHttp.CreateDrawingTemplateHandler(drawingTemplateUseCase, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -89,7 +95,8 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	apiRouter.Mount("/storage/1.1", storageRouter)
 
 	chartHttp.MapChartRoute(storageRouter, chartHandler, mw)
-	studyTemplateHttp.MapStudyTemplatesRoute(storageRouter, studyTemplateHandler, mw)
+	studyTemplateHttp.MapStudyTemplateRoute(storageRouter, studyTemplateHandler, mw)
+	drawingTemplateHttp.MapDrawingTemplateRoute(storageRouter, drawingTemplateHandler, mw)
 
 	return r, nil
 }

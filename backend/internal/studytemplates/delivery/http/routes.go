@@ -6,7 +6,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/studytemplates"
 )
 
-func MapStudyTemplatesRoute(router *chi.Mux, h studytemplates.Handlers, mw *middleware.MiddlewareManager) {
+func MapStudyTemplateRoute(router *chi.Mux, h studytemplates.Handlers, mw *middleware.MiddlewareManager) {
 	// User routes
 	router.Route("/study_templates", func(r chi.Router) {
 		r.Get("/", h.Get())

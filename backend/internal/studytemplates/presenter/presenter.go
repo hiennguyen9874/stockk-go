@@ -11,14 +11,14 @@ type StudyTemplateCreateUpdateResponse struct {
 	Status string `json:"status"`
 }
 
-type StudyTemplateGetResponse struct {
-	Status string                 `json:"status"`
-	Data   *StudyTemplateResponse `json:"data"`
-}
-
 type StudyTemplateResponse struct {
 	Name    string `json:"name"`
 	Content string `json:"content"`
+}
+
+type StudyTemplateGetResponse struct {
+	Status string                 `json:"status"`
+	Data   *StudyTemplateResponse `json:"data"`
 }
 
 type StudyTemplatesResponse struct {
