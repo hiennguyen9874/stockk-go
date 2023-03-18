@@ -113,6 +113,7 @@ type SmtpEmailConfig struct {
 }
 
 type CrawlerConfig struct {
+	CrawlerSource                  string
 	CrawlerTickerDownloadBatchSize int
 	CrawlerTickerInsertBatchSize   int
 	CrawlerBarInsertBatchSize      int
