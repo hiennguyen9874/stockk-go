@@ -15,8 +15,17 @@ import (
 	authHttp "github.com/hiennguyen9874/stockk-go/internal/auth/delivery/http"
 	barRepository "github.com/hiennguyen9874/stockk-go/internal/bars/repository"
 	barUseCase "github.com/hiennguyen9874/stockk-go/internal/bars/usecase"
+	chartHttp "github.com/hiennguyen9874/stockk-go/internal/charts/delivery/http"
+	chartRepository "github.com/hiennguyen9874/stockk-go/internal/charts/repository"
+	chartUseCase "github.com/hiennguyen9874/stockk-go/internal/charts/usecase"
 	dchartHttp "github.com/hiennguyen9874/stockk-go/internal/dchart/delivery/http"
+	drawingTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/delivery/http"
+	drawingTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/repository"
+	drawingTemplateUseCase "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/usecase"
 	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
+	studyTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/studytemplates/delivery/http"
+	studyTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/studytemplates/repository"
+	studyTemplateUseCase "github.com/hiennguyen9874/stockk-go/internal/studytemplates/usecase"
 	tickerHttp "github.com/hiennguyen9874/stockk-go/internal/tickers/delivery/http"
 	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
 	tickerUseCase "github.com/hiennguyen9874/stockk-go/internal/tickers/usecase"
@@ -36,17 +45,26 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
 	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
 	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
+	chartPgRepo := chartRepository.CreateChartPgRepository(db)
+	studyTemplatePgRepo := studyTemplateRepository.CreateStudyTemplatePgRepository(db)
+	drawingTemplatePgRepo := drawingTemplateRepository.CreateDrawingTemplatePgRepository(db)
 
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
 	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, logger)
 	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, logger)
+	chartUseCase := chartUseCase.CreateChartUseCaseI(chartPgRepo, cfg, logger)
+	studyTemplateUseCase := studyTemplateUseCase.StudyTemplateUseCaseI(studyTemplatePgRepo, cfg, logger)
+	drawingTemplateUseCase := drawingTemplateUseCase.DrawingTemplateUseCaseI(drawingTemplatePgRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
 	authHandler := authHttp.CreateAuthHandler(userUC, cfg, logger)
 	tickerHandler := tickerHttp.CreateTickerHandler(tickerUC, cfg, logger)
 	dchartHandler := dchartHttp.CreateDchartHandler(tickerUC, barUseCase, cfg, logger)
+	chartHandler := chartHttp.CreateChartHandler(chartUseCase, cfg, logger)
+	studyTemplateHandler := studyTemplateHttp.CreateStudyTemplateHandler(studyTemplateUseCase, cfg, logger)
+	drawingTemplateHandler := drawingTemplateHttp.CreateDrawingTemplateHandler(drawingTemplateUseCase, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -61,6 +79,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	r.Use(cors.Handler(mw.Cors()))
 
 	apiRouter := chi.NewRouter()
+	r.Mount("/api", apiRouter)
 
 	apiRouter.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
@@ -71,7 +90,13 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	tickerHttp.MapTickerRoute(apiRouter, tickerHandler, mw)
 	dchartHttp.MapDchartRoute(apiRouter, dchartHandler, mw)
 
-	r.Mount("/api", apiRouter)
+	// Storage api
+	storageRouter := chi.NewRouter()
+	apiRouter.Mount("/storage/1.1", storageRouter)
+
+	chartHttp.MapChartRoute(storageRouter, chartHandler, mw)
+	studyTemplateHttp.MapStudyTemplateRoute(storageRouter, studyTemplateHandler, mw)
+	drawingTemplateHttp.MapDrawingTemplateRoute(storageRouter, drawingTemplateHandler, mw)
 
 	return r, nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -11,28 +12,28 @@ import (
 )
 
 type AuthClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	Email string `json:"email"`
-	Id    string `json:"id"`
+	Id    uint   `json:"id"`
 }
 
-func CreateAccessTokenHS256(id string, email string, secretKey string, expireDuration int64, issuer string) (string, error) {
+func CreateAccessTokenHS256(id uint, email string, secretKey string, expireDuration int64, issuer string) (string, error) {
 	claims := AuthClaims{
 		Email: email,
 		Id:    id,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    issuer,
-			ExpiresAt: time.Now().Add(time.Duration(expireDuration)).Unix(),
-			Subject:   id,
-			NotBefore: time.Now().Unix(),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expireDuration))),
+			Subject:   strconv.FormatUint(uint64(id), 10),
+			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secretKey))
 }
 
-func ParseTokenHS256(tokenString string, secretKey string) (string, string, error) {
+func ParseTokenHS256(tokenString string, secretKey string) (uint, string, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -40,18 +41,18 @@ func ParseTokenHS256(tokenString string, secretKey string) (string, string, erro
 		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
+		return 0, "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
 	}
 
 	if !token.Valid {
-		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
+		return 0, "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
 	}
 
 	if claims, ok := token.Claims.(*AuthClaims); ok {
 		return claims.Id, claims.Email, nil
 	}
 
-	return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
+	return 0, "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
 }
 
 func DecodeBase64(base64String string) ([]byte, error) {
@@ -62,16 +63,16 @@ func DecodeBase64(base64String string) ([]byte, error) {
 	return decodedPrivateKey, err
 }
 
-func CreateAccessTokenRS256(id string, email string, privateKey string, expireDuration int64, issuer string) (string, error) {
+func CreateAccessTokenRS256(id uint, email string, privateKey string, expireDuration int64, issuer string) (string, error) {
 	claims := AuthClaims{
 		Email: email,
 		Id:    id,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    issuer,
-			ExpiresAt: time.Now().Add(time.Duration(expireDuration)).Unix(),
-			Subject:   id,
-			NotBefore: time.Now().Unix(),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expireDuration))),
+			Subject:   strconv.FormatUint(uint64(id), 10),
+			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 
@@ -93,15 +94,15 @@ func CreateAccessTokenRS256(id string, email string, privateKey string, expireDu
 	return token, nil
 }
 
-func ParseTokenRS256(tokenString string, publicKey string) (string, string, error) {
+func ParseTokenRS256(tokenString string, publicKey string) (uint, string, error) {
 	decodedPublicKey, err := DecodeBase64(publicKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", err
 	}
 
 	key, err := jwt.ParseRSAPublicKeyFromPEM(decodedPublicKey)
 	if err != nil {
-		return "", "", httpErrors.ErrBadRequest(errors.New("can not parse rsa public key from pem"))
+		return 0, "", httpErrors.ErrBadRequest(errors.New("can not parse rsa public key from pem"))
 	}
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -111,16 +112,16 @@ func ParseTokenRS256(tokenString string, publicKey string) (string, string, erro
 		return key, nil
 	})
 	if err != nil {
-		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
+		return 0, "", httpErrors.ErrInvalidJWTToken(errors.New("can not parse token"))
 	}
 
 	if !parsedToken.Valid {
-		return "", "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
+		return 0, "", httpErrors.ErrInvalidJWTToken(errors.New("token invalid"))
 	}
 
 	if claims, ok := parsedToken.Claims.(*AuthClaims); ok {
 		return claims.Id, claims.Email, nil
 	}
 
-	return "", "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
+	return 0, "", httpErrors.ErrInvalidJWTClaims(errors.New("token claims invalid"))
 }

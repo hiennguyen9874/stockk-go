@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/middleware"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
@@ -64,13 +63,13 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
-		user, err := h.usersUC.Get(r.Context(), id)
+		user, err := h.usersUC.Get(r.Context(), uint(id))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -99,13 +98,13 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
-		user, err := h.usersUC.Delete(r.Context(), id)
+		user, err := h.usersUC.Delete(r.Context(), uint(id))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -117,7 +116,7 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -142,7 +141,7 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 			values["name"] = user.Name
 		}
 
-		updatedUser, err := h.usersUC.Update(r.Context(), id, values)
+		updatedUser, err := h.usersUC.Update(r.Context(), uint(id), values)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -154,7 +153,7 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
@@ -176,7 +175,7 @@ func (h *userHandler) UpdatePassword() func(w http.ResponseWriter, r *http.Reque
 
 		updatedUser, err := h.usersUC.UpdatePassword(
 			r.Context(),
-			id,
+			uint(id),
 			user.OldPassword,
 			user.NewPassword,
 			user.ConfirmPassword,
@@ -411,13 +410,13 @@ func (h *userHandler) LogoutAllAdmin() func(w http.ResponseWriter, r *http.Reque
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
-		err = h.usersUC.LogoutAll(ctx, id)
+		err = h.usersUC.LogoutAll(ctx, uint(id))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return

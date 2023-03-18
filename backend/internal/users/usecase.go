@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/internal"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 )
@@ -15,13 +14,13 @@ type UserUseCaseI interface {
 	IsActive(ctx context.Context, exp models.User) bool
 	IsSuper(ctx context.Context, exp models.User) bool
 	CreateSuperUserIfNotExist(context.Context) (bool, error)
-	UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string, confirmPassword string) (*models.User, error)
-	ParseIdFromRefreshToken(ctx context.Context, refreshToken string) (uuid.UUID, error)
+	UpdatePassword(ctx context.Context, id uint, oldPassword string, newPassword string, confirmPassword string) (*models.User, error)
+	ParseIdFromRefreshToken(ctx context.Context, refreshToken string) (uint, error)
 	Refresh(ctx context.Context, refreshToken string) (string, string, error)
-	GenerateRedisUserKey(id uuid.UUID) string
-	GenerateRedisRefreshTokenKey(id uuid.UUID) string
+	GenerateRedisUserKey(id uint) string
+	GenerateRedisRefreshTokenKey(id uint) string
 	Logout(ctx context.Context, refreshToken string) error
-	LogoutAll(ctx context.Context, id uuid.UUID) error
+	LogoutAll(ctx context.Context, id uint) error
 	Verify(ctx context.Context, verificationCode string) error
 	ForgotPassword(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, resetToken string, newPassword string, confirmPassword string) error

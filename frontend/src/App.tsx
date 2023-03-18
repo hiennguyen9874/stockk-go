@@ -13,7 +13,7 @@ function App() {
           datafeed={Datafeed}
           symbol="TCB"
           datafeedUrl={API_DATAFEED_URL}
-          // chartsStorageUrl={API_STORAGE_URL}
+          chartsStorageUrl={API_STORAGE_URL}
         />
       </div>
     </div>
