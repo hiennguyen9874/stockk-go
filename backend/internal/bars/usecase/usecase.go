@@ -99,7 +99,7 @@ func (u *barUseCase) convertResolutionToCrawlerResolution(resolution string) (cr
 		return crawlers.RD, nil
 	default:
 		// TODO: Use httpErrors
-		return crawlers.RD, errors.New("not support resolution")
+		return crawlers.RD, fmt.Errorf("not support resolution: %v", resolution)
 	}
 }
 
@@ -119,7 +119,7 @@ func (u *barUseCase) convertResolutionToTimeDuration(resolution string) (time.Du
 		return time.Duration(time.Hour * 24), nil
 	default:
 		// TODO: Use httpErrors
-		return time.Duration(time.Hour * 24), errors.New("not support resolution")
+		return time.Duration(time.Hour * 24), fmt.Errorf("not support resolution: %v", resolution)
 	}
 }
 

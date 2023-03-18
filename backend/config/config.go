@@ -113,7 +113,10 @@ type SmtpEmailConfig struct {
 }
 
 type CrawlerConfig struct {
-	VNDTimeZone string
+	CrawlerTickerDownloadBatchSize int
+	CrawlerTickerInsertBatchSize   int
+	CrawlerBarInsertBatchSize      int
+	CrawlerDefaultActive           []string
 }
 
 // Load config file from given path

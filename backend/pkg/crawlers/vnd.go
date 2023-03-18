@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
-	"github.com/hiennguyen9874/stockk-go/pkg/utils"
 )
 
 func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
@@ -150,16 +149,10 @@ func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resol
 	var response VNDHistoryData
 	json.Unmarshal(responseData, &response)
 
-	//init the loc
-	loc, err := time.LoadLocation(r.cfg.Crawler.VNDTimeZone)
-	if err != nil {
-		return nil, err
-	}
-
 	bars := make([]Bar, len(response.C))
 	for i := 0; i < len(response.C); i++ {
 		bars[i] = Bar{
-			Time:   utils.UpdateTimeZone(time.Unix(response.T[i], 0), loc).UTC(),
+			Time:   time.Unix(response.T[i], 0),
 			Open:   response.O[i],
 			High:   response.H[i],
 			Low:    response.L[i],

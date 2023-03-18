@@ -32,9 +32,7 @@ func CreateDchartHandler(tickersUC tickers.TickerUseCaseI, barUC bars.BarUseCase
 
 func (h *dchartHandler) GetTime() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		loc, _ := time.LoadLocation(h.cfg.Server.TimeZone)
-
-		render.Respond(w, r, time.Now().In(loc).Unix())
+		render.Respond(w, r, time.Now().Unix())
 	}
 }
 
@@ -105,8 +103,9 @@ func (h *dchartHandler) GetSymbols() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		// TODO: Get from config
 		render.Respond(w, r, presenter.DchartLibrarySymbolInfo{
-			Name:                 ticker.ShortName,
+			Name:                 ticker.Symbol,
 			FullName:             ticker.FullName,
 			Ticker:               &ticker.Symbol,
 			Description:          ticker.FullName,
@@ -123,7 +122,7 @@ func (h *dchartHandler) GetSymbols() func(w http.ResponseWriter, r *http.Request
 			SupportedResolutions: []string{"1", "5", "15", "30", "60", "D", "W", "M"},
 			IntradayMultipliers:  &[]string{"1", "5", "15", "30", "60"},
 			HasDaily:             utils.NewBool(true),
-			HasWeeklyAndMonthly:  utils.NewBool(true),
+			HasWeeklyAndMonthly:  utils.NewBool(false),
 			HasEmptyBars:         utils.NewBool(false),
 			HasNoVolume:          utils.NewBool(false),
 		})
@@ -146,7 +145,7 @@ func (h *dchartHandler) Search() func(w http.ResponseWriter, r *http.Request) {
 		exchangeQ := q.Get("exchange")
 
 		typeQ := q.Get("type")
-		if typeQ != "stock" {
+		if typeQ != "" && typeQ != "stock" {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrBadRequest(fmt.Errorf("not support type: %v", typeQ))))
 			return
 		}
@@ -182,43 +181,46 @@ func (h *dchartHandler) History() func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		symbolQ := q.Get("symbol")
 
-		resolutionQ := q.Get("resolution")
-		if resolutionQ != "D" {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrBadRequest(fmt.Errorf("not support resolution: %v", resolutionQ))))
+		resolutionQ, err := convertResolution(q.Get("resolution"))
+		if err != nil {
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
 			return
 		}
 
 		fromQ, err := strconv.ParseInt(q.Get("from"), 10, 64)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
 			return
 		}
 
 		toQ, err := strconv.ParseInt(q.Get("to"), 10, 64)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
 			return
 		}
 
 		countbackQ, err := strconv.Atoi(q.Get("countback"))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
 			return
 		}
 
 		var bars []*models.Bar
 		if countbackQ != 0 {
-			bars, err = h.barUC.GetByToLimit(ctx, resolutionQ, symbolQ, utils.UpdateTimeZone(time.Unix(toQ, 0), loc).UTC(), countbackQ)
-			if err != nil {
-				render.Render(w, r, responses.CreateErrorResponse(err))
-				return
-			}
+			bars, err = h.barUC.GetByToLimit(ctx, resolutionQ, symbolQ, time.Unix(toQ, 0), countbackQ)
 		} else {
-			bars, err = h.barUC.GetByFromTo(ctx, resolutionQ, symbolQ, utils.UpdateTimeZone(time.Unix(fromQ, 0), loc).UTC(), utils.UpdateTimeZone(time.Unix(toQ, 0), loc).UTC())
-			if err != nil {
-				render.Render(w, r, responses.CreateErrorResponse(err))
-				return
-			}
+			bars, err = h.barUC.GetByFromTo(ctx, resolutionQ, symbolQ, time.Unix(fromQ, 0), time.Unix(toQ, 0))
+		}
+		if err != nil {
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			return
+		}
+
+		if len(bars) == 0 {
+			var history presenter.DchartHistoryNoDataResponse
+			history.Status = "no_data"
+			render.Respond(w, r, history)
+			return
 		}
 
 		var history presenter.DchartHistoryFullDataResponse
@@ -238,6 +240,33 @@ func (h *dchartHandler) History() func(w http.ResponseWriter, r *http.Request) {
 			history.Low[i] = bar.Low
 			history.Volume[i] = bar.Volume
 		}
+
 		render.Respond(w, r, history)
+	}
+}
+
+func convertResolution(resolution string) (string, error) {
+	switch resolution {
+	case "D":
+		return "D", nil
+	case "1D":
+		return "D", nil
+	default:
+		return "", fmt.Errorf("not support resolution %v", resolution)
+	}
+}
+
+func CreateDchartHistoryErrorResponse(err error) render.Renderer {
+	parsedErr := httpErrors.ParseErrors(err)
+
+	return &presenter.DchartHistoryErrorResponse{
+		Error: &httpErrors.ErrResponse{
+			Err:        parsedErr.GetErr(),
+			Status:     parsedErr.GetStatus(),
+			StatusText: parsedErr.GetStatusText(),
+			Msg:        parsedErr.GetMsg(),
+		},
+		Status:   "error",
+		ErrorMsg: parsedErr.GetMsg(),
 	}
 }

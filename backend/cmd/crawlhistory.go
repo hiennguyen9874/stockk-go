@@ -44,14 +44,6 @@ var crawlHistoryCmd = &cobra.Command{
 
 		redisClient := redis.NewRedis(cfg)
 
-		status, err := influxDB.Ping(ctx)
-		if err != nil {
-			appLogger.Fatal(err)
-		}
-		if !status {
-			appLogger.Fatal("influxdb not connected")
-		}
-
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
 		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
@@ -60,10 +52,24 @@ var crawlHistoryCmd = &cobra.Command{
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
 
 		for {
-			err = barUseCase.SyncAllSymbol(ctx, "D", 50, 100, 100)
+			status, err := influxDB.Ping(ctx)
+			if err != nil {
+				appLogger.Warn(err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			if !status {
+				appLogger.Warn("influxdb not connected")
+				time.Sleep(30 * time.Second)
+				continue
+			}
+
+			appLogger.Info("Start syncing....")
+			err = barUseCase.SyncAllSymbol(ctx, "D", cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
 			if err != nil {
 				appLogger.Warn(err)
 			}
+			appLogger.Info("Done sync, sleep 30s!")
 
 			time.Sleep(30 * time.Second)
 		}

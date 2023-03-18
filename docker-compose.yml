@@ -3,13 +3,13 @@ version: "3.8"
 services:
   backend:
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     command: sh -c "go run main.go migrate && go run main.go initdata && air -c .air.toml serve"
     ports:
       - 5000:5000
     volumes:
-      - ./:/app
+      - ./backend:/app
     depends_on:
       - db
       - redis
@@ -17,11 +17,11 @@ services:
 
   symbol-crawler:
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     command: sh -c "go run main.go migrate && go run main.go crawlsymbol"
     volumes:
-      - ./:/app
+      - ./backend:/app
     depends_on:
       - db
       - redis
@@ -29,11 +29,11 @@ services:
 
   history-crawler:
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     command: sh -c "go run main.go migrate && go run main.go crawlhistory"
     volumes:
-      - ./:/app
+      - ./backend:/app
     depends_on:
       - db
       - redis

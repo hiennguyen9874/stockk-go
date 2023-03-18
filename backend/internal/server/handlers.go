@@ -46,7 +46,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
 	authHandler := authHttp.CreateAuthHandler(userUC, cfg, logger)
 	tickerHandler := tickerHttp.CreateTickerHandler(tickerUC, cfg, logger)
-	dchartHanlder := dchartHttp.CreateDchartHandler(tickerUC, barUseCase, cfg, logger)
+	dchartHandler := dchartHttp.CreateDchartHandler(tickerUC, barUseCase, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -60,14 +60,18 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(cors.Handler(mw.Cors()))
 
-	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+	apiRouter := chi.NewRouter()
+
+	apiRouter.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
 
-	authHttp.MapAuthRoute(r, authHandler, mw)
-	userHttp.MapUserRoute(r, userHandler, mw)
-	tickerHttp.MapTickerRoute(r, tickerHandler, mw)
-	dchartHttp.MapDchartRoute(r, dchartHanlder, mw)
+	authHttp.MapAuthRoute(apiRouter, authHandler, mw)
+	userHttp.MapUserRoute(apiRouter, userHandler, mw)
+	tickerHttp.MapTickerRoute(apiRouter, tickerHandler, mw)
+	dchartHttp.MapDchartRoute(apiRouter, dchartHandler, mw)
+
+	r.Mount("/api", apiRouter)
 
 	return r, nil
 }

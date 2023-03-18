@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -37,35 +38,13 @@ func (r *BarInfluxDBRepo) ToPoint(ctx context.Context, exp *models.Bar) *influxd
 }
 
 func (r *BarInfluxDBRepo) Insert(ctx context.Context, bucket string, exp *models.Bar) error {
-	writeAPI := r.influxDBClient.WriteAPIBlocking(r.org, bucket)
-
-	return writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
+	writeAPI := r.influxDBClient.WriteAPI(r.org, bucket)
+	writeAPI.WritePoint(r.ToPoint(ctx, exp))
+	return nil
 }
 
 func (r *BarInfluxDBRepo) Inserts(ctx context.Context, bucket string, exps []*models.Bar, batchSize int) error {
-	writeAPI := r.influxDBClient.WriteAPIBlocking(r.org, bucket)
-
-	// var wg sync.WaitGroup
-
-	// for _, exp := range exps {
-	// 	wg.Add(1)
-
-	// 	go func(exp *models.Bar) {
-	// 		defer wg.Done()
-	// 		err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
-	// 		if err != nil {
-	// 			fmt.Print(err)
-	// 		}
-	// 	}(exp)
-	// }
-	// wg.Wait()
-
-	// for _, exp := range exps {
-	// 	err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	writeAPI := r.influxDBClient.WriteAPI(r.org, bucket)
 
 	// Ticker queue
 	expsCh := make(chan *models.Bar, batchSize)
@@ -94,10 +73,7 @@ func (r *BarInfluxDBRepo) Inserts(ctx context.Context, bucket string, exps []*mo
 			go func(exp *models.Bar) {
 				defer wg.Done()
 
-				err := writeAPI.WritePoint(ctx, r.ToPoint(ctx, exp))
-				if err != nil {
-					errCh <- err
-				}
+				writeAPI.WritePoint(r.ToPoint(ctx, exp))
 			}(exp)
 		}
 		wg.Wait()
@@ -149,7 +125,16 @@ func (r *BarInfluxDBRepo) ParseResultFromInfluxDB(result *influxdb2API.QueryTabl
 		records[result.Record().Time()] = val
 	}
 
-	for recordTime, record := range records {
+	keys := make([]time.Time, 0, len(records))
+	for key := range records {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].Before(keys[j])
+	})
+
+	for _, recordTime := range keys {
+		record := records[recordTime]
 		bars = append(bars, &models.Bar{
 			Symbol:   record.Symbol,
 			Exchange: record.Exchange,
@@ -187,7 +172,14 @@ func (r *BarInfluxDBRepo) GetByFromTo(ctx context.Context, bucket string, symbol
 func (r *BarInfluxDBRepo) GetByToLimit(ctx context.Context, bucket string, symbol, exchange string, to time.Time, limit int, lastTime time.Time) ([]*models.Bar, error) {
 	queryAPI := r.influxDBClient.QueryAPI(r.org)
 
-	startTime, err := r.estimateStart(lastTime, limit, "D")
+	var startTime time.Time
+	var err error
+
+	if lastTime.Before(to) {
+		startTime, err = r.estimateStart(lastTime, limit, "D")
+	} else {
+		startTime, err = r.estimateStart(to, limit, "D")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +205,7 @@ func (r *BarInfluxDBRepo) GetByToLimit(ctx context.Context, bucket string, symbo
 func (r *BarInfluxDBRepo) estimateStart(to time.Time, limit int, resolution string) (time.Time, error) {
 	switch strings.ToLower(resolution) {
 	case "d":
+		// 7/4 ~ 7/ (5 - (11/365))
 		return to.AddDate(0, 0, -int(math.Ceil(float64(limit)*7/4))), nil
 	default:
 		// TODO: Implement for 1m

@@ -1,5 +1,12 @@
 package presenter
 
+import (
+	"net/http"
+
+	"github.com/go-chi/render"
+	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+)
+
 type DchartExchange struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
@@ -18,58 +25,58 @@ type DchartSymbolType struct {
 }
 
 type DchartConfig struct {
-	Exchanges              *[]DchartExchange   `json:"exchanges"`
-	SupportedResolutions   *[]string           `json:"supported_resolutions"`
-	Units                  *[]DchartUnit       `json:"units"`
-	CurrencyCodes          *[]string           `json:"currency_codes"`
-	SupportsMarks          *bool               `json:"supports_marks"`
-	SupportsTime           *bool               `json:"supports_time"`
-	SupportsTimescaleMarks *bool               `json:"supports_timescale_marks"`
-	SymbolsTypes           *[]DchartSymbolType `json:"symbols_types"`
-	SupportsSearch         *bool               `json:"supports_search"`
-	SupportsGroupRequest   *bool               `json:"supports_group_request"`
+	Exchanges              *[]DchartExchange   `json:"exchanges,omitempty"`
+	SupportedResolutions   *[]string           `json:"supported_resolutions,omitempty"`
+	Units                  *[]DchartUnit       `json:"units,omitempty"`
+	CurrencyCodes          *[]string           `json:"currency_codes,omitempty"`
+	SupportsMarks          *bool               `json:"supports_marks,omitempty"`
+	SupportsTime           *bool               `json:"supports_time,omitempty"`
+	SupportsTimescaleMarks *bool               `json:"supports_timescale_marks,omitempty"`
+	SymbolsTypes           *[]DchartSymbolType `json:"symbols_types,omitempty"`
+	SupportsSearch         *bool               `json:"supports_search,omitempty"`
+	SupportsGroupRequest   *bool               `json:"supports_group_request,omitempty"`
 }
 
 type DchartLibrarySymbolInfo struct {
 	Name                 string    `json:"name"`
 	FullName             string    `json:"full_name"`
-	BaseName             *[]string `json:"base_name"`
-	Ticker               *string   `json:"ticker"`
+	BaseName             *[]string `json:"base_name,omitempty"`
+	Ticker               *string   `json:"ticker,omitempty"`
 	Description          string    `json:"description"`
 	Type                 string    `json:"type"`
 	Session              string    `json:"session"`
-	SessionDisplay       *string   `json:"session_display"`
-	Holidays             *string   `json:"holidays"`
-	Corrections          *string   `json:"corrections"`
+	SessionDisplay       *string   `json:"session_display,omitempty"`
+	Holidays             *string   `json:"holidays,omitempty"`
+	Corrections          *string   `json:"corrections,omitempty"`
 	Exchange             string    `json:"exchange"`
 	ListedExchange       string    `json:"listed_exchange"`
 	Timezone             string    `json:"timezone"`
 	Format               string    `json:"format"`
 	Pricescale           float32   `json:"pricescale"`
 	Minmov               int32     `json:"minmov"`
-	Fractional           *bool     `json:"fractional"`
+	Fractional           *bool     `json:"fractional,omitempty"`
 	Minmove2             int32     `json:"minmove2"`
-	HasIntraday          *bool     `json:"has_intraday"`
+	HasIntraday          *bool     `json:"has_intraday,omitempty"`
 	SupportedResolutions []string  `json:"supported_resolutions"`
-	IntradayMultipliers  *[]string `json:"intraday_multipliers"`
-	HasSeconds           *bool     `json:"has_seconds"`
-	HasTicks             *bool     `json:"has_ticks"`
-	SecondsMultipliers   *[]string `json:"seconds_multipliers"`
-	HasDaily             *bool     `json:"has_daily"`
-	HasWeeklyAndMonthly  *bool     `json:"has_weekly_and_monthly"`
-	HasEmptyBars         *bool     `json:"has_empty_bars"`
-	HasNoVolume          *bool     `json:"has_no_volume"`
-	VolumePrecision      *int32    `json:"volume_precision"`
-	DataStatus           *string   `json:"data_status"`
-	Expired              *bool     `json:"expired"`
-	ExpirationDate       *int32    `json:"expiration_date"`
-	Sector               *string   `json:"sector"`
-	Industry             *string   `json:"industry"`
-	CurrencyCode         *string   `json:"currency_code"`
-	OriginalCurrencyCode *string   `json:"original_currency_code"`
-	UnitId               *string   `json:"unit_id"`
-	OriginalUnitId       *string   `json:"original_unit_id"`
-	UnitConversionTypes  *[]string `json:"unit_conversion_types"`
+	IntradayMultipliers  *[]string `json:"intraday_multipliers,omitempty"`
+	HasSeconds           *bool     `json:"has_seconds,omitempty"`
+	HasTicks             *bool     `json:"has_ticks,omitempty"`
+	SecondsMultipliers   *[]string `json:"seconds_multipliers,omitempty"`
+	HasDaily             *bool     `json:"has_daily,omitempty"`
+	HasWeeklyAndMonthly  *bool     `json:"has_weekly_and_monthly,omitempty"`
+	HasEmptyBars         *bool     `json:"has_empty_bars,omitempty"`
+	HasNoVolume          *bool     `json:"has_no_volume,omitempty"`
+	VolumePrecision      *int32    `json:"volume_precision,omitempty"`
+	DataStatus           *string   `json:"data_status,omitempty"`
+	Expired              *bool     `json:"expired,omitempty"`
+	ExpirationDate       *int32    `json:"expiration_date,omitempty"`
+	Sector               *string   `json:"sector,omitempty"`
+	Industry             *string   `json:"industry,omitempty"`
+	CurrencyCode         *string   `json:"currency_code,omitempty"`
+	OriginalCurrencyCode *string   `json:"original_currency_code,omitempty"`
+	UnitId               *string   `json:"unit_id,omitempty"`
+	OriginalUnitId       *string   `json:"original_unit_id,omitempty"`
+	UnitConversionTypes  *[]string `json:"unit_conversion_types,omitempty"`
 }
 
 type DchartSearchSymbolResultItem struct {
@@ -89,4 +96,20 @@ type DchartHistoryFullDataResponse struct {
 	High   []float64 `json:"h"`
 	Low    []float64 `json:"l"`
 	Volume []int64   `json:"v"`
+}
+
+type DchartHistoryNoDataResponse struct {
+	Status  string `json:"s"`
+	NexTime *int64 `json:"nextTime,omitempty"`
+}
+
+type DchartHistoryErrorResponse struct {
+	Status   string                  `json:"s"`
+	ErrorMsg string                  `json:"errmsg"`
+	Error    *httpErrors.ErrResponse `json:"-"`
+}
+
+func (e *DchartHistoryErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	render.Status(r, e.Error.Status)
+	return nil
 }
