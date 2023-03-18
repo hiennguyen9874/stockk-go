@@ -11,7 +11,6 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
-	"github.com/hiennguyen9874/stockk-go/pkg/responses"
 	"github.com/hiennguyen9874/stockk-go/pkg/utils"
 )
 
@@ -61,6 +60,7 @@ func (h *chartHandler) CreateOrUpdate() func(w http.ResponseWriter, r *http.Requ
 				Status: "ok",
 				Id:     newChart.Id,
 			})
+			return
 		}
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
@@ -132,13 +132,13 @@ func (h *chartHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		chart, err := h.chartsUC.Get(r.Context(), uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err))
 			return
 		}
 
@@ -160,13 +160,13 @@ func (h *chartHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
 		_, err = h.chartsUC.DeleteByIdOwner(ctx, uint(id), clientId, userId)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err))
 			return
 		}
 

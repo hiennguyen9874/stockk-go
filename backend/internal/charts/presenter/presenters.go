@@ -25,21 +25,6 @@ type ChartUpdate struct {
 	Content     string `json:"content" validate:"required"`
 }
 
-type ChartsResponse struct {
-	Id         uint   `json:"id"`
-	Name       string `json:"name"`
-	Symbol     string `json:"symbol"`
-	Resolution string `json:"resolution"`
-	Timestamp  int64  `json:"timestamp"`
-}
-
-type ChartResponse struct {
-	Id        uint   `json:"id"`
-	Name      string `json:"name"`
-	Timestamp int64  `json:"timestamp"`
-	Content   string `json:"content"`
-}
-
 type ChartCreateResponse struct {
 	Status string `json:"status"`
 	Id     uint   `json:"id"`
@@ -49,9 +34,24 @@ type ChartUpdateResponse struct {
 	Status string `json:"status"`
 }
 
+type ChartResponse struct {
+	Id        uint   `json:"id"`
+	Name      string `json:"name"`
+	Timestamp int64  `json:"timestamp"`
+	Content   string `json:"content"`
+}
+
 type ChartGetResponse struct {
 	Status string         `json:"status"`
 	Data   *ChartResponse `json:"data"`
+}
+
+type ChartsResponse struct {
+	Id         uint   `json:"id"`
+	Name       string `json:"name"`
+	Symbol     string `json:"symbol"`
+	Resolution string `json:"resolution"`
+	Timestamp  int64  `json:"timestamp"`
 }
 
 type ChartGetsResponse struct {

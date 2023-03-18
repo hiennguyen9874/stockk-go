@@ -38,7 +38,7 @@ var migrateCmd = &cobra.Command{
 }
 
 func Migrate(db *gorm.DB) error {
-	var migrationModels = []interface{}{&models.User{}, &models.Ticker{}}
+	var migrationModels = []interface{}{&models.User{}, &models.Ticker{}, &models.Chart{}, &models.StudyTemplate{}, &models.DrawingTemplate{}}
 
 	err := db.AutoMigrate(migrationModels...)
 	if err != nil {
