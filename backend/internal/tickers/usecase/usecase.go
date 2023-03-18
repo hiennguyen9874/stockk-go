@@ -29,7 +29,7 @@ func CreateTickerUseCaseI(
 	return &tickerUseCase{
 		UseCase:      usecase.CreateUseCase[models.Ticker](tickerPgRepo, cfg, logger),
 		tickerPgRepo: tickerPgRepo,
-		crawler:      crawlers.NewCrawler(cfg),
+		crawler:      crawlers.NewCrawler(cfg, logger),
 	}
 }
 
@@ -38,7 +38,7 @@ func (u *tickerUseCase) GetBySymbol(ctx context.Context, symbol string) (*models
 }
 
 func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error) {
-	tickers, err := u.crawler.VNDCrawlStockSymbols(ctx)
+	tickers, err := u.crawler.CrawlStockSymbols(ctx)
 	if err != nil {
 		return nil, err
 	}

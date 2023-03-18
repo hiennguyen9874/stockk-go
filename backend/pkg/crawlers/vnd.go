@@ -12,6 +12,19 @@ import (
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 )
 
+func (cr *crawler) VNDMapExchange(exchange string) (string, error) {
+	switch exchange {
+	case "UPCOM":
+		return "UPCOM", nil
+	case "HNX":
+		return "HNX", nil
+	case "HOSE":
+		return "HOSE", nil
+	default:
+		return "", fmt.Errorf("not support exchange: %v", exchange)
+	}
+}
+
 func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	client := &http.Client{}
 
@@ -37,6 +50,7 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
+		cr.logger.Warn("crawl stock symbols using vnd fail")
 		return nil, httpErrors.ErrCallRequest(err)
 	}
 
@@ -44,6 +58,7 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 
 	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
+		cr.logger.Warn("crawl stock symbols using vnd fail")
 		return nil, httpErrors.ErrReadBodyRequest(err)
 	}
 
@@ -68,9 +83,14 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 
 	tickers := make([]Ticker, response.TotalElements)
 	for i, ticker := range response.Data {
+		exchange, err := cr.VNDMapExchange(ticker.Floor)
+		if err != nil {
+			return nil, err
+		}
+
 		tickers[i] = Ticker{
 			Symbol:    ticker.Code,
-			Exchange:  ticker.Floor,
+			Exchange:  exchange,
 			FullName:  ticker.CompanyName,
 			ShortName: ticker.ShortName,
 			Type:      "Stock",
@@ -79,7 +99,7 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	return tickers, nil
 }
 
-func (r *crawler) VNDMapResolutionToString(resolution Resolution) (string, error) {
+func (cr *crawler) VNDMapResolutionToString(resolution Resolution) (string, error) {
 	switch resolution {
 	case R1:
 		return "1", nil
@@ -98,8 +118,8 @@ func (r *crawler) VNDMapResolutionToString(resolution Resolution) (string, error
 	}
 }
 
-func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
-	strResolution, err := r.VNDMapResolutionToString(resolution)
+func (cr *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
+	strResolution, err := cr.VNDMapResolutionToString(resolution)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +146,7 @@ func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resol
 
 	resp, err := client.Do(req)
 	if err != nil {
+		cr.logger.Warn("crawl history using vnd fail")
 		return nil, httpErrors.ErrCallRequest(err)
 	}
 
@@ -133,6 +154,7 @@ func (r *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resol
 
 	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
+		cr.logger.Warn("crawl history using vnd fail")
 		return nil, httpErrors.ErrReadBodyRequest(err)
 	}
 

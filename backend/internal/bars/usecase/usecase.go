@@ -34,7 +34,7 @@ func CreateBarUseCaseI(
 		barInfluxDBRepo: barInfluxDBRepo,
 		barRedisRepo:    barRedisRepo,
 		tickerPgRepo:    tickerPgRepo,
-		crawler:         crawlers.NewCrawler(cfg),
+		crawler:         crawlers.NewCrawler(cfg, logger),
 		logger:          logger,
 	}
 }
@@ -253,7 +253,7 @@ func (u *barUseCase) CrawlSymbol(ctx context.Context, symbol string, resolution 
 		return err
 	}
 
-	crawlerBars, err := u.crawler.VNDCrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, from.Unix(), to.Unix())
+	crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, from.Unix(), to.Unix())
 	if err != nil {
 		return err
 	}
@@ -360,7 +360,7 @@ func (u *barUseCase) SyncAllSymbol(ctx context.Context, resolution string, ticke
 
 				toTime := time.Now().UTC()
 
-				crawlerBars, err := u.crawler.VNDCrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
+				crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
 				if err != nil {
 					errCh <- err
 				}
