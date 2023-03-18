@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
@@ -109,13 +110,13 @@ func (mw *MiddlewareManager) CurrentUser() func(http.Handler) http.Handler {
 				return
 			}
 
-			idParsed, err := uuid.Parse(id)
+			idParsed, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 			if err != nil {
-				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))))
+				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uint from id in token"))))
 				return
 			}
 
-			user, err := mw.usersUC.Get(ctx, idParsed)
+			user, err := mw.usersUC.Get(ctx, uint(idParsed))
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return

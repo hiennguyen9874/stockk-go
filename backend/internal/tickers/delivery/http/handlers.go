@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/tickers"
@@ -28,13 +27,13 @@ func CreateTickerHandler(uc tickers.TickerUseCaseI, cfg *config.Config, logger l
 
 func (h *tickerHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
-		ticker, err := h.tickersUC.Get(r.Context(), id)
+		ticker, err := h.tickersUC.Get(r.Context(), uint(id))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -63,13 +62,13 @@ func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 
 func (h *tickerHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
 			return
 		}
 
-		ticker, err := h.tickersUC.Delete(r.Context(), id)
+		ticker, err := h.tickersUC.Delete(r.Context(), uint(id))
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return

@@ -2,8 +2,6 @@ package presenter
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserCreate struct {
@@ -24,7 +22,7 @@ type UserUpdatePassword struct {
 }
 
 type UserResponse struct {
-	Id          uuid.UUID `json:"id,omitempty"`
+	Id          uint      `json:"id,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Email       string    `json:"email,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`

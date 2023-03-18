@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/internal"
 	"gorm.io/gorm"
 )
@@ -20,9 +19,9 @@ func CreatePgRepository[M any](db *gorm.DB) internal.PgRepository[M] {
 	return &PgRepo[M]{DB: db}
 }
 
-func (r *PgRepo[M]) Get(ctx context.Context, id uuid.UUID) (*M, error) {
+func (r *PgRepo[M]) Get(ctx context.Context, id uint) (*M, error) {
 	var obj *M
-	if result := r.DB.WithContext(ctx).First(&obj, "id = ?", id.String()); result.Error != nil {
+	if result := r.DB.WithContext(ctx).First(&obj, "id = ?", id); result.Error != nil {
 		return nil, result.Error
 	}
 	return obj, nil
@@ -47,14 +46,14 @@ func (r *PgRepo[M]) Create(ctx context.Context, exp *M) (*M, error) {
 	return exp, nil
 }
 
-func (r *PgRepo[M]) Delete(ctx context.Context, id uuid.UUID) (*M, error) {
+func (r *PgRepo[M]) Delete(ctx context.Context, id uint) (*M, error) {
 	obj, err := r.Get(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if result := r.DB.WithContext(ctx).Delete(&obj, "id = ?", id.String()); result.Error != nil {
+	if result := r.DB.WithContext(ctx).Delete(&obj, "id = ?", id); result.Error != nil {
 		return nil, result.Error
 	}
 	return obj, nil

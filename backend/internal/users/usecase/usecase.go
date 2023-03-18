@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/usecase"
@@ -43,7 +42,7 @@ func CreateUserUseCaseI(
 	}
 }
 
-func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, error) {
+func (u *userUseCase) Get(ctx context.Context, id uint) (*models.User, error) {
 	cachedUser, err := u.userRedisRepo.GetObj(ctx, u.GenerateRedisUserKey(id))
 	if err != nil {
 		return nil, err
@@ -65,7 +64,7 @@ func (u *userUseCase) Get(ctx context.Context, id uuid.UUID) (*models.User, erro
 	return user, nil
 }
 
-func (u *userUseCase) Delete(ctx context.Context, id uuid.UUID) (*models.User, error) {
+func (u *userUseCase) Delete(ctx context.Context, id uint) (*models.User, error) {
 	user, err := u.userPgRepo.Delete(ctx, id)
 	if err != nil {
 		return nil, err
@@ -84,7 +83,7 @@ func (u *userUseCase) Delete(ctx context.Context, id uuid.UUID) (*models.User, e
 
 func (u *userUseCase) Update(
 	ctx context.Context,
-	id uuid.UUID,
+	id uint,
 	values map[string]interface{},
 ) (*models.User, error) {
 	obj, err := u.Get(ctx, id)
@@ -170,7 +169,7 @@ func (u *userUseCase) CreateUser(ctx context.Context, exp *models.User, confirmP
 
 func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string, string, error) {
 	accessToken, err := jwt.CreateAccessTokenRS256(
-		exp.Id.String(),
+		exp.Id,
 		exp.Email,
 		u.Cfg.Jwt.JwtAccessTokenPrivateKey,
 		u.Cfg.Jwt.JwtAccessTokenExpireDuration*int64(time.Minute),
@@ -181,7 +180,7 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 	}
 
 	refreshToken, err := jwt.CreateAccessTokenRS256(
-		exp.Id.String(),
+		exp.Id,
 		exp.Email,
 		u.Cfg.Jwt.JwtRefreshTokenPrivateKey,
 		u.Cfg.Jwt.JwtRefreshTokenExpireDuration*int64(time.Minute),
@@ -250,7 +249,7 @@ func (u *userUseCase) CreateSuperUserIfNotExist(ctx context.Context) (bool, erro
 
 func (u *userUseCase) UpdatePassword(
 	ctx context.Context,
-	id uuid.UUID,
+	id uint,
 	oldPassword string,
 	newPassword string,
 	confirmPassword string,
@@ -292,19 +291,13 @@ func (u *userUseCase) UpdatePassword(
 func (u *userUseCase) ParseIdFromRefreshToken(
 	ctx context.Context,
 	refreshToken string,
-) (uuid.UUID, error) {
+) (uint, error) {
 	id, _, err := jwt.ParseTokenRS256(refreshToken, u.Cfg.Jwt.JwtRefreshTokenPublicKey)
 	if err != nil {
-		return uuid.UUID{}, err
+		return 0, err
 	}
 
-	idParsed, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.UUID{},
-			httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uuid from id in token"))
-	}
-
-	return idParsed, nil
+	return id, nil
 }
 
 func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string, string, error) {
@@ -373,7 +366,7 @@ func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {
 	return nil
 }
 
-func (u *userUseCase) LogoutAll(ctx context.Context, id uuid.UUID) error {
+func (u *userUseCase) LogoutAll(ctx context.Context, id uint) error {
 	if err := u.userRedisRepo.Delete(ctx, u.GenerateRedisRefreshTokenKey(id)); err != nil {
 		return err
 	}
@@ -497,10 +490,10 @@ func (u *userUseCase) ResetPassword(
 	return nil
 }
 
-func (u *userUseCase) GenerateRedisUserKey(id uuid.UUID) string {
-	return fmt.Sprintf("%s:%s", models.User{}.TableName(), id.String())
+func (u *userUseCase) GenerateRedisUserKey(id uint) string {
+	return fmt.Sprintf("%v:%v", models.User{}.TableName(), id)
 }
 
-func (u *userUseCase) GenerateRedisRefreshTokenKey(id uuid.UUID) string {
-	return fmt.Sprintf("RefreshToken:%s", id.String())
+func (u *userUseCase) GenerateRedisRefreshTokenKey(id uint) string {
+	return fmt.Sprintf("RefreshToken:%v", id)
 }
