@@ -26,9 +26,12 @@ func CreateBarRepo(influxDBClient influxdb2.Client, org string) bars.BarInfluxDB
 	return &BarInfluxDBRepo{influxDBClient: influxDBClient, org: org}
 }
 
+func (r *BarInfluxDBRepo) genMeasurement(exchange string, symbol string) string {
+	return fmt.Sprintf("%v-%v", exchange, symbol)
+}
+
 func (r *BarInfluxDBRepo) ToPoint(ctx context.Context, exp *models.Bar) *influxdb2Write.Point {
-	return influxdb2.NewPointWithMeasurement(exp.Exchange).
-		AddTag("symbol", exp.Symbol).
+	return influxdb2.NewPointWithMeasurement(r.genMeasurement(exp.Exchange, exp.Symbol)).
 		AddField("open", exp.Open).
 		AddField("high", exp.High).
 		AddField("low", exp.Low).
@@ -106,8 +109,9 @@ func (r *BarInfluxDBRepo) ParseResultFromInfluxDB(result *influxdb2API.QueryTabl
 		val, ok := records[result.Record().Time()]
 		if !ok {
 			val = Record{}
-			val.Symbol = result.Record().ValueByKey("symbol").(string)
-			val.Exchange = result.Record().Measurement()
+			measurement := strings.Split(result.Record().Measurement(), "-")
+			val.Exchange = measurement[0]
+			val.Symbol = measurement[1]
 		}
 
 		switch field := result.Record().Field(); field {
@@ -157,8 +161,7 @@ func (r *BarInfluxDBRepo) GetByFromTo(ctx context.Context, bucket string, symbol
 	query := fmt.Sprintf(`from(bucket:"%v")
 		|> range(start: %v, stop: %v)
 		|> filter(fn: (r) => r._measurement == "%v")
-		|> filter(fn: (r) => r.symbol == "%v")
-		|> sort(columns: ["_time"], desc: false)`, bucket, from.Unix(), to.Unix(), exchange, symbol)
+		|> sort(columns: ["_time"], desc: false)`, bucket, from.Unix(), to.Unix(), r.genMeasurement(exchange, symbol))
 
 	// Get result
 	result, err := queryAPI.Query(ctx, query)
@@ -188,10 +191,9 @@ func (r *BarInfluxDBRepo) GetByToLimit(ctx context.Context, bucket string, symbo
 	query := fmt.Sprintf(`from(bucket:"%v")
 		|> range(start: %v, stop: %v)
 		|> filter(fn: (r) => r._measurement == "%v")
-		|> filter(fn: (r) => r.symbol == "%v")
 		|> sort(columns: ["_time"], desc: true)
     	|> limit(n: %v)
-		|> sort(columns: ["_time"], desc: false)`, bucket, startTime.Unix(), to.Unix(), exchange, symbol, limit)
+		|> sort(columns: ["_time"], desc: false)`, bucket, startTime.Unix(), to.Unix(), r.genMeasurement(exchange, symbol), limit)
 
 	// Get result
 	result, err := queryAPI.Query(ctx, query)
