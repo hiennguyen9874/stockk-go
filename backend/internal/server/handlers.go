@@ -43,7 +43,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	userPgRepo := userRepository.CreateUserPgRepository(db)
 	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
-	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
+	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
 	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 	chartPgRepo := chartRepository.CreateChartPgRepository(db)
 	studyTemplatePgRepo := studyTemplateRepository.CreateStudyTemplatePgRepository(db)

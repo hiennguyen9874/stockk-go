@@ -72,6 +72,7 @@ type InfluxDBConfig struct {
 	InfluxDBUsername string
 	InfluxDBPassword string
 	InfluxDBToken    string
+	InfluxDBOrg      string
 }
 
 // Jwt config

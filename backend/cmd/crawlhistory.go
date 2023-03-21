@@ -46,7 +46,7 @@ var crawlHistoryCmd = &cobra.Command{
 
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
-		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
+		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
 		barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
