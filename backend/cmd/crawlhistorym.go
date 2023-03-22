@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var crawlHistoryCmd = &cobra.Command{
-	Use:   "crawlhistory",
+var crawlHistoryMCmd = &cobra.Command{
+	Use:   "crawlhistorym",
 	Short: "crawl history",
 	Long:  "crawl history",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,7 +46,7 @@ var crawlHistoryCmd = &cobra.Command{
 
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
-		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, "history")
+		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
 		barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
@@ -65,17 +65,16 @@ var crawlHistoryCmd = &cobra.Command{
 			}
 
 			appLogger.Info("Start syncing....")
-			err = barUseCase.SyncAllSymbol(ctx, "D", cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
+			err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
 			if err != nil {
 				appLogger.Warn(err)
 			}
 			appLogger.Info("Done sync, sleep 30s!")
-
 			time.Sleep(30 * time.Second)
 		}
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(crawlHistoryCmd)
+	RootCmd.AddCommand(crawlHistoryMCmd)
 }

@@ -68,6 +68,7 @@ influxDB:
   InfluxDBUsername: admin
   InfluxDBPassword: admin1234
   InfluxDBToken: 905d9eaf34914b43ac13fcba47851324ba9887d1b01dc2e866bf4acacc30819c
+  InfluxDBOrg: history
 
 crawler:
   CrawlerSource: SSI
