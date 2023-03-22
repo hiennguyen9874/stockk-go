@@ -27,17 +27,17 @@ services:
       - redis
       - influxdb
 
-  history-crawler:
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    command: sh -c "go run main.go migrate && go run main.go crawlhistory"
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - db
-      - redis
-      - influxdb
+  # history-crawler:
+  #   build:
+  #     context: backend
+  #     dockerfile: Dockerfile
+  #   command: sh -c "go run main.go migrate && go run main.go crawlhistoryd"
+  #   volumes:
+  #     - ./backend:/app
+  #   depends_on:
+  #     - db
+  #     - redis
+  #     - influxdb
 
   db:
     image: postgres:15.2-alpine

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
@@ -17,24 +18,49 @@ const (
 
 type tickerUseCase struct {
 	usecase.UseCase[models.Ticker]
-	tickerPgRepo tickers.TickerPgRepository
-	crawler      crawlers.Crawler
+	tickerPgRepo    tickers.TickerPgRepository
+	tickerRedisRepo tickers.TickerRedisRepository
+	crawler         crawlers.Crawler
 }
 
 func CreateTickerUseCaseI(
 	tickerPgRepo tickers.TickerPgRepository,
+	tickerRedisRepo tickers.TickerRedisRepository,
 	cfg *config.Config,
 	logger logger.Logger,
 ) tickers.TickerUseCaseI {
 	return &tickerUseCase{
-		UseCase:      usecase.CreateUseCase[models.Ticker](tickerPgRepo, cfg, logger),
-		tickerPgRepo: tickerPgRepo,
-		crawler:      crawlers.NewCrawler(cfg, logger),
+		UseCase:         usecase.CreateUseCase[models.Ticker](tickerPgRepo, cfg, logger),
+		tickerPgRepo:    tickerPgRepo,
+		tickerRedisRepo: tickerRedisRepo,
+		crawler:         crawlers.NewCrawler(cfg, logger),
 	}
 }
 
+func (u *tickerUseCase) GenerateRedisTickerKey(symbol string) string {
+	return fmt.Sprintf("%v:%v", models.Ticker{}.TableName(), symbol)
+}
+
 func (u *tickerUseCase) GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error) {
-	return u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	cachedTicker, err := u.tickerRedisRepo.GetObj(ctx, u.GenerateRedisTickerKey(symbol))
+	if err != nil {
+		return nil, err
+	}
+
+	if cachedTicker != nil {
+		return cachedTicker, nil
+	}
+
+	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = u.tickerRedisRepo.CreateObj(ctx, u.GenerateRedisTickerKey(symbol), ticker, 3600); err != nil {
+		return nil, err
+	}
+
+	return ticker, nil
 }
 
 func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Ticker, error) {
@@ -93,6 +119,11 @@ func (u *tickerUseCase) UpdateIsActiveBySymbol(ctx context.Context, symbol strin
 	if err != nil {
 		return nil, err
 	}
+
+	if err = u.tickerRedisRepo.Delete(ctx, u.GenerateRedisTickerKey(symbol)); err != nil {
+		return nil, err
+	}
+
 	return updatedTicker, nil
 }
 

@@ -79,8 +79,12 @@ func (u *barUseCase) convertBucketToResolution(ctx context.Context, bucket strin
 	}
 }
 
-func (u *barUseCase) generateRedisLastTimestampKey(symbol string, resolution string) string {
+func (u *barUseCase) genRedisLastTimestampKey(symbol string, resolution string) string {
 	return fmt.Sprintf("%s:%s:%s", "LastTimeStamp", resolution, symbol)
+}
+
+func (u *barUseCase) genRedisLastBar(symbol string, resolution string) string {
+	return fmt.Sprintf("%s:%s:%s", "LastBar", resolution, symbol)
 }
 
 func (u *barUseCase) convertResolutionToCrawlerResolution(resolution string) (crawlers.Resolution, error) {
@@ -124,22 +128,22 @@ func (u *barUseCase) convertResolutionToTimeDuration(resolution string) (time.Du
 }
 
 func (u *barUseCase) Insert(ctx context.Context, resolution string, exp *models.Bar, preventOverwriteOld bool) error {
-	// Get last timestamp from redis
-	timestamp, err := u.barRedisRepo.GetInt64(ctx, u.generateRedisLastTimestampKey(exp.Symbol, resolution))
+	// Get last bar from redis
+	lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(exp.Symbol, resolution))
 	if err != nil {
 		return err
 	}
 
 	if preventOverwriteOld {
-		// Check timestamp: Only insert new timestamp into influxdb
-		if timestamp != nil && exp.Time.Unix() < *timestamp {
+		// Check bar: Only insert new bar into influxdb
+		if lastBar != nil && exp.Time.Unix() < lastBar.Time.Unix() {
 			return errors.New("can not insert old timestamp")
 		}
 	}
 
-	// Save timestamp in redis to last timestamp
-	if timestamp == nil || (timestamp != nil && exp.Time.Unix() > *timestamp) {
-		err = u.barRedisRepo.CreateInt64(ctx, u.generateRedisLastTimestampKey(exp.Symbol, resolution), exp.Time.Unix(), -1)
+	// Save last bar into redis
+	if lastBar == nil || (lastBar != nil && exp.Time.Unix() > lastBar.Time.Unix()) {
+		err = u.barRedisRepo.CreateObj(ctx, u.genRedisLastBar(exp.Symbol, resolution), exp, -1)
 
 		if err != nil {
 			return err
@@ -156,41 +160,52 @@ func (u *barUseCase) Insert(ctx context.Context, resolution string, exp *models.
 }
 
 func (u *barUseCase) Inserts(ctx context.Context, resolution string, exps []*models.Bar, barInsertBatchSize int, preventOverwriteOld bool) error {
-	savedLastTimestamp := make(map[string]int64)
+	symbols := make(map[string]bool)
 	for _, exp := range exps {
-		// Get last timestamp from redis
-		timestamp, err := u.barRedisRepo.GetInt64(ctx, u.generateRedisLastTimestampKey(exp.Symbol, resolution))
+		symbols[exp.Symbol] = true
+	}
+
+	savedLastBar := make(map[string]*models.Bar)
+	for symbol := range symbols {
+		// Get last bar from redis
+		lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(symbol, resolution))
 		if err != nil {
 			return err
 		}
 
-		if timestamp != nil {
-			savedLastTimestamp[exp.Symbol] = *timestamp
+		if lastBar != nil {
+			savedLastBar[symbol] = lastBar
 		} else {
-			savedLastTimestamp[exp.Symbol] = -1
+			savedLastBar[symbol] = nil
 		}
 	}
 
 	if preventOverwriteOld {
 		for _, exp := range exps {
-			// Check timestamp: Only insert new timestamp into influxdb
-			if exp.Time.Unix() < savedLastTimestamp[exp.Symbol] {
-				return errors.New("can not insert old timestamp")
+			// Check bar: Only insert new bar into influxdb
+			if savedLastBar[exp.Symbol] == nil || exp.Time.Unix() < savedLastBar[exp.Symbol].Time.Unix() {
+				return errors.New("can not insert old bar")
 			}
 		}
 	}
 
-	// Get last timestamp
-	lastTimestamp := make(map[string]int64)
+	// Get last bar
+	lastBar := make(map[string]*models.Bar)
 	for _, exp := range exps {
-		if exp.Time.Unix() > lastTimestamp[exp.Symbol] {
-			lastTimestamp[exp.Symbol] = exp.Time.Unix()
+		if savedLastBar[exp.Symbol] == nil {
+			lastBar[exp.Symbol] = exp
+		}
+
+		if lastBar[exp.Symbol] == nil {
+			lastBar[exp.Symbol] = exp
+		} else if exp.Time.Unix() > lastBar[exp.Symbol].Time.Unix() {
+			lastBar[exp.Symbol] = exp
 		}
 	}
 
-	// Save last timestamp into redis
-	for symbol, timestamp := range lastTimestamp {
-		err := u.barRedisRepo.CreateInt64(ctx, u.generateRedisLastTimestampKey(symbol, resolution), timestamp, -1)
+	// Save last bar into redis
+	for symbol, bar := range lastBar {
+		err := u.barRedisRepo.CreateObj(ctx, u.genRedisLastBar(symbol, resolution), bar, -1)
 		if err != nil {
 			return err
 		}
@@ -225,13 +240,13 @@ func (u *barUseCase) GetByToLimit(ctx context.Context, resolution string, symbol
 		return nil, err
 	}
 
-	timestamp, err := u.barRedisRepo.GetInt64(ctx, u.generateRedisLastTimestampKey(ticker.Symbol, resolution))
+	lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolution))
 	if err != nil {
 		return nil, err
 	}
 
-	if timestamp == nil {
-		return nil, errors.New("last timestamp not saved")
+	if lastBar == nil {
+		return nil, errors.New("last bar not saved")
 	}
 
 	bucket, err := u.convertResolutionToBucket(ctx, resolution)
@@ -239,21 +254,39 @@ func (u *barUseCase) GetByToLimit(ctx context.Context, resolution string, symbol
 		return nil, err
 	}
 
-	return u.barInfluxDBRepo.GetByToLimit(ctx, bucket, ticker.Symbol, ticker.Exchange, to, limit, time.Unix(*timestamp, 0))
+	return u.barInfluxDBRepo.GetByToLimit(ctx, bucket, ticker.Symbol, ticker.Exchange, to, limit, lastBar.Time)
 }
 
-func (u *barUseCase) CrawlSymbol(ctx context.Context, symbol string, resolution string, from time.Time, to time.Time, barInsertBatchSize int) error {
+func (u *barUseCase) SyncDSymbol(ctx context.Context, symbol string, barInsertBatchSize int) error {
+	resolution := "D"
+
 	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
+
+	var fromTime time.Time
+
+	// Get last bar from redis
+	lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolution))
+	if err != nil {
+		return err
+	}
+
+	if lastBar != nil {
+		fromTime = lastBar.Time
+	} else {
+		fromTime = time.Date(1990, 12, 31, 0, 0, 0, 0, time.UTC)
+	}
+
+	toTime := time.Now().UTC()
 
 	crawlerResolution, err := u.convertResolutionToCrawlerResolution(resolution)
 	if err != nil {
 		return err
 	}
 
-	crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, from.Unix(), to.Unix())
+	crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
 	if err != nil {
 		return err
 	}
@@ -272,35 +305,17 @@ func (u *barUseCase) CrawlSymbol(ctx context.Context, symbol string, resolution 
 		}
 	}
 
-	return u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
-}
-
-func (u *barUseCase) SyncSymbol(ctx context.Context, symbol string, resolution string, barInsertBatchSize int) error {
-	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	err = u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
 	if err != nil {
 		return err
 	}
 
-	var fromTime time.Time
-
-	// Get last timestamp from redis
-	timestamp, err := u.barRedisRepo.GetInt64(ctx, u.generateRedisLastTimestampKey(ticker.Symbol, resolution))
-	if err != nil {
-		return err
-	}
-
-	if timestamp != nil {
-		fromTime = time.Unix(*timestamp, 0)
-	} else {
-		fromTime = time.Date(1990, 12, 31, 0, 0, 0, 0, time.UTC)
-	}
-
-	toTime := time.Now().UTC()
-
-	return u.CrawlSymbol(ctx, symbol, resolution, fromTime, toTime, barInsertBatchSize)
+	return err
 }
 
-func (u *barUseCase) SyncAllSymbol(ctx context.Context, resolution string, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
+func (u *barUseCase) SyncDAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
+	resolution := "D"
+
 	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
 	if err != nil {
 		return err
@@ -346,14 +361,14 @@ func (u *barUseCase) SyncAllSymbol(ctx context.Context, resolution string, ticke
 
 				var fromTime time.Time
 
-				// Get last timestamp from redis
-				timestamp, err := u.barRedisRepo.GetInt64(ctx, u.generateRedisLastTimestampKey(ticker.Symbol, resolution))
+				// Get last bar from redis
+				lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolution))
 				if err != nil {
 					errCh <- err
 				}
 
-				if timestamp != nil {
-					fromTime = time.Unix(*timestamp, 0)
+				if lastBar != nil {
+					fromTime = lastBar.Time
 				} else {
 					fromTime = time.Date(1990, 12, 31, 0, 0, 0, 0, time.UTC)
 				}
@@ -406,6 +421,270 @@ func (u *barUseCase) SyncAllSymbol(ctx context.Context, resolution string, ticke
 		receiveWg.Wait()
 		doneCh <- true
 	}(barsCh, doneCh, errReceiveCh)
+
+	select {
+	case err := <-errSendCh:
+		return err
+	case err := <-errReceiveCh:
+		return err
+	case <-doneCh:
+		return nil
+	}
+}
+
+func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBatchSize int) error {
+	resolution := "1"
+
+	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	if err != nil {
+		return err
+	}
+
+	var fromTime time.Time
+
+	// Get last bar from redis
+	lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolution))
+	if err != nil {
+		return err
+	}
+
+	if lastBar != nil {
+		fromTime = lastBar.Time
+	} else {
+		fromTime = time.Now().UTC().Add(-time.Duration(7) * time.Hour * 24)
+	}
+
+	toTime := time.Now().UTC()
+
+	crawlerResolution, err := u.convertResolutionToCrawlerResolution(resolution)
+	if err != nil {
+		return err
+	}
+
+	crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
+	if err != nil {
+		return err
+	}
+
+	bars := make([]*models.Bar, len(crawlerBars))
+	for i, crawlerBar := range crawlerBars {
+		bars[i] = &models.Bar{
+			Symbol:   ticker.Symbol,
+			Exchange: ticker.Exchange,
+			Time:     crawlerBar.Time,
+			Open:     crawlerBar.Open,
+			High:     crawlerBar.High,
+			Low:      crawlerBar.Low,
+			Close:    crawlerBar.Close,
+			Volume:   crawlerBar.Volume,
+		}
+	}
+
+	err = u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
+	if err != nil {
+		return err
+	}
+
+	resolutionD := "D"
+	// Get last bar from redis
+	lastDBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolutionD))
+	if err != nil {
+		return err
+	}
+
+	newLastDBar := &models.Bar{
+		Symbol:   lastDBar.Symbol,
+		Exchange: lastDBar.Exchange,
+		Time:     lastDBar.Time,
+		Open:     lastDBar.Open,
+		High:     lastDBar.High,
+		Low:      lastDBar.Low,
+		Close:    lastDBar.Close,
+		Volume:   0,
+	}
+
+	for _, bar := range bars {
+		// TODO: Convert to symbol timezone before compare
+		if bar.Time.Format("01-02-2006") == newLastDBar.Time.Format("01-02-2006") {
+			if bar.High > newLastDBar.High {
+				newLastDBar.High = bar.High
+			}
+
+			if bar.Low > newLastDBar.Low {
+				newLastDBar.Low = bar.Low
+			}
+
+			// TODO: Add BarD.Vol with Bar1m.Vol
+			newLastDBar.Volume += bar.Volume
+		}
+	}
+
+	return u.Insert(ctx, resolutionD, newLastDBar, false)
+}
+
+func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
+	resolution := "1"
+	resolutionD := "D"
+
+	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	if len(activeTickers) == 0 {
+		return errors.New("not found any ticker active")
+	}
+
+	crawlerResolution, err := u.convertResolutionToCrawlerResolution(resolution)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Add context.Done() into goroutine
+
+	// Ticker queue
+	tickersCh := make(chan *models.Ticker, tickerDownloadBatchSize)
+
+	go func() {
+		var queueWg sync.WaitGroup
+		for _, activeTicker := range activeTickers {
+			queueWg.Add(1)
+			go func(tickersCh chan<- *models.Ticker, ticker *models.Ticker) {
+				defer queueWg.Done()
+				tickersCh <- ticker
+			}(tickersCh, activeTicker)
+		}
+		queueWg.Wait()
+		close(tickersCh)
+	}()
+
+	// Download
+	barsCh := make(chan []*models.Bar, tickerInsertBatchSize)
+	newLastDBarCh := make(chan *models.Bar, tickerInsertBatchSize)
+	errSendCh := make(chan error)
+
+	go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, errCh chan<- error, resolution string) {
+		var sendWg sync.WaitGroup
+		for ticker := range tickersCh {
+			sendWg.Add(1)
+			go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, errCh chan<- error, ticker *models.Ticker, resolution string) {
+				defer sendWg.Done()
+
+				var fromTime time.Time
+
+				// Get last bar from redis
+				lastBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolution))
+				if err != nil {
+					errCh <- err
+				}
+
+				if lastBar != nil {
+					fromTime = lastBar.Time
+				} else {
+					fromTime = time.Now().UTC().Add(-time.Duration(7) * time.Hour * 24)
+				}
+
+				toTime := time.Now().UTC()
+
+				crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
+				if err != nil {
+					errCh <- err
+				}
+
+				bars := make([]*models.Bar, len(crawlerBars))
+				for i, crawlerBar := range crawlerBars {
+					bars[i] = &models.Bar{
+						Symbol:   ticker.Symbol,
+						Exchange: ticker.Exchange,
+						Time:     crawlerBar.Time,
+						Open:     crawlerBar.Open,
+						High:     crawlerBar.High,
+						Low:      crawlerBar.Low,
+						Close:    crawlerBar.Close,
+						Volume:   crawlerBar.Volume,
+					}
+				}
+
+				barsCh <- bars
+
+				// Get last bar from redis
+				lastDBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolutionD))
+				if err != nil {
+					errCh <- err
+				}
+
+				newLastDBar := &models.Bar{
+					Symbol:   lastDBar.Symbol,
+					Exchange: lastDBar.Exchange,
+					Time:     lastDBar.Time,
+					Open:     lastDBar.Open,
+					High:     lastDBar.High,
+					Low:      lastDBar.Low,
+					Close:    lastDBar.Close,
+					Volume:   0,
+				}
+
+				for _, bar := range bars {
+					// TODO: Convert to symbol timezone before compare
+					if bar.Time.Format("01-02-2006") == newLastDBar.Time.Format("01-02-2006") {
+						if bar.High > newLastDBar.High {
+							newLastDBar.High = bar.High
+						}
+
+						if bar.Low > newLastDBar.Low {
+							newLastDBar.Low = bar.Low
+						}
+
+						newLastDBar.Volume += bar.Volume
+					}
+				}
+
+				fmt.Println("ALO1")
+				newLastDBarCh <- newLastDBar
+			}(barsCh, newLastDBarCh, errSendCh, ticker, resolution)
+		}
+		sendWg.Wait()
+		close(barsCh)
+		close(newLastDBarCh)
+	}(barsCh, newLastDBarCh, errSendCh, resolution)
+
+	// Save
+	doneCh := make(chan bool)
+	errReceiveCh := make(chan error)
+
+	go func(barsCh <-chan []*models.Bar, newLastDBarCh <-chan *models.Bar, doneCh chan<- bool, errCh chan<- error) {
+		var receiveWg sync.WaitGroup
+		for bars := range barsCh {
+			receiveWg.Add(1)
+			go func(bars []*models.Bar) {
+				defer receiveWg.Done()
+
+				err := u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
+				if err != nil {
+					errCh <- err
+				}
+			}(bars)
+		}
+
+		for newLastDBar := range newLastDBarCh {
+			receiveWg.Add(1)
+			fmt.Println("ALO2")
+			go func(newLastDBar *models.Bar) {
+				defer receiveWg.Done()
+
+				err = u.Insert(ctx, resolutionD, newLastDBar, false)
+				if err != nil {
+					errCh <- err
+				}
+			}(newLastDBar)
+
+			fmt.Println("ALO3")
+		}
+		fmt.Println("ALO4")
+		receiveWg.Wait()
+		fmt.Println("ALO5")
+		doneCh <- true
+	}(barsCh, newLastDBarCh, doneCh, errReceiveCh)
 
 	select {
 	case err := <-errSendCh:

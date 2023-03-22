@@ -43,6 +43,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	userPgRepo := userRepository.CreateUserPgRepository(db)
 	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
+	tickerRedisRepo := tickerRepository.CreateTickerRedisRepository(redisClient)
 	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
 	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 	chartPgRepo := chartRepository.CreateChartPgRepository(db)
@@ -51,7 +52,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, logger)
-	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, logger)
+	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, tickerRedisRepo, cfg, logger)
 	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, logger)
 	chartUseCase := chartUseCase.CreateChartUseCaseI(chartPgRepo, cfg, logger)
 	studyTemplateUseCase := studyTemplateUseCase.StudyTemplateUseCaseI(studyTemplatePgRepo, cfg, logger)

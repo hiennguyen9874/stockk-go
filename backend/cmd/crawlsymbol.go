@@ -8,6 +8,7 @@ import (
 	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
 	tickerUseCase "github.com/hiennguyen9874/stockk-go/internal/tickers/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
+	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/spf13/cobra"
 )
@@ -30,11 +31,14 @@ var crawlSymbolCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
+		redisClient := redis.NewRedis(cfg)
+
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
+		tickerRedisRepo := tickerRepository.CreateTickerRedisRepository(redisClient)
 
 		// UseCase
-		tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, cfg, appLogger)
+		tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, tickerRedisRepo, cfg, appLogger)
 
 		for {
 			// Crawl tickers from vnd and save into database
