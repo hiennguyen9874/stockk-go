@@ -59,25 +59,25 @@ func (u *barUseCase) convertResolutionToBucket(ctx context.Context, resolution s
 	}
 }
 
-func (u *barUseCase) convertBucketToResolution(ctx context.Context, bucket string) (string, error) {
-	switch bucket {
-	case "Resolution1":
-		return "1", nil
-	case "Resolution5":
-		return "5", nil
-	case "Resolution15":
-		return "15", nil
-	case "Resolution30":
-		return "30", nil
-	case "Resolution60":
-		return "60", nil
-	case "ResolutionD":
-		return "D", nil
-	default:
-		// TODO: Use httpErrors
-		return "", errors.New("not support resolution")
-	}
-}
+// func (u *barUseCase) convertBucketToResolution(ctx context.Context, bucket string) (string, error) {
+// 	switch bucket {
+// 	case "Resolution1":
+// 		return "1", nil
+// 	case "Resolution5":
+// 		return "5", nil
+// 	case "Resolution15":
+// 		return "15", nil
+// 	case "Resolution30":
+// 		return "30", nil
+// 	case "Resolution60":
+// 		return "60", nil
+// 	case "ResolutionD":
+// 		return "D", nil
+// 	default:
+// 		// TODO: Use httpErrors
+// 		return "", errors.New("not support resolution")
+// 	}
+// }
 
 func (u *barUseCase) generateRedisLastTimestampKey(symbol string, resolution string) string {
 	return fmt.Sprintf("%s:%s:%s", "LastTimeStamp", resolution, symbol)
@@ -103,25 +103,25 @@ func (u *barUseCase) convertResolutionToCrawlerResolution(resolution string) (cr
 	}
 }
 
-func (u *barUseCase) convertResolutionToTimeDuration(resolution string) (time.Duration, error) {
-	switch resolution {
-	case "1":
-		return time.Duration(time.Minute), nil
-	case "5":
-		return time.Duration(time.Minute * 5), nil
-	case "15":
-		return time.Duration(time.Minute * 15), nil
-	case "30":
-		return time.Duration(time.Minute * 30), nil
-	case "60":
-		return time.Duration(time.Hour), nil
-	case "D":
-		return time.Duration(time.Hour * 24), nil
-	default:
-		// TODO: Use httpErrors
-		return time.Duration(time.Hour * 24), fmt.Errorf("not support resolution: %v", resolution)
-	}
-}
+// func (u *barUseCase) convertResolutionToTimeDuration(resolution string) (time.Duration, error) {
+// 	switch resolution {
+// 	case "1":
+// 		return time.Duration(time.Minute), nil
+// 	case "5":
+// 		return time.Duration(time.Minute * 5), nil
+// 	case "15":
+// 		return time.Duration(time.Minute * 15), nil
+// 	case "30":
+// 		return time.Duration(time.Minute * 30), nil
+// 	case "60":
+// 		return time.Duration(time.Hour), nil
+// 	case "D":
+// 		return time.Duration(time.Hour * 24), nil
+// 	default:
+// 		// TODO: Use httpErrors
+// 		return time.Duration(time.Hour * 24), fmt.Errorf("not support resolution: %v", resolution)
+// 	}
+// }
 
 func (u *barUseCase) Insert(ctx context.Context, resolution string, exp *models.Bar, preventOverwriteOld bool) error {
 	// Get last timestamp from redis

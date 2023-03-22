@@ -73,7 +73,10 @@ func (cr *crawler) SSICrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	}
 
 	var response SSIStocksResponse
-	json.Unmarshal(responseData, &response)
+	err = json.Unmarshal(responseData, &response)
+	if err != nil {
+		return nil, err
+	}
 
 	tickers := make([]Ticker, response.TotalCount)
 	for i, ticker := range response.Items {
@@ -157,7 +160,10 @@ func (cr *crawler) SSICrawlStockHistory(ctx context.Context, symbol string, reso
 	}
 
 	var response SSIHistoryData
-	json.Unmarshal(responseData, &response)
+	err = json.Unmarshal(responseData, &response)
+	if err != nil {
+		return nil, err
+	}
 
 	bars := make([]Bar, len(response.C))
 	for i := 0; i < len(response.C); i++ {

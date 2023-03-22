@@ -82,7 +82,7 @@ func New(db *gorm.DB, redisClient *redis.Client, influxDB influxdb2.Client, cfg 
 	r.Mount("/api", apiRouter)
 
 	apiRouter.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
+		render.Respond(w, r, "pong")
 	})
 
 	authHttp.MapAuthRoute(apiRouter, authHandler, mw)

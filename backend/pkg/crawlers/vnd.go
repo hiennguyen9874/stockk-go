@@ -79,7 +79,10 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	}
 
 	var response VNDStocksResponse
-	json.Unmarshal(responseData, &response)
+	err = json.Unmarshal(responseData, &response)
+	if err != nil {
+		return nil, err
+	}
 
 	tickers := make([]Ticker, response.TotalElements)
 	for i, ticker := range response.Data {
@@ -169,7 +172,10 @@ func (cr *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, reso
 	}
 
 	var response VNDHistoryData
-	json.Unmarshal(responseData, &response)
+	err = json.Unmarshal(responseData, &response)
+	if err != nil {
+		return nil, err
+	}
 
 	bars := make([]Bar, len(response.C))
 	for i := 0; i < len(response.C); i++ {
