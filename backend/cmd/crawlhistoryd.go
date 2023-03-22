@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	barRepository "github.com/hiennguyen9874/stockk-go/internal/bars/repository"
@@ -50,47 +51,28 @@ var crawlHistoryDCmd = &cobra.Command{
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
 
-		// for {
-		// 	status, err := influxDB.Ping(ctx)
-		// 	if err != nil {
-		// 		appLogger.Warn(err)
-		// 		time.Sleep(1 * time.Hour)
-		// 		continue
-		// 	}
-		// 	if !status {
-		// 		appLogger.Warn("influxdb not connected")
-		// 		time.Sleep(1 * time.Hour)
-		// 		continue
-		// 	}
+		for {
+			status, err := influxDB.Ping(ctx)
+			if err != nil {
+				appLogger.Warn(err)
+				time.Sleep(1 * time.Hour)
+				continue
+			}
+			if !status {
+				appLogger.Warn("influxdb not connected")
+				time.Sleep(1 * time.Hour)
+				continue
+			}
 
-		// 	appLogger.Info("Start syncing....")
-		// 	err = barUseCase.SyncDAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
-		// 	if err != nil {
-		// 		appLogger.Warn(err)
-		// 	}
-		// 	appLogger.Info("Done sync, sleep 30s!")
+			appLogger.Info("Start syncing....")
+			err = barUseCase.SyncDAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
+			if err != nil {
+				appLogger.Warn(err)
+			}
+			appLogger.Info("Done sync, sleep 30s!")
 
-		// 	time.Sleep(1 * time.Hour)
-		// }
-
-		status, err := influxDB.Ping(ctx)
-		if err != nil {
-			appLogger.Warn(err)
-			return
+			time.Sleep(1 * time.Hour)
 		}
-		if !status {
-			appLogger.Warn("influxdb not connected")
-			return
-		}
-
-		appLogger.Info("Start syncing....")
-		err = barUseCase.SyncDAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
-		if err != nil {
-			appLogger.Warn(err)
-		}
-		appLogger.Info("Done sync, sleep 30s!")
-
-		return
 	},
 }
 

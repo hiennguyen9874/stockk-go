@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	barRepository "github.com/hiennguyen9874/stockk-go/internal/bars/repository"
@@ -50,23 +51,27 @@ var crawlHistoryMCmd = &cobra.Command{
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
 
-		status, err := influxDB.Ping(ctx)
-		if err != nil {
-			appLogger.Warn(err)
-			return
-		}
-		if !status {
-			appLogger.Warn("influxdb not connected")
-			return
-		}
+		for {
+			status, err := influxDB.Ping(ctx)
+			if err != nil {
+				appLogger.Warn(err)
+				time.Sleep(30 * time.Second)
+				continue
+			}
+			if !status {
+				appLogger.Warn("influxdb not connected")
+				time.Sleep(30 * time.Second)
+				continue
+			}
 
-		appLogger.Info("Start syncing....")
-		err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
-		if err != nil {
-			appLogger.Warn(err)
+			appLogger.Info("Start syncing....")
+			err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
+			if err != nil {
+				appLogger.Warn(err)
+			}
+			appLogger.Info("Done sync, sleep 30s!")
+			time.Sleep(30 * time.Second)
 		}
-		appLogger.Info("Done sync, sleep 30s!")
-		return
 	},
 }
 

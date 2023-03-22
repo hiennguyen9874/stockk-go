@@ -120,7 +120,7 @@ func (h *dchartHandler) GetSymbols() func(w http.ResponseWriter, r *http.Request
 			Minmove2:             0,
 			HasIntraday:          utils.NewBool(true),
 			SupportedResolutions: []string{"1", "5", "15", "30", "60", "D", "W", "M"},
-			IntradayMultipliers:  &[]string{"1", "5", "15", "30", "60"},
+			IntradayMultipliers:  &[]string{"1"},
 			HasDaily:             utils.NewBool(true),
 			HasWeeklyAndMonthly:  utils.NewBool(false),
 			HasEmptyBars:         utils.NewBool(false),
@@ -251,6 +251,8 @@ func convertResolution(resolution string) (string, error) {
 		return "D", nil
 	case "1D":
 		return "D", nil
+	case "1":
+		return "1", nil
 	default:
 		return "", fmt.Errorf("not support resolution %v", resolution)
 	}

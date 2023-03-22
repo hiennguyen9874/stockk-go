@@ -313,17 +313,8 @@ func (u *barUseCase) SyncDSymbol(ctx context.Context, symbol string, barInsertBa
 	return err
 }
 
-func (u *barUseCase) SyncDAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
+func (u *barUseCase) syncDAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int, activeTickers []*models.Ticker) error {
 	resolution := "D"
-
-	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
-	if err != nil {
-		return err
-	}
-
-	if len(activeTickers) == 0 {
-		return errors.New("not found any ticker active")
-	}
 
 	crawlerResolution, err := u.convertResolutionToCrawlerResolution(resolution)
 	if err != nil {
@@ -432,8 +423,22 @@ func (u *barUseCase) SyncDAllSymbol(ctx context.Context, tickerDownloadBatchSize
 	}
 }
 
+func (u *barUseCase) SyncDAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
+	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	if len(activeTickers) == 0 {
+		return errors.New("not found any ticker active")
+	}
+
+	return u.syncDAllSymbol(ctx, tickerDownloadBatchSize, tickerInsertBatchSize, barInsertBatchSize, activeTickers)
+}
+
 func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBatchSize int) error {
 	resolution := "1"
+	resolutionD := "D"
 
 	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
 	if err != nil {
@@ -451,7 +456,7 @@ func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBa
 	if lastBar != nil {
 		fromTime = lastBar.Time
 	} else {
-		fromTime = time.Now().UTC().Add(-time.Duration(7) * time.Hour * 24)
+		fromTime = time.Now().UTC().Add(-time.Duration(30) * time.Hour * 24)
 	}
 
 	toTime := time.Now().UTC()
@@ -485,11 +490,29 @@ func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBa
 		return err
 	}
 
-	resolutionD := "D"
+	if lastBar == nil {
+		return err
+	}
+
+	var lastMBar *models.Bar = bars[0]
+	for _, bar := range bars {
+		if bar.Time.Unix() > lastMBar.Time.Unix() {
+			lastMBar = bar
+		}
+	}
+
+	if lastMBar.Time.Format("01-02-2006") != lastBar.Time.Format("01-02-2006") {
+		return err
+	}
+
 	// Get last bar from redis
 	lastDBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolutionD))
 	if err != nil {
 		return err
+	}
+
+	if lastMBar.Time.Format("01-02-2006") != lastDBar.Time.Format("01-02-2006") {
+		return u.SyncDSymbol(ctx, symbol, barInsertBatchSize)
 	}
 
 	newLastDBar := &models.Bar{
@@ -500,26 +523,35 @@ func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBa
 		High:     lastDBar.High,
 		Low:      lastDBar.Low,
 		Close:    lastDBar.Close,
-		Volume:   0,
+		Volume:   lastDBar.Volume,
 	}
+	hasNew := false
 
 	for _, bar := range bars {
 		// TODO: Convert to symbol timezone before compare
 		if bar.Time.Format("01-02-2006") == newLastDBar.Time.Format("01-02-2006") {
 			if bar.High > newLastDBar.High {
 				newLastDBar.High = bar.High
+				hasNew = true
 			}
 
-			if bar.Low > newLastDBar.Low {
+			if bar.Low < newLastDBar.Low {
 				newLastDBar.Low = bar.Low
+				hasNew = true
 			}
 
-			// TODO: Add BarD.Vol with Bar1m.Vol
-			newLastDBar.Volume += bar.Volume
+			if lastBar.Time.Unix() < bar.Time.Unix() {
+				newLastDBar.Volume += bar.Volume
+				hasNew = true
+			}
 		}
 	}
 
-	return u.Insert(ctx, resolutionD, newLastDBar, false)
+	if hasNew {
+		return u.Insert(ctx, resolutionD, newLastDBar, false)
+	}
+
+	return nil
 }
 
 func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
@@ -561,13 +593,14 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 	// Download
 	barsCh := make(chan []*models.Bar, tickerInsertBatchSize)
 	newLastDBarCh := make(chan *models.Bar, tickerInsertBatchSize)
+	mustSyncDTicker := make(chan *models.Ticker)
 	errSendCh := make(chan error)
 
-	go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, errCh chan<- error, resolution string) {
+	go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, mustSyncDTicker chan<- *models.Ticker, errCh chan<- error) {
 		var sendWg sync.WaitGroup
 		for ticker := range tickersCh {
 			sendWg.Add(1)
-			go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, errCh chan<- error, ticker *models.Ticker, resolution string) {
+			go func(barsCh chan<- []*models.Bar, newLastDBarCh chan<- *models.Bar, mustSyncDTicker chan<- *models.Ticker, errCh chan<- error, ticker *models.Ticker) {
 				defer sendWg.Done()
 
 				var fromTime time.Time
@@ -579,9 +612,9 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 				}
 
 				if lastBar != nil {
-					fromTime = lastBar.Time
+					fromTime = lastBar.Time.Add(-time.Duration(1) * time.Minute)
 				} else {
-					fromTime = time.Now().UTC().Add(-time.Duration(7) * time.Hour * 24)
+					fromTime = time.Now().UTC().Add(-6 * 30 * 24 * time.Hour)
 				}
 
 				toTime := time.Now().UTC()
@@ -589,6 +622,10 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 				crawlerBars, err := u.crawler.CrawlStockHistory(ctx, ticker.Symbol, crawlerResolution, fromTime.Unix(), toTime.Unix())
 				if err != nil {
 					errCh <- err
+				}
+
+				if len(crawlerBars) == 0 {
+					return
 				}
 
 				bars := make([]*models.Bar, len(crawlerBars))
@@ -607,10 +644,30 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 
 				barsCh <- bars
 
+				if lastBar == nil {
+					return
+				}
+
+				var lastMBar *models.Bar = bars[0]
+				for _, bar := range bars {
+					if bar.Time.Unix() > lastMBar.Time.Unix() {
+						lastMBar = bar
+					}
+				}
+
+				if lastMBar.Time.Format("01-02-2006") != lastBar.Time.Format("01-02-2006") {
+					return
+				}
+
 				// Get last bar from redis
 				lastDBar, err := u.barRedisRepo.GetObj(ctx, u.genRedisLastBar(ticker.Symbol, resolutionD))
 				if err != nil {
 					errCh <- err
+				}
+
+				if lastMBar.Time.Format("01-02-2006") != lastDBar.Time.Format("01-02-2006") {
+					mustSyncDTicker <- ticker
+					return
 				}
 
 				newLastDBar := &models.Bar{
@@ -621,70 +678,114 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 					High:     lastDBar.High,
 					Low:      lastDBar.Low,
 					Close:    lastDBar.Close,
-					Volume:   0,
+					Volume:   lastDBar.Volume,
 				}
+				hasNew := false
 
 				for _, bar := range bars {
 					// TODO: Convert to symbol timezone before compare
 					if bar.Time.Format("01-02-2006") == newLastDBar.Time.Format("01-02-2006") {
 						if bar.High > newLastDBar.High {
 							newLastDBar.High = bar.High
+							fmt.Println("New High")
+							hasNew = true
 						}
 
-						if bar.Low > newLastDBar.Low {
+						if bar.Low < newLastDBar.Low {
 							newLastDBar.Low = bar.Low
+							fmt.Println("New Low")
+							hasNew = true
 						}
 
-						newLastDBar.Volume += bar.Volume
+						if lastBar.Time.Unix() < bar.Time.Unix() {
+							newLastDBar.Volume += bar.Volume
+							fmt.Println("New Volume")
+							hasNew = true
+						}
 					}
 				}
 
-				fmt.Println("ALO1")
-				newLastDBarCh <- newLastDBar
-			}(barsCh, newLastDBarCh, errSendCh, ticker, resolution)
+				if hasNew {
+					newLastDBarCh <- newLastDBar
+				}
+			}(barsCh, newLastDBarCh, mustSyncDTicker, errSendCh, ticker)
 		}
 		sendWg.Wait()
 		close(barsCh)
 		close(newLastDBarCh)
-	}(barsCh, newLastDBarCh, errSendCh, resolution)
+		close(mustSyncDTicker)
+	}(barsCh, newLastDBarCh, mustSyncDTicker, errSendCh)
 
 	// Save
 	doneCh := make(chan bool)
 	errReceiveCh := make(chan error)
 
-	go func(barsCh <-chan []*models.Bar, newLastDBarCh <-chan *models.Bar, doneCh chan<- bool, errCh chan<- error) {
-		var receiveWg sync.WaitGroup
-		for bars := range barsCh {
-			receiveWg.Add(1)
-			go func(bars []*models.Bar) {
-				defer receiveWg.Done()
+	go func() {
+		var wg sync.WaitGroup
 
-				err := u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
-				if err != nil {
-					errCh <- err
-				}
-			}(bars)
-		}
+		wg.Add(1)
+		go func(barsCh <-chan []*models.Bar, errCh chan<- error) {
+			defer wg.Done()
 
-		for newLastDBar := range newLastDBarCh {
-			receiveWg.Add(1)
-			fmt.Println("ALO2")
-			go func(newLastDBar *models.Bar) {
-				defer receiveWg.Done()
+			var receiveWg sync.WaitGroup
 
-				err = u.Insert(ctx, resolutionD, newLastDBar, false)
-				if err != nil {
-					errCh <- err
-				}
-			}(newLastDBar)
+			for bars := range barsCh {
+				receiveWg.Add(1)
+				go func(bars []*models.Bar) {
+					defer receiveWg.Done()
 
-			fmt.Println("ALO3")
-		}
-		fmt.Println("ALO4")
-		receiveWg.Wait()
-		fmt.Println("ALO5")
+					err := u.Inserts(ctx, resolution, bars, barInsertBatchSize, false)
+					if err != nil {
+						errCh <- err
+					}
+				}(bars)
+			}
+
+			receiveWg.Wait()
+		}(barsCh, errReceiveCh)
+
+		wg.Add(1)
+		go func(newLastDBarCh <-chan *models.Bar, errCh chan<- error) {
+			defer wg.Done()
+
+			var receiveWg sync.WaitGroup
+
+			for newLastDBar := range newLastDBarCh {
+				fmt.Println("ALO")
+
+				receiveWg.Add(1)
+				go func(newLastDBar *models.Bar) {
+					defer receiveWg.Done()
+
+					err = u.Insert(ctx, resolutionD, newLastDBar, false)
+					if err != nil {
+						errCh <- err
+					}
+				}(newLastDBar)
+			}
+
+			receiveWg.Wait()
+		}(newLastDBarCh, errReceiveCh)
+
+		wg.Add(1)
+		go func(mustSyncDTicker <-chan *models.Ticker, errCh chan<- error) {
+			defer wg.Done()
+
+			var tickers []*models.Ticker
+
+			for ticker := range mustSyncDTicker {
+				tickers = append(tickers, ticker)
+			}
+
+			err := u.syncDAllSymbol(ctx, tickerDownloadBatchSize, tickerInsertBatchSize, barInsertBatchSize, tickers)
+			if err != nil {
+				errCh <- err
+			}
+		}(mustSyncDTicker, errReceiveCh)
+
+		wg.Wait()
 		doneCh <- true
-	}(barsCh, newLastDBarCh, doneCh, errReceiveCh)
+	}()
 
 	select {
 	case err := <-errSendCh:

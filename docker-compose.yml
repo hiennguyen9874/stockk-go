@@ -19,25 +19,40 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile
-    command: sh -c "go run main.go migrate && go run main.go crawlsymbol"
+    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 10; go run main.go migrate && go run main.go crawlsymbol"
     volumes:
       - ./backend:/app
     depends_on:
       - db
       - redis
       - influxdb
+      - backend
 
-  # history-crawler:
-  #   build:
-  #     context: backend
-  #     dockerfile: Dockerfile
-  #   command: sh -c "go run main.go migrate && go run main.go crawlhistoryd"
-  #   volumes:
-  #     - ./backend:/app
-  #   depends_on:
-  #     - db
-  #     - redis
-  #     - influxdb
+  history-crawler-d:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 30; go run main.go migrate && go run main.go crawlhistoryd"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+      - influxdb
+      - backend
+
+  history-crawler-m:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 120; go run main.go migrate && go run main.go crawlhistorym"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+      - influxdb
+      - backend
 
   db:
     image: postgres:15.2-alpine
@@ -95,7 +110,11 @@ services:
   #   restart: unless-stopped
 
   influxdb:
-    image: influxdb:2.6-alpine
+    build:
+      context: influxdb
+      dockerfile: Dockerfile
+      args:
+        INFLUXDB_VERSION: 2.6-alpine
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: admin
