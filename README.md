@@ -64,3 +64,6 @@ In this project use 3 layer architecture
 -   https://betterprogramming.pub/build-a-real-time-crypto-ticker-with-go-and-influxdb-2-89e968c65b7e
 -   https://ajiybanesij.medium.com/building-go-applications-using-influxdb-87b462fd9d70
 -   https://github.com/wentao-yang/StockAnalysisApplication
+-   https://github.com/landoyjx/charting_library_wiki
+-   https://github.com/serdimoa/charting
+- https://github.com/tradingview/yahoo_datafeed
