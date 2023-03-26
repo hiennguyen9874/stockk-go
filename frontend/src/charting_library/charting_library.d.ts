@@ -1519,7 +1519,7 @@ export interface ILineDataSourceApi {
   getPoints(): PricedPoint[];
   setPoints(points: ShapePoint[]): void;
 }
-export interface INumberFormatter extends IFormatter<number> {}
+export type INumberFormatter = IFormatter<number>;
 export interface IObservable<T> {
   subscribe(callback: (value: T) => void): void;
   unsubscribe(callback: (value: T) => void): void;
@@ -1992,7 +1992,7 @@ export interface NewsProvider {
 export interface NumericFormattingParams {
   decimal_sign: string;
 }
-export interface OrderDialogOptions extends TradingDialogOptions {}
+export type OrderDialogOptions = TradingDialogOptions;
 export interface OrderDuration {
   /**
    * type is OrderDurationMetaInfo.value
@@ -2107,7 +2107,7 @@ export interface Position {
   message?: OrderOrPositionMessage;
   [key: string]: any;
 }
-export interface PositionDialogOptions extends TradingDialogOptions {}
+export type PositionDialogOptions = TradingDialogOptions;
 export interface PositiveBaseInputFieldValidatorResult
   extends BaseInputFieldValidatorResult {
   valid: true;

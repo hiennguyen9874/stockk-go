@@ -1,7 +1,32 @@
 {
-    "git.ignoreLimitWarning": true,
-    "cSpell.words": [
-        "hiennguyen",
-        "stockk"
-    ]
+  "eslint.nodePath": "./frontend/node_modules",
+  "typescript.tsdk": "./frontend/node_modules/typescript/lib",
+  "eslint.workingDirectories": [
+      {
+          "directory": "frontend",
+          "changeProcessCWD": true
+      }
+  ],
+  "files.exclude": {
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/CVS": true,
+      "**/.DS_Store": true,
+      "**/media": true,
+      "django_media_volume": true,
+      "django_static_volume": true,
+      "postgres_data": true
+  },
+  "cSpell.words": [
+      "Beenhere",
+      "Formik",
+      "changepassword",
+      "datas",
+      "metadatas",
+      "rpoints",
+      "scrollable",
+      "simplejwt",
+      "tsparticles"
+  ]
 }
