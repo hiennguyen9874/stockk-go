@@ -3,11 +3,10 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
@@ -68,6 +67,7 @@ func (mw *MiddlewareManager) Verifier(requireAccessToken bool) func(http.Handler
 				}
 				id, email, err := jwt.ParseTokenRS256(token, publicKey)
 				ctx = context.WithValue(ctx, TokenCtxKey, token)
+				fmt.Println(id)
 				ctx = context.WithValue(ctx, IdCtxKey, id)
 				ctx = context.WithValue(ctx, EmailCtxKey, email)
 				ctx = context.WithValue(ctx, ErrorCtxKey, err)
@@ -102,21 +102,15 @@ func (mw *MiddlewareManager) CurrentUser() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			id, _ := r.Context().Value(IdCtxKey).(string)
+			id, _ := r.Context().Value(IdCtxKey).(uint)
 			err, _ := r.Context().Value(ErrorCtxKey).(error)
 
-			if err != nil || id == "" {
+			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ParseErrors(err)))
 				return
 			}
 
-			idParsed, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
-			if err != nil {
-				render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrInvalidJWTClaims(errors.New("can not convert id to uint from id in token"))))
-				return
-			}
-
-			user, err := mw.usersUC.Get(ctx, uint(idParsed))
+			user, err := mw.usersUC.Get(ctx, uint(id))
 			if err != nil {
 				render.Render(w, r, responses.CreateErrorResponse(err))
 				return

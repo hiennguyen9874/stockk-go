@@ -687,19 +687,16 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 					if bar.Time.Format("01-02-2006") == newLastDBar.Time.Format("01-02-2006") {
 						if bar.High > newLastDBar.High {
 							newLastDBar.High = bar.High
-							fmt.Println("New High")
 							hasNew = true
 						}
 
 						if bar.Low < newLastDBar.Low {
 							newLastDBar.Low = bar.Low
-							fmt.Println("New Low")
 							hasNew = true
 						}
 
 						if lastBar.Time.Unix() < bar.Time.Unix() {
 							newLastDBar.Volume += bar.Volume
-							fmt.Println("New Volume")
 							hasNew = true
 						}
 					}
@@ -751,8 +748,6 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 			var receiveWg sync.WaitGroup
 
 			for newLastDBar := range newLastDBarCh {
-				fmt.Println("ALO")
-
 				receiveWg.Add(1)
 				go func(newLastDBar *models.Bar) {
 					defer receiveWg.Done()

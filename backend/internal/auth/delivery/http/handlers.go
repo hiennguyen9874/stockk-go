@@ -7,9 +7,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/auth"
+	"github.com/hiennguyen9874/stockk-go/internal/auth/presenter"
 	"github.com/hiennguyen9874/stockk-go/internal/middleware"
 	"github.com/hiennguyen9874/stockk-go/internal/users"
-	"github.com/hiennguyen9874/stockk-go/internal/users/presenter"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
@@ -27,12 +27,24 @@ func CreateAuthHandler(uc users.UserUseCaseI, cfg *config.Config, logger logger.
 	return &userHandler{cfg: cfg, usersUC: uc, logger: logger}
 }
 
+// SignIn godoc
+// @Summary Sign In
+// @Description Sign in, get access token for future requests.
+// @Tags auth
+// @Accept multipart/form-data
+// @Produce json
+// @Param username formData string true "email"
+// @Param password formData string true "password"
+// @Success 200 {object} presenter.Token
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/login [post]
 func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := new(presenter.UserSignIn)
 
 		r.ParseMultipartForm(0)
-		user.Email = r.FormValue("email")
+		user.Email = r.FormValue("username")
 		user.Password = r.FormValue("password")
 
 		err := utils.ValidateStruct(r.Context(), user)
@@ -59,6 +71,17 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RefreshToken godoc
+// @Summary Refresh token
+// @Description Get new access token from refresh token.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Authentication header"
+// @Success 200 {object} presenter.Token
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/refresh [get]
 func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -79,6 +102,16 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// GetPublicKey godoc
+// @Summary Get public key
+// @Description Get rsa public key to decode token.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} presenter.PublicKey
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/publickey [get]
 func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		publicKeyAccessToken, err := jwt.DecodeBase64(h.cfg.Jwt.JwtAccessTokenPublicKey)
@@ -100,6 +133,17 @@ func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// Logout godoc
+// @Summary Logout
+// @Description Logout, remove current refresh token in db.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Authentication header"
+// @Success 200
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/logout [get]
 func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -114,6 +158,17 @@ func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// LogoutAllToken godoc
+// @Summary Logout all session
+// @Description Logout all session of this user.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Authentication header"
+// @Success 200
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/logoutall [get]
 func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -134,6 +189,16 @@ func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// VerifyEmail godoc
+// @Summary Verify user
+// @Description Verify user using code from email.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param code query string true "offset" Format(code)
+// @Success 200 {object} string
+// @Failure 400	{object} responses.Response
+// @Router /auth/verifyemail [get]
 func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -151,6 +216,17 @@ func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// ForgotPassword godoc
+// @Summary Forgot password
+// @Description Forgot password, code will send to email.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param forgotPassword body presenter.ForgotPassword true "Forgot Password"
+// @Success 200 {object} string
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/forgotpassword [post]
 func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -180,6 +256,18 @@ func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// ResetPassword godoc
+// @Summary Reset Password
+// @Description Reset Password, using code from email.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param code query string true "code" Format(code)
+// @Param resetPassword body presenter.ResetPassword true "Reset Password"
+// @Success 200 {object} string
+// @Failure 400	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Router /auth/resetpassword [patch]
 func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
