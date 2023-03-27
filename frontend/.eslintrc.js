@@ -136,5 +136,6 @@ module.exports = {
         namedComponents: 'arrow-function',
       },
     ],
+    'no-param-reassign': ['error', { props: false }],
   },
 };
