@@ -22,6 +22,25 @@ definitions:
     - name
     - password
     type: object
+  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_superuser:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+      verified:
+        type: boolean
+    type: object
   github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate:
     properties:
       name:
@@ -51,12 +70,15 @@ definitions:
     properties:
       msg:
         description: application-level error message, for debugging
+        example: not found user
         type: string
       status:
         description: http response status code
+        example: 404
         type: integer
       statusText:
         description: user-level status message
+        example: not_found
         type: string
     type: object
   presenter.ForgotPassword:
@@ -88,6 +110,23 @@ definitions:
     - confirm_password
     - new_password
     type: object
+  presenter.TickerResponse:
+    properties:
+      exchange:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      short_name:
+        type: string
+      symbol:
+        type: string
+      type:
+        type: string
+    type: object
   presenter.Token:
     properties:
       access_token:
@@ -97,12 +136,48 @@ definitions:
       token_type:
         type: string
     type: object
-  responses.Response:
+  responses.ErrorResponse:
     properties:
-      data: {}
       error:
         $ref: '#/definitions/httpErrors.ErrResponse'
       is_success:
+        example: false
+        type: boolean
+    type: object
+  responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
+        type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-array_presenter_TickerResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/presenter.TickerResponse'
+        type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-presenter_TickerResponse:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.TickerResponse'
+      is_success:
+        example: true
         type: boolean
     type: object
 info:
@@ -132,11 +207,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Forgot password
       tags:
       - auth
@@ -166,11 +241,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Sign In
       tags:
       - auth
@@ -193,11 +268,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Logout
       tags:
       - auth
@@ -220,11 +295,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Logout all session
       tags:
       - auth
@@ -243,11 +318,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Get public key
       tags:
       - auth
@@ -272,11 +347,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Refresh token
       tags:
       - auth
@@ -308,11 +383,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Reset Password
       tags:
       - auth
@@ -338,7 +413,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Verify user
       tags:
       - auth
@@ -364,19 +439,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-array_presenter_TickerResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Read tickers
@@ -399,27 +474,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_TickerResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Read ticker
@@ -446,27 +521,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_TickerResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Update ticker
@@ -494,19 +569,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Read Users
@@ -529,19 +604,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Create User
@@ -564,27 +639,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Delete user
@@ -606,27 +681,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Read user
@@ -654,27 +729,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Update user
@@ -696,28 +771,26 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/responses.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Logout all of user
@@ -746,27 +819,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Update password user
@@ -783,27 +856,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Read user me
@@ -826,27 +899,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Update user me
@@ -870,27 +943,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - OAuth2Password: []
       summary: Update password user me

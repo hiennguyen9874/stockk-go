@@ -36,8 +36,8 @@ func CreateAuthHandler(uc users.UserUseCaseI, cfg *config.Config, logger logger.
 // @Param username formData string true "email"
 // @Param password formData string true "password"
 // @Success 200 {object} presenter.Token
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/login [post]
 func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -79,8 +79,8 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Authentication header"
 // @Success 200 {object} presenter.Token
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/refresh [get]
 func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +109,8 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 // @Accept json
 // @Produce json
 // @Success 200 {object} presenter.PublicKey
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/publickey [get]
 func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -141,8 +141,8 @@ func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request
 // @Produce json
 // @Param Authorization header string true "Authentication header"
 // @Success 200
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/logout [get]
 func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -166,8 +166,8 @@ func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Authentication header"
 // @Success 200
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/logoutall [get]
 func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +197,7 @@ func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param code query string true "offset" Format(code)
 // @Success 200 {object} string
-// @Failure 400	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
 // @Router /auth/verifyemail [get]
 func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -224,8 +224,8 @@ func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Param forgotPassword body presenter.ForgotPassword true "Forgot Password"
 // @Success 200 {object} string
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/forgotpassword [post]
 func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -265,8 +265,8 @@ func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Reque
 // @Param code query string true "code" Format(code)
 // @Param resetPassword body presenter.ResetPassword true "Reset Password"
 // @Success 200 {object} string
-// @Failure 400	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Router /auth/resetpassword [patch]
 func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

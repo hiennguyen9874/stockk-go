@@ -33,10 +33,10 @@ func CreateTickerHandler(uc tickers.TickerUseCaseI, cfg *config.Config, logger l
 // @Produce json
 // @Param limit query int false "limit" Format(limit)
 // @Param offset query int false "offset" Format(offset)
-// @Success 200 {object} responses.Response
-// @Failure 400	{object} responses.Response
-// @Failure 401	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Success 200 {object} responses.SuccessResponse[[]presenter.TickerResponse]
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 401	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Security OAuth2Password
 // @Router /ticker [get]
 func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +63,12 @@ func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Produce json
 // @Param symbol path string true "Ticker symbol"
-// @Success 200 {object} responses.Response
-// @Failure 400	{object} responses.Response
-// @Failure 401	{object} responses.Response
-// @Failure 403	{object} responses.Response
-// @Failure 404	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Success 200 {object} responses.SuccessResponse[presenter.TickerResponse]
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 401	{object} responses.ErrorResponse
+// @Failure 403	{object} responses.ErrorResponse
+// @Failure 404	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Security OAuth2Password
 // @Router /ticker/{symbol} [get]
 func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Request) {
@@ -93,12 +93,12 @@ func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Reques
 // @Produce json
 // @Param symbol path string true "Ticker symbol"
 // @Param is_active query bool false "is_active" Format(is_active)
-// @Success 200 {object} responses.Response
-// @Failure 400	{object} responses.Response
-// @Failure 401	{object} responses.Response
-// @Failure 403	{object} responses.Response
-// @Failure 404	{object} responses.Response
-// @Failure 422	{object} responses.Response
+// @Success 200 {object} responses.SuccessResponse[presenter.TickerResponse]
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 401	{object} responses.ErrorResponse
+// @Failure 403	{object} responses.ErrorResponse
+// @Failure 404	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
 // @Security OAuth2Password
 // @Router /ticker/{symbol} [put]
 func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *http.Request) {
