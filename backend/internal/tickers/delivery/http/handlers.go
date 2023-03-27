@@ -25,24 +25,20 @@ func CreateTickerHandler(uc tickers.TickerUseCaseI, cfg *config.Config, logger l
 	return &tickerHandler{cfg: cfg, tickersUC: uc, logger: logger}
 }
 
-func (h *tickerHandler) Get() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
-			return
-		}
-
-		ticker, err := h.tickersUC.Get(r.Context(), uint(id))
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
-
-		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(ticker)))
-	}
-}
-
+// GetMulti godoc
+// @Summary Read tickers
+// @Description Retrieve tickers.
+// @Tags tickers
+// @Accept json
+// @Produce json
+// @Param limit query int false "limit" Format(limit)
+// @Param offset query int false "offset" Format(offset)
+// @Success 200 {object} responses.Response
+// @Failure 400	{object} responses.Response
+// @Failure 401	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Security OAuth2Password
+// @Router /ticker [get]
 func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
@@ -60,24 +56,21 @@ func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (h *tickerHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
-			return
-		}
-
-		ticker, err := h.tickersUC.Delete(r.Context(), uint(id))
-		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
-			return
-		}
-
-		render.Respond(w, r, responses.CreateSuccessResponse(mapModelResponse(ticker)))
-	}
-}
-
+// Get godoc
+// @Summary Read ticker
+// @Description Get ticker by symbol.
+// @Tags tickers
+// @Accept json
+// @Produce json
+// @Param symbol path string true "Ticker symbol"
+// @Success 200 {object} responses.Response
+// @Failure 400	{object} responses.Response
+// @Failure 401	{object} responses.Response
+// @Failure 403	{object} responses.Response
+// @Failure 404	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Security OAuth2Password
+// @Router /ticker/{symbol} [get]
 func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		symbol := chi.URLParam(r, "symbol")
@@ -92,6 +85,22 @@ func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// Update godoc
+// @Summary Update ticker
+// @Description Update an ticker by Symbol.
+// @Tags tickers
+// @Accept json
+// @Produce json
+// @Param symbol path string true "Ticker symbol"
+// @Param is_active query bool false "is_active" Format(is_active)
+// @Success 200 {object} responses.Response
+// @Failure 400	{object} responses.Response
+// @Failure 401	{object} responses.Response
+// @Failure 403	{object} responses.Response
+// @Failure 404	{object} responses.Response
+// @Failure 422	{object} responses.Response
+// @Security OAuth2Password
+// @Router /ticker/{symbol} [put]
 func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -130,8 +139,8 @@ func mapModelResponse(exp *models.Ticker) *presenter.TickerResponse {
 
 func mapModelsResponse(exp []*models.Ticker) []*presenter.TickerResponse {
 	out := make([]*presenter.TickerResponse, len(exp))
-	for i, user := range exp {
-		out[i] = mapModelResponse(user)
+	for i, ticker := range exp {
+		out[i] = mapModelResponse(ticker)
 	}
 	return out
 }
