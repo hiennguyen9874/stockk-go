@@ -15,4 +15,6 @@ type RedisRepository[M any] interface {
 	Srem(ctx context.Context, key string, value string) error
 	SIsMember(ctx context.Context, key string, value string) (bool, error)
 	// SMembers(ctx context.Context, key string) ([]string, error)
+	CreateObjs(ctx context.Context, key string, exp []*M, seconds int) error
+	GetObjs(ctx context.Context, key string) ([]*M, error)
 }

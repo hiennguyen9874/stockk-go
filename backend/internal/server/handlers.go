@@ -66,7 +66,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	// UseCase
 	userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, userRedisTaskDistributor, cfg, logger)
 	tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, tickerRedisRepo, cfg, logger)
-	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, logger)
+	barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, tickerRedisRepo, cfg, logger)
 	chartUseCase := chartUseCase.CreateChartUseCaseI(chartPgRepo, cfg, logger)
 	studyTemplateUseCase := studyTemplateUseCase.StudyTemplateUseCaseI(studyTemplatePgRepo, cfg, logger)
 	drawingTemplateUseCase := drawingTemplateUseCase.DrawingTemplateUseCaseI(drawingTemplatePgRepo, cfg, logger)

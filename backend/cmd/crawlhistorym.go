@@ -46,10 +46,11 @@ var crawlHistoryMCmd = &cobra.Command{
 
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
+		tickerRedisRepo := tickerRepository.CreateTickerRedisRepository(redisClient)
 		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.Org)
 		barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 
-		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
+		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, tickerRedisRepo, cfg, appLogger)
 
 		for {
 			status, err := influxDB.Ping(ctx)

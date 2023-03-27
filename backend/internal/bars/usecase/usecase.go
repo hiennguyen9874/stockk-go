@@ -19,6 +19,7 @@ type barUseCase struct {
 	barInfluxDBRepo bars.BarInfluxDBRepository
 	barRedisRepo    bars.BarRedisRepository
 	tickerPgRepo    tickers.TickerPgRepository
+	tickerRedisRepo tickers.TickerRedisRepository
 	crawler         crawlers.Crawler
 	logger          logger.Logger
 }
@@ -27,6 +28,7 @@ func CreateBarUseCaseI(
 	barInfluxDBRepo bars.BarInfluxDBRepository,
 	barRedisRepo bars.BarRedisRepository,
 	tickerPgRepo tickers.TickerPgRepository,
+	tickerRedisRepo tickers.TickerRedisRepository,
 	cfg *config.Config,
 	logger logger.Logger,
 ) bars.BarUseCaseI {
@@ -34,9 +36,18 @@ func CreateBarUseCaseI(
 		barInfluxDBRepo: barInfluxDBRepo,
 		barRedisRepo:    barRedisRepo,
 		tickerPgRepo:    tickerPgRepo,
+		tickerRedisRepo: tickerRedisRepo,
 		crawler:         crawlers.NewCrawler(cfg, logger),
 		logger:          logger,
 	}
+}
+
+func (u *barUseCase) GenerateRedisTickerKey(symbol string) string {
+	return fmt.Sprintf("%v:%v", models.Ticker{}.TableName(), symbol)
+}
+
+func (u *barUseCase) GenerateRedisAllTickerActive(isActive bool) string {
+	return fmt.Sprintf("Ticker:AllTicker:%v", isActive)
 }
 
 func (u *barUseCase) convertResolutionToBucket(ctx context.Context, resolution string) (string, error) {
@@ -126,6 +137,50 @@ func (u *barUseCase) convertResolutionToCrawlerResolution(resolution string) (cr
 // 		return time.Duration(time.Hour * 24), fmt.Errorf("not support resolution: %v", resolution)
 // 	}
 // }
+
+func (u *barUseCase) GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error) {
+	cachedTicker, err := u.tickerRedisRepo.GetObj(ctx, u.GenerateRedisTickerKey(symbol))
+	if err != nil {
+		return nil, err
+	}
+
+	if cachedTicker != nil {
+		return cachedTicker, nil
+	}
+
+	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = u.tickerRedisRepo.CreateObj(ctx, u.GenerateRedisTickerKey(symbol), ticker, 3600); err != nil {
+		return nil, err
+	}
+
+	return ticker, nil
+}
+
+func (u *barUseCase) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
+	cachedTickers, err := u.tickerRedisRepo.GetObjs(ctx, u.GenerateRedisAllTickerActive(isActive))
+	if err != nil {
+		return nil, err
+	}
+
+	if cachedTickers != nil {
+		return cachedTickers, nil
+	}
+
+	tickers, err := u.tickerPgRepo.GetAllActive(ctx, isActive)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = u.tickerRedisRepo.CreateObjs(ctx, u.GenerateRedisAllTickerActive(isActive), tickers, 3600); err != nil {
+		return nil, err
+	}
+
+	return tickers, nil
+}
 
 func (u *barUseCase) Insert(ctx context.Context, resolution string, exp *models.Bar, preventOverwriteOld bool) error {
 	// Get last bar from redis
@@ -221,7 +276,7 @@ func (u *barUseCase) Inserts(ctx context.Context, resolution string, exps []*mod
 }
 
 func (u *barUseCase) GetByFromTo(ctx context.Context, resolution string, symbol string, from time.Time, to time.Time) ([]*models.Bar, error) {
-	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	ticker, err := u.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +290,7 @@ func (u *barUseCase) GetByFromTo(ctx context.Context, resolution string, symbol 
 }
 
 func (u *barUseCase) GetByToLimit(ctx context.Context, resolution string, symbol string, to time.Time, limit int) ([]*models.Bar, error) {
-	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	ticker, err := u.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +315,7 @@ func (u *barUseCase) GetByToLimit(ctx context.Context, resolution string, symbol
 func (u *barUseCase) SyncDSymbol(ctx context.Context, symbol string, barInsertBatchSize int) error {
 	resolution := "D"
 
-	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	ticker, err := u.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
@@ -424,7 +479,7 @@ func (u *barUseCase) syncDAllSymbol(ctx context.Context, tickerDownloadBatchSize
 }
 
 func (u *barUseCase) SyncDAllSymbol(ctx context.Context, tickerDownloadBatchSize int, tickerInsertBatchSize int, barInsertBatchSize int) error {
-	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
+	activeTickers, err := u.GetAllActive(ctx, true)
 	if err != nil {
 		return err
 	}
@@ -440,7 +495,7 @@ func (u *barUseCase) SyncMSymbol(ctx context.Context, symbol string, barInsertBa
 	resolution := "1"
 	resolutionD := "D"
 
-	ticker, err := u.tickerPgRepo.GetBySymbol(ctx, symbol)
+	ticker, err := u.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
@@ -558,7 +613,7 @@ func (u *barUseCase) SyncMAllSymbol(ctx context.Context, tickerDownloadBatchSize
 	resolution := "1"
 	resolutionD := "D"
 
-	activeTickers, err := u.tickerPgRepo.GetAllActive(ctx, true)
+	activeTickers, err := u.GetAllActive(ctx, true)
 	if err != nil {
 		return err
 	}

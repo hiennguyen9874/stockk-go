@@ -120,3 +120,34 @@ func (r *RedisRepo[M]) SIsMember(ctx context.Context, key string, value string) 
 // 	}
 // 	return result.Val(), nil
 // }
+
+func (r *RedisRepo[M]) CreateObjs(ctx context.Context, key string, exp []*M, seconds int) error {
+	objBytes, err := json.Marshal(exp)
+	if err != nil {
+		return httpErrors.ErrJson(err)
+	}
+
+	if err = r.RedisClient.Set(ctx, key, objBytes, time.Second*time.Duration(seconds)).Err(); err != nil {
+		// TODO: Using httpErrors
+		return err
+	}
+	return nil
+}
+
+func (r *RedisRepo[M]) GetObjs(ctx context.Context, key string) ([]*M, error) {
+	objBytes, err := r.RedisClient.Get(ctx, key).Bytes()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var objs []*M
+
+	if err = json.Unmarshal(objBytes, &objs); err != nil {
+		return nil, httpErrors.ErrJson(err)
+	}
+
+	return objs, nil
+}

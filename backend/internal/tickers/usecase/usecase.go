@@ -41,6 +41,10 @@ func (u *tickerUseCase) GenerateRedisTickerKey(symbol string) string {
 	return fmt.Sprintf("%v:%v", models.Ticker{}.TableName(), symbol)
 }
 
+func (u *tickerUseCase) GenerateRedisAllTickerActive(isActive bool) string {
+	return fmt.Sprintf("Ticker:AllTicker:%v", isActive)
+}
+
 func (u *tickerUseCase) GetBySymbol(ctx context.Context, symbol string) (*models.Ticker, error) {
 	cachedTicker, err := u.tickerRedisRepo.GetObj(ctx, u.GenerateRedisTickerKey(symbol))
 	if err != nil {
@@ -105,6 +109,15 @@ func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Tick
 		return nil, err
 	}
 
+	if len(savedTickers) > 0 {
+		if err = u.tickerRedisRepo.Delete(ctx, u.GenerateRedisAllTickerActive(true)); err != nil {
+			return nil, err
+		}
+		if err = u.tickerRedisRepo.Delete(ctx, u.GenerateRedisAllTickerActive(false)); err != nil {
+			return nil, err
+		}
+	}
+
 	return savedTickers, nil
 }
 
@@ -124,11 +137,37 @@ func (u *tickerUseCase) UpdateIsActiveBySymbol(ctx context.Context, symbol strin
 		return nil, err
 	}
 
+	if err = u.tickerRedisRepo.Delete(ctx, u.GenerateRedisAllTickerActive(true)); err != nil {
+		return nil, err
+	}
+
+	if err = u.tickerRedisRepo.Delete(ctx, u.GenerateRedisAllTickerActive(false)); err != nil {
+		return nil, err
+	}
+
 	return updatedTicker, nil
 }
 
 func (u *tickerUseCase) GetAllActive(ctx context.Context, isActive bool) ([]*models.Ticker, error) {
-	return u.tickerPgRepo.GetAllActive(ctx, isActive)
+	cachedTickers, err := u.tickerRedisRepo.GetObjs(ctx, u.GenerateRedisAllTickerActive(true))
+	if err != nil {
+		return nil, err
+	}
+
+	if cachedTickers != nil {
+		return cachedTickers, nil
+	}
+
+	tickers, err := u.tickerPgRepo.GetAllActive(ctx, isActive)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = u.tickerRedisRepo.CreateObjs(ctx, u.GenerateRedisAllTickerActive(true), tickers, 3600); err != nil {
+		return nil, err
+	}
+
+	return tickers, nil
 }
 
 func (u *tickerUseCase) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
