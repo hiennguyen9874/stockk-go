@@ -62,23 +62,23 @@ func NewCrawler(cfg *config.Config, logger logger.Logger) Crawler {
 }
 
 func (cr *crawler) CrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
-	switch cr.cfg.Crawler.CrawlerSource {
+	switch cr.cfg.Crawler.Source {
 	case "VND":
 		return cr.VNDCrawlStockSymbols(ctx)
 	case "SSI":
 		return cr.SSICrawlStockSymbols(ctx)
 	default:
-		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.CrawlerSource)
+		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.Source)
 	}
 }
 
 func (cr *crawler) CrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
-	switch cr.cfg.Crawler.CrawlerSource {
+	switch cr.cfg.Crawler.Source {
 	case "VND":
 		return cr.VNDCrawlStockHistory(ctx, symbol, resolution, from, to)
 	case "SSI":
 		return cr.SSICrawlStockHistory(ctx, symbol, resolution, from, to)
 	default:
-		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.CrawlerSource)
+		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.Source)
 	}
 }

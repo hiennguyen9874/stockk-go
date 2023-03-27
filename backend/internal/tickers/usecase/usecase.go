@@ -79,8 +79,8 @@ func (u *tickerUseCase) CrawlAllStockTicker(ctx context.Context) ([]*models.Tick
 		keyTickers[ticker.Symbol] = true
 	}
 
-	defaultActiveTickers := make(map[string]bool, len(u.Cfg.Crawler.CrawlerDefaultActive))
-	for _, ticker := range u.Cfg.Crawler.CrawlerDefaultActive {
+	defaultActiveTickers := make(map[string]bool, len(u.Cfg.Crawler.DefaultActive))
+	for _, ticker := range u.Cfg.Crawler.DefaultActive {
 		defaultActiveTickers[ticker] = true
 	}
 

@@ -54,7 +54,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 	tickerPgRepo := tickerRepository.CreateTickerPgRepository(db)
 	tickerRedisRepo := tickerRepository.CreateTickerRedisRepository(redisClient)
-	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
+	barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.Org)
 	barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 	chartPgRepo := chartRepository.CreateChartPgRepository(db)
 	studyTemplatePgRepo := studyTemplateRepository.CreateStudyTemplatePgRepository(db)

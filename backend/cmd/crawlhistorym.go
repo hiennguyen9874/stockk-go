@@ -26,7 +26,7 @@ var crawlHistoryMCmd = &cobra.Command{
 
 		appLogger := logger.NewApiLogger(cfg)
 		appLogger.InitLogger()
-		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.LoggerLevel, cfg.Server.Mode)
+		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
 
 		psqlDB, err := postgres.NewPsqlDB(cfg)
 		if err != nil {
@@ -46,7 +46,7 @@ var crawlHistoryMCmd = &cobra.Command{
 
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
-		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.InfluxDBOrg)
+		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.Org)
 		barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, cfg, appLogger)
@@ -65,7 +65,7 @@ var crawlHistoryMCmd = &cobra.Command{
 			}
 
 			appLogger.Info("Start syncing....")
-			err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.CrawlerTickerDownloadBatchSize, cfg.Crawler.CrawlerTickerInsertBatchSize, cfg.Crawler.CrawlerBarInsertBatchSize)
+			err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.TickerDownloadBatchSize, cfg.Crawler.TickerInsertBatchSize, cfg.Crawler.BarInsertBatchSize)
 			if err != nil {
 				appLogger.Warn(err)
 			}
