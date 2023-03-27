@@ -367,6 +367,207 @@ const docTemplate = `{
                 }
             }
         },
+        "/ticker": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Retrieve tickers.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickers"
+                ],
+                "summary": "Read tickers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "limit",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "offset",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/ticker/{symbol}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Get ticker by symbol.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickers"
+                ],
+                "summary": "Read ticker",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticker symbol",
+                        "name": "symbol",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Update an ticker by Symbol.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickers"
+                ],
+                "summary": "Update ticker",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticker symbol",
+                        "name": "symbol",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "format": "is_active",
+                        "description": "is_active",
+                        "name": "is_active",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "security": [
@@ -452,7 +653,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/presenter.UserCreate"
+                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate"
                         }
                     }
                 ],
@@ -565,7 +766,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/presenter.UserUpdate"
+                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate"
                         }
                     }
                 ],
@@ -634,7 +835,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/presenter.UserUpdatePassword"
+                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword"
                         }
                     }
                 ],
@@ -698,7 +899,7 @@ const docTemplate = `{
                 "summary": "Read user",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "User Id",
                         "name": "id",
                         "in": "path",
@@ -763,7 +964,7 @@ const docTemplate = `{
                 "summary": "Update user",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "User Id",
                         "name": "id",
                         "in": "path",
@@ -775,7 +976,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/presenter.UserUpdate"
+                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate"
                         }
                     }
                 ],
@@ -837,7 +1038,7 @@ const docTemplate = `{
                 "summary": "Delete user",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "User Id",
                         "name": "id",
                         "in": "path",
@@ -904,7 +1105,7 @@ const docTemplate = `{
                 "summary": "Logout all of user",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "User Id",
                         "name": "id",
                         "in": "path",
@@ -971,7 +1172,7 @@ const docTemplate = `{
                 "summary": "Update password user",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "User Id",
                         "name": "id",
                         "in": "path",
@@ -983,7 +1184,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/presenter.UserUpdatePassword"
+                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword"
                         }
                     }
                 ],
@@ -1029,6 +1230,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "hiennguyen9874@gmail.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Xuan Hien"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                }
+            }
+        },
+        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Xuan Hien"
+                }
+            }
+        },
+        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "old_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "old_password"
+                }
+            }
+        },
         "httpErrors.ErrResponse": {
             "type": "object",
             "properties": {
@@ -1099,69 +1363,6 @@ const docTemplate = `{
                 },
                 "token_type": {
                     "type": "string"
-                }
-            }
-        },
-        "presenter.UserCreate": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "email",
-                "name",
-                "password"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "hiennguyen9874@gmail.com"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Xuan Hien"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                }
-            }
-        },
-        "presenter.UserUpdate": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Xuan Hien"
-                }
-            }
-        },
-        "presenter.UserUpdatePassword": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "new_password",
-                "old_password"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "new_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "old_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "old_password"
                 }
             }
         },

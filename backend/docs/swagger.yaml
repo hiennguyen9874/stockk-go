@@ -1,5 +1,52 @@
 basePath: /api
 definitions:
+  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate:
+    properties:
+      confirm_password:
+        example: password
+        minLength: 8
+        type: string
+      email:
+        example: hiennguyen9874@gmail.com
+        type: string
+      name:
+        example: Xuan Hien
+        type: string
+      password:
+        example: password
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - email
+    - name
+    - password
+    type: object
+  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate:
+    properties:
+      name:
+        example: Xuan Hien
+        type: string
+    type: object
+  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword:
+    properties:
+      confirm_password:
+        example: password
+        minLength: 8
+        type: string
+      new_password:
+        example: password
+        minLength: 8
+        type: string
+      old_password:
+        example: old_password
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - old_password
+    type: object
   httpErrors.ErrResponse:
     properties:
       msg:
@@ -49,53 +96,6 @@ definitions:
         type: string
       token_type:
         type: string
-    type: object
-  presenter.UserCreate:
-    properties:
-      confirm_password:
-        example: password
-        minLength: 8
-        type: string
-      email:
-        example: hiennguyen9874@gmail.com
-        type: string
-      name:
-        example: Xuan Hien
-        type: string
-      password:
-        example: password
-        minLength: 8
-        type: string
-    required:
-    - confirm_password
-    - email
-    - name
-    - password
-    type: object
-  presenter.UserUpdate:
-    properties:
-      name:
-        example: Xuan Hien
-        type: string
-    type: object
-  presenter.UserUpdatePassword:
-    properties:
-      confirm_password:
-        example: password
-        minLength: 8
-        type: string
-      new_password:
-        example: password
-        minLength: 8
-        type: string
-      old_password:
-        example: old_password
-        minLength: 8
-        type: string
-    required:
-    - confirm_password
-    - new_password
-    - old_password
     type: object
   responses.Response:
     properties:
@@ -342,6 +342,136 @@ paths:
       summary: Verify user
       tags:
       - auth
+  /ticker:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve tickers.
+      parameters:
+      - description: limit
+        format: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        format: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.Response'
+      security:
+      - OAuth2Password: []
+      summary: Read tickers
+      tags:
+      - tickers
+  /ticker/{symbol}:
+    get:
+      consumes:
+      - application/json
+      description: Get ticker by symbol.
+      parameters:
+      - description: Ticker symbol
+        in: path
+        name: symbol
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.Response'
+      security:
+      - OAuth2Password: []
+      summary: Read ticker
+      tags:
+      - tickers
+    put:
+      consumes:
+      - application/json
+      description: Update an ticker by Symbol.
+      parameters:
+      - description: Ticker symbol
+        in: path
+        name: symbol
+        required: true
+        type: string
+      - description: is_active
+        format: is_active
+        in: query
+        name: is_active
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.Response'
+      security:
+      - OAuth2Password: []
+      summary: Update ticker
+      tags:
+      - tickers
   /user:
     get:
       consumes:
@@ -392,7 +522,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/presenter.UserCreate'
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate'
       produces:
       - application/json
       responses:
@@ -427,7 +557,7 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -469,7 +599,7 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -511,13 +641,13 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       - description: Update user
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/presenter.UserUpdate'
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate'
       produces:
       - application/json
       responses:
@@ -560,7 +690,7 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -603,13 +733,13 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       - description: Update user
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/presenter.UserUpdatePassword'
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword'
       produces:
       - application/json
       responses:
@@ -689,7 +819,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/presenter.UserUpdate'
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate'
       produces:
       - application/json
       responses:
@@ -733,7 +863,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/presenter.UserUpdatePassword'
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword'
       produces:
       - application/json
       responses:

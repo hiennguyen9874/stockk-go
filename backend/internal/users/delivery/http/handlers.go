@@ -79,7 +79,7 @@ func (h *userHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User Id"
+// @Param id path uint true "User Id"
 // @Success 200 {object} responses.Response
 // @Failure 400	{object} responses.Response
 // @Failure 401	{object} responses.Response
@@ -143,7 +143,7 @@ func (h *userHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User Id"
+// @Param id path uint true "User Id"
 // @Success 200 {object} responses.Response
 // @Failure 400	{object} responses.Response
 // @Failure 401	{object} responses.Response
@@ -176,7 +176,7 @@ func (h *userHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User Id"
+// @Param id path uint true "User Id"
 // @Param user body presenter.UserUpdate true "Update user"
 // @Success 200 {object} responses.Response
 // @Failure 400	{object} responses.Response
@@ -229,7 +229,7 @@ func (h *userHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User Id"
+// @Param id path uint true "User Id"
 // @Param user body presenter.UserUpdatePassword true "Update user"
 // @Success 200 {object} responses.Response
 // @Failure 400	{object} responses.Response
@@ -420,7 +420,7 @@ func (h *userHandler) UpdatePasswordMe() func(w http.ResponseWriter, r *http.Req
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param id path string true "User Id"
+// @Param id path uint true "User Id"
 // @Success 200 {object} responses.Response
 // @Failure 400	{object} responses.Response
 // @Failure 401	{object} responses.Response
