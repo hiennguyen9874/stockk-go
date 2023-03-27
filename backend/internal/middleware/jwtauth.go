@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -67,7 +66,6 @@ func (mw *MiddlewareManager) Verifier(requireAccessToken bool) func(http.Handler
 				}
 				id, email, err := jwt.ParseTokenRS256(token, publicKey)
 				ctx = context.WithValue(ctx, TokenCtxKey, token)
-				fmt.Println(id)
 				ctx = context.WithValue(ctx, IdCtxKey, id)
 				ctx = context.WithValue(ctx, EmailCtxKey, email)
 				ctx = context.WithValue(ctx, ErrorCtxKey, err)

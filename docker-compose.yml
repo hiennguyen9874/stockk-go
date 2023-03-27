@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   backend:
+    image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile
@@ -18,6 +19,7 @@ services:
       - ${COMPOSE_ENV_FILE}
 
   worker:
+    image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile
@@ -31,6 +33,7 @@ services:
       - ${COMPOSE_ENV_FILE}
 
   symbol-crawler:
+    image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile
@@ -46,6 +49,7 @@ services:
       - ${COMPOSE_ENV_FILE}
 
   history-crawler-d:
+    image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile
@@ -61,6 +65,7 @@ services:
       - ${COMPOSE_ENV_FILE}
 
   history-crawler-m:
+    image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile

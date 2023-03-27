@@ -2,9 +2,12 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
+	gorm.Model
 	Id                 uint       `gorm:"primaryKey"`
 	Name               string     `gorm:"type:varchar(100);not null"`
 	Email              string     `gorm:"type:varchar(100);uniqueIndex;not null"`
@@ -17,6 +20,7 @@ type User struct {
 	VerificationCode   *string    `gorm:"type:varchar(32);default:null"`
 	PasswordResetToken *string    `gorm:"type:varchar(32);default:null"`
 	PasswordResetAt    *time.Time `gorm:"default:null"`
+	Clients            []Client   `gorm:"foreignKey:OwnerId;references:Id"`
 }
 
 func (User) TableName() string {

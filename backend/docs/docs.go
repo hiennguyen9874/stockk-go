@@ -367,6 +367,329 @@ const docTemplate = `{
                 }
             }
         },
+        "/client": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Retrieve clients.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Read Clients",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "limit",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "offset",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-array_presenter_ClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Create new client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Create Client",
+                "parameters": [
+                    {
+                        "description": "Add client",
+                        "name": "client",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ClientCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_ClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Get client by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Read client",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_ClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Update an client by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Update client",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update client",
+                        "name": "client",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.ClientUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_ClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Delete an client by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clients"
+                ],
+                "summary": "Delete client",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_ClientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/ticker": {
             "get": {
                 "security": [
@@ -606,7 +929,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-array_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -653,7 +976,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate"
+                            "$ref": "#/definitions/presenter.UserCreate"
                         }
                     }
                 ],
@@ -661,7 +984,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -707,7 +1030,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -766,7 +1089,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate"
+                            "$ref": "#/definitions/presenter.UserUpdate"
                         }
                     }
                 ],
@@ -774,7 +1097,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -835,7 +1158,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword"
+                            "$ref": "#/definitions/presenter.UserUpdatePassword"
                         }
                     }
                 ],
@@ -843,7 +1166,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -910,7 +1233,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -976,7 +1299,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate"
+                            "$ref": "#/definitions/presenter.UserUpdate"
                         }
                     }
                 ],
@@ -984,7 +1307,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1049,7 +1372,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1181,7 +1504,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword"
+                            "$ref": "#/definitions/presenter.UserUpdatePassword"
                         }
                     }
                 ],
@@ -1189,7 +1512,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1227,98 +1550,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "email",
-                "name",
-                "password"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "hiennguyen9874@gmail.com"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Xuan Hien"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                }
-            }
-        },
-        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "is_superuser": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "verified": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Xuan Hien"
-                }
-            }
-        },
-        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "new_password",
-                "old_password"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "new_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password"
-                },
-                "old_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "old_password"
-                }
-            }
-        },
         "httpErrors.ErrResponse": {
             "type": "object",
             "properties": {
@@ -1336,6 +1567,57 @@ const docTemplate = `{
                     "description": "user-level status message",
                     "type": "string",
                     "example": "not_found"
+                }
+            }
+        },
+        "presenter.ClientCreate": {
+            "type": "object",
+            "properties": {
+                "current_resolution": {
+                    "type": "string",
+                    "example": "D"
+                },
+                "current_ticker": {
+                    "type": "string",
+                    "example": "TCB"
+                }
+            }
+        },
+        "presenter.ClientResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "current_resolution": {
+                    "type": "string",
+                    "example": "D"
+                },
+                "current_ticker": {
+                    "type": "string",
+                    "example": "TCB"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.ClientUpdate": {
+            "type": "object",
+            "properties": {
+                "current_resolution": {
+                    "type": "string",
+                    "example": "D"
+                },
+                "current_ticker": {
+                    "type": "string",
+                    "example": "TCB"
                 }
             }
         },
@@ -1421,6 +1703,98 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.UserCreate": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "hiennguyen9874@gmail.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Xuan Hien"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                }
+            }
+        },
+        "presenter.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_superuser": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "presenter.UserUpdate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Xuan Hien"
+                }
+            }
+        },
+        "presenter.UserUpdatePassword": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password"
+                },
+                "old_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "old_password"
+                }
+            }
+        },
         "responses.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1433,13 +1807,13 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse": {
+        "responses.SuccessResponse-array_presenter_ClientResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse"
+                        "$ref": "#/definitions/presenter.ClientResponse"
                     }
                 },
                 "is_success": {
@@ -1463,11 +1837,26 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse": {
+        "responses.SuccessResponse-array_presenter_UserResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.UserResponse"
+                    }
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SuccessResponse-presenter_ClientResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/presenter.ClientResponse"
                 },
                 "is_success": {
                     "type": "boolean",
@@ -1480,6 +1869,18 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/presenter.TickerResponse"
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SuccessResponse-presenter_UserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/presenter.UserResponse"
                 },
                 "is_success": {
                     "type": "boolean",
@@ -1503,7 +1904,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "Go boilerplate",
+	Title:            "Stockk Go",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

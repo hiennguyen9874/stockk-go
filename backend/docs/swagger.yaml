@@ -1,71 +1,5 @@
 basePath: /api
 definitions:
-  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate:
-    properties:
-      confirm_password:
-        example: password
-        minLength: 8
-        type: string
-      email:
-        example: hiennguyen9874@gmail.com
-        type: string
-      name:
-        example: Xuan Hien
-        type: string
-      password:
-        example: password
-        minLength: 8
-        type: string
-    required:
-    - confirm_password
-    - email
-    - name
-    - password
-    type: object
-  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      is_active:
-        type: boolean
-      is_superuser:
-        type: boolean
-      name:
-        type: string
-      updated_at:
-        type: string
-      verified:
-        type: boolean
-    type: object
-  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate:
-    properties:
-      name:
-        example: Xuan Hien
-        type: string
-    type: object
-  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword:
-    properties:
-      confirm_password:
-        example: password
-        minLength: 8
-        type: string
-      new_password:
-        example: password
-        minLength: 8
-        type: string
-      old_password:
-        example: old_password
-        minLength: 8
-        type: string
-    required:
-    - confirm_password
-    - new_password
-    - old_password
-    type: object
   httpErrors.ErrResponse:
     properties:
       msg:
@@ -79,6 +13,41 @@ definitions:
       statusText:
         description: user-level status message
         example: not_found
+        type: string
+    type: object
+  presenter.ClientCreate:
+    properties:
+      current_resolution:
+        example: D
+        type: string
+      current_ticker:
+        example: TCB
+        type: string
+    type: object
+  presenter.ClientResponse:
+    properties:
+      created_at:
+        type: string
+      current_resolution:
+        example: D
+        type: string
+      current_ticker:
+        example: TCB
+        type: string
+      id:
+        type: integer
+      owner_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  presenter.ClientUpdate:
+    properties:
+      current_resolution:
+        example: D
+        type: string
+      current_ticker:
+        example: TCB
         type: string
     type: object
   presenter.ForgotPassword:
@@ -136,6 +105,72 @@ definitions:
       token_type:
         type: string
     type: object
+  presenter.UserCreate:
+    properties:
+      confirm_password:
+        example: password
+        minLength: 8
+        type: string
+      email:
+        example: hiennguyen9874@gmail.com
+        type: string
+      name:
+        example: Xuan Hien
+        type: string
+      password:
+        example: password
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - email
+    - name
+    - password
+    type: object
+  presenter.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_superuser:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  presenter.UserUpdate:
+    properties:
+      name:
+        example: Xuan Hien
+        type: string
+    type: object
+  presenter.UserUpdatePassword:
+    properties:
+      confirm_password:
+        example: password
+        minLength: 8
+        type: string
+      new_password:
+        example: password
+        minLength: 8
+        type: string
+      old_password:
+        example: old_password
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - old_password
+    type: object
   responses.ErrorResponse:
     properties:
       error:
@@ -144,11 +179,11 @@ definitions:
         example: false
         type: boolean
     type: object
-  responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+  responses.SuccessResponse-array_presenter_ClientResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
+          $ref: '#/definitions/presenter.ClientResponse'
         type: array
       is_success:
         example: true
@@ -164,10 +199,20 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+  responses.SuccessResponse-array_presenter_UserResponse:
     properties:
       data:
-        $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
+        items:
+          $ref: '#/definitions/presenter.UserResponse'
+        type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-presenter_ClientResponse:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.ClientResponse'
       is_success:
         example: true
         type: boolean
@@ -180,9 +225,17 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.SuccessResponse-presenter_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.UserResponse'
+      is_success:
+        example: true
+        type: boolean
+    type: object
 info:
   contact: {}
-  title: Go boilerplate
+  title: Stockk Go
   version: "1.0"
 paths:
   /auth/forgotpassword:
@@ -417,6 +470,214 @@ paths:
       summary: Verify user
       tags:
       - auth
+  /client:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve clients.
+      parameters:
+      - description: limit
+        format: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        format: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-array_presenter_ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Read Clients
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      description: Create new client.
+      parameters:
+      - description: Add client
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ClientCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Create Client
+      tags:
+      - clients
+  /client/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an client by ID.
+      parameters:
+      - description: Client Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Delete client
+      tags:
+      - clients
+    get:
+      consumes:
+      - application/json
+      description: Get client by ID.
+      parameters:
+      - description: Client Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Read client
+      tags:
+      - clients
+    put:
+      consumes:
+      - application/json
+      description: Update an client by ID.
+      parameters:
+      - description: Client Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update client
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.ClientUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Update client
+      tags:
+      - clients
   /ticker:
     get:
       consumes:
@@ -569,7 +830,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-array_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -597,14 +858,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserCreate'
+          $ref: '#/definitions/presenter.UserCreate'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -639,7 +900,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -681,7 +942,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -722,14 +983,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate'
+          $ref: '#/definitions/presenter.UserUpdate'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -812,14 +1073,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword'
+          $ref: '#/definitions/presenter.UserUpdatePassword'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -856,7 +1117,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -892,14 +1153,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdate'
+          $ref: '#/definitions/presenter.UserUpdate'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -936,14 +1197,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserUpdatePassword'
+          $ref: '#/definitions/presenter.UserUpdatePassword'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
         "400":
           description: Bad Request
           schema:

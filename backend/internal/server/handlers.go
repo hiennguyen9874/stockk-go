@@ -21,6 +21,9 @@ import (
 	chartHttp "github.com/hiennguyen9874/stockk-go/internal/charts/delivery/http"
 	chartRepository "github.com/hiennguyen9874/stockk-go/internal/charts/repository"
 	chartUseCase "github.com/hiennguyen9874/stockk-go/internal/charts/usecase"
+	clientHttp "github.com/hiennguyen9874/stockk-go/internal/clients/delivery/http"
+	clientRepository "github.com/hiennguyen9874/stockk-go/internal/clients/repository"
+	clientUseCase "github.com/hiennguyen9874/stockk-go/internal/clients/usecase"
 	dchartHttp "github.com/hiennguyen9874/stockk-go/internal/dchart/delivery/http"
 	drawingTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/delivery/http"
 	drawingTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/repository"
@@ -40,7 +43,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-// @title Go boilerplate
+// @title Stockk Go
 // @version 1.0
 
 // @BasePath /api
@@ -59,6 +62,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	chartPgRepo := chartRepository.CreateChartPgRepository(db)
 	studyTemplatePgRepo := studyTemplateRepository.CreateStudyTemplatePgRepository(db)
 	drawingTemplatePgRepo := drawingTemplateRepository.CreateDrawingTemplatePgRepository(db)
+	clientPgRepo := clientRepository.CreateClientPgRepository(db)
 
 	// Distributor
 	userRedisTaskDistributor := userDistributor.NewUserRedisTaskDistributor(taskRedisClient, cfg, logger)
@@ -70,6 +74,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	chartUseCase := chartUseCase.CreateChartUseCaseI(chartPgRepo, cfg, logger)
 	studyTemplateUseCase := studyTemplateUseCase.StudyTemplateUseCaseI(studyTemplatePgRepo, cfg, logger)
 	drawingTemplateUseCase := drawingTemplateUseCase.DrawingTemplateUseCaseI(drawingTemplatePgRepo, cfg, logger)
+	clientUC := clientUseCase.CreateClientUseCaseI(clientPgRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
@@ -79,6 +84,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	chartHandler := chartHttp.CreateChartHandler(chartUseCase, cfg, logger)
 	studyTemplateHandler := studyTemplateHttp.CreateStudyTemplateHandler(studyTemplateUseCase, cfg, logger)
 	drawingTemplateHandler := drawingTemplateHttp.CreateDrawingTemplateHandler(drawingTemplateUseCase, cfg, logger)
+	clientHandler := clientHttp.CreateClientHandler(clientUC, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -107,6 +113,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	userHttp.MapUserRoute(apiRouter, userHandler, mw)
 	tickerHttp.MapTickerRoute(apiRouter, tickerHandler, mw)
 	dchartHttp.MapDchartRoute(apiRouter, dchartHandler, mw)
+	clientHttp.MapClientRoute(apiRouter, clientHandler, mw)
 
 	// Storage api
 	storageRouter := chi.NewRouter()
