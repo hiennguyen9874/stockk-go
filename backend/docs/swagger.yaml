@@ -171,6 +171,65 @@ definitions:
     - new_password
     - old_password
     type: object
+  presenter.WatchListCreate:
+    properties:
+      name:
+        example: Ngân hàng
+        type: string
+      tickers:
+        example:
+        - VCB
+        - TCB
+        - MBB
+        - ACB
+        - CTG
+        - BID
+        items:
+          type: string
+        type: array
+    type: object
+  presenter.WatchListResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        example: Ngân hàng
+        type: string
+      owner_id:
+        type: integer
+      tickers:
+        example:
+        - VCB
+        - TCB
+        - MBB
+        - ACB
+        - CTG
+        - BID
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
+  presenter.WatchListUpdate:
+    properties:
+      name:
+        example: Ngân hàng
+        type: string
+      tickers:
+        example:
+        - VCB
+        - TCB
+        - MBB
+        - ACB
+        - CTG
+        - BID
+        items:
+          type: string
+        type: array
+    type: object
   responses.ErrorResponse:
     properties:
       error:
@@ -209,6 +268,16 @@ definitions:
         example: true
         type: boolean
     type: object
+  responses.SuccessResponse-array_presenter_WatchListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/presenter.WatchListResponse'
+        type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
   responses.SuccessResponse-presenter_ClientResponse:
     properties:
       data:
@@ -229,6 +298,14 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/presenter.UserResponse'
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-presenter_WatchListResponse:
+    properties:
+      data:
+        $ref: '#/definitions/presenter.WatchListResponse'
       is_success:
         example: true
         type: boolean
@@ -1230,6 +1307,214 @@ paths:
       summary: Update password user me
       tags:
       - users
+  /watchlist:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve watchlists.
+      parameters:
+      - description: limit
+        format: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        format: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-array_presenter_WatchListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Read WatchLists
+      tags:
+      - watchlists
+    post:
+      consumes:
+      - application/json
+      description: Create new watchList.
+      parameters:
+      - description: Add watchList
+        in: body
+        name: watchList
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.WatchListCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_WatchListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Create WatchList
+      tags:
+      - watchlists
+  /watchlist/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an watchList by ID.
+      parameters:
+      - description: WatchList Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_WatchListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Delete watchList
+      tags:
+      - watchlists
+    get:
+      consumes:
+      - application/json
+      description: Get watchList by ID.
+      parameters:
+      - description: WatchList Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_WatchListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Read watchList
+      tags:
+      - watchlists
+    put:
+      consumes:
+      - application/json
+      description: Update an watchList by ID.
+      parameters:
+      - description: WatchList Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update watchList
+        in: body
+        name: watchList
+        required: true
+        schema:
+          $ref: '#/definitions/presenter.WatchListUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_WatchListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Update watchList
+      tags:
+      - watchlists
 securityDefinitions:
   OAuth2Password:
     flow: password

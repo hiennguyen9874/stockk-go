@@ -1547,6 +1547,329 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/watchlist": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Retrieve watchlists.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watchlists"
+                ],
+                "summary": "Read WatchLists",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "limit",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "offset",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-array_presenter_WatchListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Create new watchList.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watchlists"
+                ],
+                "summary": "Create WatchList",
+                "parameters": [
+                    {
+                        "description": "Add watchList",
+                        "name": "watchList",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.WatchListCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_WatchListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/watchlist/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Get watchList by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watchlists"
+                ],
+                "summary": "Read watchList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "WatchList Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_WatchListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Update an watchList by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watchlists"
+                ],
+                "summary": "Update watchList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "WatchList Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update watchList",
+                        "name": "watchList",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presenter.WatchListUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_WatchListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Delete an watchList by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "watchlists"
+                ],
+                "summary": "Delete watchList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "WatchList Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_WatchListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1795,6 +2118,87 @@ const docTemplate = `{
                 }
             }
         },
+        "presenter.WatchListCreate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Ngân hàng"
+                },
+                "tickers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "VCB",
+                        "TCB",
+                        "MBB",
+                        "ACB",
+                        "CTG",
+                        "BID"
+                    ]
+                }
+            }
+        },
+        "presenter.WatchListResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Ngân hàng"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "tickers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "VCB",
+                        "TCB",
+                        "MBB",
+                        "ACB",
+                        "CTG",
+                        "BID"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "presenter.WatchListUpdate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Ngân hàng"
+                },
+                "tickers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "VCB",
+                        "TCB",
+                        "MBB",
+                        "ACB",
+                        "CTG",
+                        "BID"
+                    ]
+                }
+            }
+        },
         "responses.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1852,6 +2256,21 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.SuccessResponse-array_presenter_WatchListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presenter.WatchListResponse"
+                    }
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.SuccessResponse-presenter_ClientResponse": {
             "type": "object",
             "properties": {
@@ -1881,6 +2300,18 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/presenter.UserResponse"
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SuccessResponse-presenter_WatchListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/presenter.WatchListResponse"
                 },
                 "is_success": {
                     "type": "boolean",

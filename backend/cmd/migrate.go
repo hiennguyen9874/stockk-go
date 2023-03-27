@@ -45,6 +45,7 @@ func Migrate(db *gorm.DB) error {
 		&models.StudyTemplate{},
 		&models.DrawingTemplate{},
 		&models.Client{},
+		&models.WatchList{},
 	}
 
 	err := db.AutoMigrate(migrationModels...)
