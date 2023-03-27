@@ -15,6 +15,17 @@ services:
       - redis
       - influxdb
 
+  worker:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -- sleep 10; go run main.go worker"
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+      - redis
+
   symbol-crawler:
     build:
       context: backend

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hiennguyen9874/stockk-go/config"
+	"github.com/hiennguyen9874/stockk-go/internal/distributor"
+	userDistributor "github.com/hiennguyen9874/stockk-go/internal/users/distributor"
 	userRepository "github.com/hiennguyen9874/stockk-go/internal/users/repository"
 	userUseCase "github.com/hiennguyen9874/stockk-go/internal/users/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
@@ -32,12 +34,17 @@ var initDataCmd = &cobra.Command{
 
 		redisClient := redis.NewRedis(cfg)
 
+		taskRedisClient := distributor.NewRedisClient(cfg)
+
 		// Repository
 		userPgRepo := userRepository.CreateUserPgRepository(psqlDB)
 		userRedisRepo := userRepository.CreateUserRedisRepository(redisClient)
 
+		// Distributor
+		userRedisTaskDistributor := userDistributor.NewUserRedisTaskDistributor(taskRedisClient, cfg, appLogger)
+
 		// UseCase
-		userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, cfg, appLogger)
+		userUC := userUseCase.CreateUserUseCaseI(userPgRepo, userRedisRepo, userRedisTaskDistributor, cfg, appLogger)
 
 		// Create super user if not exists
 		isCreated, _ := userUC.CreateSuperUserIfNotExist(context.Background())

@@ -7,30 +7,32 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hibiken/asynq"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/usecase"
 	"github.com/hiennguyen9874/stockk-go/internal/users"
+	"github.com/hiennguyen9874/stockk-go/internal/worker"
 	"github.com/hiennguyen9874/stockk-go/pkg/cryptpass"
 	"github.com/hiennguyen9874/stockk-go/pkg/emailTemplates"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/hiennguyen9874/stockk-go/pkg/secureRandom"
-	"github.com/hiennguyen9874/stockk-go/pkg/sendEmail"
 )
 
 type userUseCase struct {
 	usecase.UseCase[models.User]
 	userPgRepo             users.UserPgRepository
 	userRedisRepo          users.UserRedisRepository
-	emailSender            sendEmail.EmailSender
 	emailTemplateGenerator emailTemplates.EmailTemplatesGenerator
+	redisTaskDistributor   users.UserRedisTaskDistributor
 }
 
 func CreateUserUseCaseI(
 	userPgRepo users.UserPgRepository,
 	userRedisRepo users.UserRedisRepository,
+	redisTaskDistributor users.UserRedisTaskDistributor,
 	cfg *config.Config,
 	logger logger.Logger,
 ) users.UserUseCaseI {
@@ -38,8 +40,8 @@ func CreateUserUseCaseI(
 		UseCase:                usecase.CreateUseCase[models.User](userPgRepo, cfg, logger),
 		userPgRepo:             userPgRepo,
 		userRedisRepo:          userRedisRepo,
-		emailSender:            sendEmail.NewEmailSender(cfg),
 		emailTemplateGenerator: emailTemplates.NewEmailTemplatesGenerator(cfg),
+		redisTaskDistributor:   redisTaskDistributor,
 	}
 }
 
@@ -146,14 +148,17 @@ func (u *userUseCase) Create(ctx context.Context, exp *models.User) (*models.Use
 		return nil, err
 	}
 
-	err = u.emailSender.SendEmail(
-		ctx,
-		u.Cfg.Email.EmailFrom,
-		updatedUser.Email,
-		u.Cfg.Email.EmailVerificationSubject,
-		bodyHtml,
-		bodyPlain,
-	)
+	err = u.redisTaskDistributor.DistributeTaskSendEmail(ctx, &users.PayloadSendEmail{
+		From:      u.Cfg.Email.EmailFrom,
+		To:        updatedUser.Email,
+		Subject:   u.Cfg.Email.EmailVerificationSubject,
+		BodyHtml:  bodyHtml,
+		BodyPlain: bodyPlain,
+	}, []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical),
+	}...)
 	if err != nil {
 		return nil, err
 	}
@@ -435,14 +440,17 @@ func (u *userUseCase) ForgotPassword(ctx context.Context, email string) error {
 		return err
 	}
 
-	err = u.emailSender.SendEmail(
-		ctx,
-		u.Cfg.Email.EmailFrom,
-		updatedUser.Email,
-		u.Cfg.Email.EmailResetSubject,
-		bodyHtml,
-		bodyPlain,
-	)
+	err = u.redisTaskDistributor.DistributeTaskSendEmail(ctx, &users.PayloadSendEmail{
+		From:      u.Cfg.Email.EmailFrom,
+		To:        updatedUser.Email,
+		Subject:   u.Cfg.Email.EmailResetSubject,
+		BodyHtml:  bodyHtml,
+		BodyPlain: bodyPlain,
+	}, []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical),
+	}...)
 	if err != nil {
 		return err
 	}

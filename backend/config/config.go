@@ -22,6 +22,7 @@ type Config struct {
 	Email          EmailConfig
 	InfluxDB       InfluxDBConfig
 	Crawler        CrawlerConfig
+	TaskRedis      TaskRedisConfig
 }
 
 // Server config struct
@@ -63,6 +64,12 @@ type RedisConfig struct {
 	PoolTimeout    int
 	Password       string
 	DB             int
+}
+
+// Task redis config
+type TaskRedisConfig struct {
+	TaskRedisAddr string
+	TaskRedisDb   int
 }
 
 // InfluxDB config
