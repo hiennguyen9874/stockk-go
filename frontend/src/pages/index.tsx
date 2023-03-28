@@ -1,5 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 
+import ProtectedRoute from 'features/auth/ProtectedRoute';
+import PublicRoute from 'features/auth/PublicRoute';
+
 import Home from './Home';
 import SignUp from './SignUp';
 import Chart from './Chart';
@@ -7,15 +10,27 @@ import Chart from './Chart';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: (
+      <PublicRoute to="/chart">
+        <Home />
+      </PublicRoute>
+    ),
   },
   {
     path: '/signup',
-    element: <SignUp />,
+    element: (
+      <PublicRoute to="/chart">
+        <SignUp />
+      </PublicRoute>
+    ),
   },
   {
     path: '/chart',
-    element: <Chart />,
+    element: (
+      <ProtectedRoute to="/">
+        <Chart />
+      </ProtectedRoute>
+    ),
   },
 ]);
 

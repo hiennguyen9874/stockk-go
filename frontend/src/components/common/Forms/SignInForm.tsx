@@ -1,13 +1,19 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import type { FC } from 'react';
+import { memo } from 'react';
 import { useFormik } from 'formik';
 import { object, string } from 'yup';
 import cx from 'classnames';
 import { Link } from 'react-router-dom';
 
 interface SignInProps {
-  onSubmit: (email: string, password: string, rememberMe: boolean) => void;
+  onSubmit: (
+    email: string,
+    password: string,
+    rememberMe: boolean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => void | Promise<any>;
   forgotPasswordLink: string;
   signUpLink: string;
 }
@@ -200,4 +206,4 @@ const SignInForm: FC<SignInProps> = ({
   );
 };
 
-export default SignInForm;
+export default memo(SignInForm);

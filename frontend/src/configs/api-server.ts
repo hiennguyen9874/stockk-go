@@ -1,4 +1,4 @@
-let API_SERVER_VAL = 'http://localhost:5000';
+let API_SERVER_VAL = 'https://stockk.dscilab.site:20007/api';
 
 switch (process.env.NODE_ENV) {
   case 'development':
@@ -19,6 +19,6 @@ switch (process.env.NODE_ENV) {
 // export const API_SERVER = API_SERVER_VAL;
 export const API_SERVER = API_SERVER_VAL;
 
-export const API_DATAFEED_URL = `${API_SERVER}/api/dchart`;
+export const API_DATAFEED_URL = `${API_SERVER}/dchart`;
 
-export const API_STORAGE_URL = `${API_SERVER}/api/storage`;
+export const API_STORAGE_URL = `${API_SERVER}/storage`;
