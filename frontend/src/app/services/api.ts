@@ -1,19 +1,82 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from '@reduxjs/toolkit/query';
 
 import type { RootState } from 'app/store';
+import { logout, setTokenUser } from 'features/auth/authSlice';
 
 // Create our baseQuery instance
 const baseQuery = fetchBaseQuery({
   baseUrl: 'https://stockk.dscilab.site:20007/api',
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     // By default, if we have a token in the store, let's use that for authenticated requests
     const { token } = (getState() as RootState).auth;
     if (token) {
-      headers.set('authentication', `Bearer ${token.accessToken}`);
+      headers.set('authorization', `Bearer ${token.accessToken}`);
     }
     return headers;
   },
 });
+
+interface UserResponse {
+  id: number;
+  name: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  verified: boolean;
+}
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  user: UserResponse;
+}
+
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  let result = await baseQuery(args, api, extraOptions);
+  if (result.error && result.error.status === 401) {
+    // try to get a new token
+    const refreshResult = await baseQuery('/refreshToken', api, extraOptions);
+    if (refreshResult.data) {
+      // store the new token
+      api.dispatch(
+        setTokenUser({
+          token: {
+            accessToken: (refreshResult.data as TokenResponse).access_token,
+            refreshToken: (refreshResult.data as TokenResponse).refresh_token,
+          },
+          user: {
+            id: (refreshResult.data as TokenResponse).user.id,
+            name: (refreshResult.data as TokenResponse).user.name,
+            email: (refreshResult.data as TokenResponse).user.email,
+            isActive: (refreshResult.data as TokenResponse).user.is_active,
+            isSuperUser: (refreshResult.data as TokenResponse).user
+              .is_superuser,
+            verified: (refreshResult.data as TokenResponse).user.verified,
+          },
+        })
+      );
+      // retry the initial query
+      result = await baseQuery(args, api, extraOptions);
+    } else {
+      api.dispatch(logout());
+    }
+  }
+  return result;
+};
 
 const baseQueryWithRetry = retry(baseQuery, { maxRetries: 6 });
 
@@ -40,7 +103,7 @@ export const api = createApi({
    * Tag types must be defined in the original API definition
    * for any tags that would be provided by injected endpoints
    */
-  tagTypes: ['Time', 'Posts', 'Counter'],
+  tagTypes: ['Auth', 'User', 'WatchLists'],
   /**
    * This api has endpoints injected in adjacent files,
    * which is why no endpoints are shown below.

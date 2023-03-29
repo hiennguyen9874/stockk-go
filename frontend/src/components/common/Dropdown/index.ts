@@ -1,1 +1,1 @@
-export { default as SliderDropdown } from './SliderDropdown';
+export { default as WatchListsDropdown } from './WatchListsDropdown';

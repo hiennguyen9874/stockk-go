@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import type { FC } from 'react';
-import { Fragment, memo, useState, useRef } from 'react';
+import { Fragment, memo, useState, useRef, useEffect } from 'react';
 import cx from 'classnames';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
@@ -17,18 +17,14 @@ export interface Item {
   name: string;
 }
 
-interface WatchListsProps {
-  currentItem: Item;
-  items: Item[];
-  onChange: (item: Item) => void;
-}
-
 interface WatchListItemProps {
   item: Item;
   isActive: boolean;
   isEdit: boolean;
   onClick: () => void;
   onEdit: () => void;
+  onDelete: () => void;
+  onChange: (value: string) => void;
 }
 
 const WatchListItem: FC<WatchListItemProps> = ({
@@ -37,15 +33,24 @@ const WatchListItem: FC<WatchListItemProps> = ({
   isEdit,
   onClick,
   onEdit,
+  onDelete,
+  onChange,
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (isEdit) {
+      console.log('FOCUS2');
+      inputRef.current?.focus();
+    }
+  }, [isEdit]);
 
   return (
     <Menu.Item key={item.id}>
       {({ active }) => (
         <div
           className={cx(
-            'group flex w-full justify-between items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100',
+            'group flex w-full justify-between items-center rounded-sm text-sm font-sans font-normal text-gray-100',
             {
               'bg-slate-600': active || isActive,
             }
@@ -53,13 +58,16 @@ const WatchListItem: FC<WatchListItemProps> = ({
         >
           <button
             type="button"
-            className="flex flex-row items-center justify-center mr-auto"
-            onClick={() => {
+            className="flex flex-row items-center justify-center mr-auto px-2 py-2"
+            onClick={(e) => {
               if (!isEdit) {
+                console.log('onClick button');
+                // e.preventDefault();
+                // e.stopPropagation();
                 onClick();
               }
             }}
-            disabled={!isEdit}
+            disabled={isEdit}
           >
             <div className="pr-1.5 pt-[2px]">
               <WatchListIcon />
@@ -67,18 +75,32 @@ const WatchListItem: FC<WatchListItemProps> = ({
             <input
               ref={inputRef}
               type="text"
-              className="bg-transparent border-none focus:border-none"
+              className="bg-transparent border-none focus:border-none disabled:cursor-pointer"
               value={item.name}
-              disabled={isEdit}
+              disabled={!isEdit}
+              onChange={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onChange(e.target.value);
+              }}
+              onClick={(e) => {
+                console.log('onClick input');
+                if (isEdit) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('ALO');
+                }
+              }}
             />
           </button>
 
-          <div className="flex flex-row items-center justify-center">
+          <div className="flex flex-row items-center justify-center px-2 py-2">
             <button
               type="button"
               className="mx-1 px-0.5 py-0.5 border-none rounded-sm cursor-pointer shadow-md bg-blue-500"
-              onClick={() => {
-                inputRef.current?.focus();
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 onEdit();
               }}
             >
@@ -87,6 +109,11 @@ const WatchListItem: FC<WatchListItemProps> = ({
             <button
               type="button"
               className="mx-1 px-0.5 py-0.5 border-none rounded-sm cursor-pointer shadow-md bg-red-500"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete();
+              }}
             >
               <RemoveIcon />
             </button>
@@ -97,8 +124,23 @@ const WatchListItem: FC<WatchListItemProps> = ({
   );
 };
 
-const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
-  const [isOpen, setIsOpen] = useState(true);
+interface WatchListsProps {
+  currentItem: Item | null;
+  items: Item[];
+  onClick: (item: Item) => void;
+  onEdit: (id: number, value: string) => void;
+  onDelete: (id: number) => void;
+  onAdd: () => void;
+}
+
+const WatchListsDropdown: FC<WatchListsProps> = ({
+  currentItem,
+  items,
+  onClick,
+  onEdit,
+  onDelete,
+  onAdd,
+}) => {
   const [itemUpdate, setItemUpdate] = useState<number | null>(null);
 
   return (
@@ -114,7 +156,8 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75'
             )}
           >
-            {currentItem.name}
+            {currentItem !== null && currentItem.name}
+            {currentItem === null && 'Không có danh mục nào'}
             <ChevronDownIcon
               className={cx(
                 'ml-2 -mr-1 h-5 w-5',
@@ -128,7 +171,6 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
 
         <Transition
           as={Fragment}
-          show={isOpen}
           enter="transition ease-out duration-100"
           enterFrom="transform opacity-0 scale-95"
           enterTo="transform opacity-100 scale-100"
@@ -137,7 +179,6 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
           leaveTo="transform opacity-0 scale-95"
         >
           <Menu.Items
-            static
             className={cx(
               'absolute right-0 mt-1 px-1.5 w-full origin-top-right',
               'divide-y divide-white divide-opacity-20',
@@ -150,11 +191,20 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
             <div className="py-1">
               {items.map((item) => (
                 <WatchListItem
+                  key={item.id}
                   item={item}
-                  isActive={currentItem.id === item.id}
+                  isActive={currentItem !== null && currentItem.id === item.id}
                   isEdit={item.id === itemUpdate}
-                  onClick={() => onChange(item)}
-                  onEdit={() => setItemUpdate(item.id)}
+                  onClick={() => {
+                    onClick(item);
+                  }}
+                  onEdit={() => {
+                    if (itemUpdate === null || itemUpdate !== item.id)
+                      setItemUpdate(item.id);
+                    else setItemUpdate(null);
+                  }}
+                  onDelete={() => onDelete(item.id)}
+                  onChange={(value) => onEdit(item.id, value)}
                 />
               ))}
             </div>
@@ -170,7 +220,11 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
                         'bg-slate-600': active,
                       }
                     )}
-                    onClick={() => {}}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onAdd();
+                    }}
                   >
                     <div className="pr-1 pt-[2px]">
                       <AddIcon />
@@ -187,4 +241,4 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
   );
 };
 
-export default memo(WatchLists);
+export default memo(WatchListsDropdown);
