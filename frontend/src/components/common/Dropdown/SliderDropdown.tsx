@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import type { FC } from 'react';
-import { Fragment, memo } from 'react';
+import { Fragment, memo, useState, useRef } from 'react';
 import cx from 'classnames';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
@@ -12,13 +12,95 @@ import {
   EditIcon,
 } from 'components/common/Icon';
 
-interface WatchListsProps {
-  currentItem: string;
-  items: string[];
-  onChange: (item: string) => void;
+export interface Item {
+  id: number;
+  name: string;
 }
 
+interface WatchListsProps {
+  currentItem: Item;
+  items: Item[];
+  onChange: (item: Item) => void;
+}
+
+interface WatchListItemProps {
+  item: Item;
+  isActive: boolean;
+  isEdit: boolean;
+  onClick: () => void;
+  onEdit: () => void;
+}
+
+const WatchListItem: FC<WatchListItemProps> = ({
+  item,
+  isActive,
+  isEdit,
+  onClick,
+  onEdit,
+}) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <Menu.Item key={item.id}>
+      {({ active }) => (
+        <div
+          className={cx(
+            'group flex w-full justify-between items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100',
+            {
+              'bg-slate-600': active || isActive,
+            }
+          )}
+        >
+          <button
+            type="button"
+            className="flex flex-row items-center justify-center mr-auto"
+            onClick={() => {
+              if (!isEdit) {
+                onClick();
+              }
+            }}
+            disabled={!isEdit}
+          >
+            <div className="pr-1.5 pt-[2px]">
+              <WatchListIcon />
+            </div>
+            <input
+              ref={inputRef}
+              type="text"
+              className="bg-transparent border-none focus:border-none"
+              value={item.name}
+              disabled={isEdit}
+            />
+          </button>
+
+          <div className="flex flex-row items-center justify-center">
+            <button
+              type="button"
+              className="mx-1 px-0.5 py-0.5 border-none rounded-sm cursor-pointer shadow-md bg-blue-500"
+              onClick={() => {
+                inputRef.current?.focus();
+                onEdit();
+              }}
+            >
+              <EditIcon />
+            </button>
+            <button
+              type="button"
+              className="mx-1 px-0.5 py-0.5 border-none rounded-sm cursor-pointer shadow-md bg-red-500"
+            >
+              <RemoveIcon />
+            </button>
+          </div>
+        </div>
+      )}
+    </Menu.Item>
+  );
+};
+
 const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const [itemUpdate, setItemUpdate] = useState<number | null>(null);
+
   return (
     <div className="w-full h-full text-right bg-slate-800">
       <Menu as="div" className="w-full h-full relative inline-block text-left">
@@ -32,7 +114,7 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75'
             )}
           >
-            {currentItem}
+            {currentItem.name}
             <ChevronDownIcon
               className={cx(
                 'ml-2 -mr-1 h-5 w-5',
@@ -43,8 +125,10 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
             />
           </Menu.Button>
         </div>
+
         <Transition
           as={Fragment}
+          show={isOpen}
           enter="transition ease-out duration-100"
           enterFrom="transform opacity-0 scale-95"
           enterTo="transform opacity-100 scale-100"
@@ -53,6 +137,7 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
           leaveTo="transform opacity-0 scale-95"
         >
           <Menu.Items
+            static
             className={cx(
               'absolute right-0 mt-1 px-1.5 w-full origin-top-right',
               'divide-y divide-white divide-opacity-20',
@@ -64,43 +149,17 @@ const WatchLists: FC<WatchListsProps> = ({ currentItem, items, onChange }) => {
           >
             <div className="py-1">
               {items.map((item) => (
-                <Menu.Item key={item}>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      className={cx(
-                        'group flex w-full justify-between items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100',
-                        {
-                          'bg-slate-600': active || currentItem === item,
-                        }
-                      )}
-                      onClick={() => onChange(item)}
-                    >
-                      <div className="flex flex-row items-center justify-center mr-auto">
-                        <div className="pr-1.5 pt-[2px]">
-                          <WatchListIcon />
-                        </div>
-                        <input
-                          type="text"
-                          className="bg-transparent border-none focus:border-none focus:outline-none"
-                          value={item}
-                          disabled
-                        />
-                      </div>
-                      <div className="flex flex-row items-center justify-center">
-                        <div className="mx-1 px-0.5 py-0.5 bg-blue-500">
-                          <EditIcon />
-                        </div>
-                        <div className="mx-1 px-0.5 py-0.5 bg-red-500">
-                          <RemoveIcon />
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </Menu.Item>
+                <WatchListItem
+                  item={item}
+                  isActive={currentItem.id === item.id}
+                  isEdit={item.id === itemUpdate}
+                  onClick={() => onChange(item)}
+                  onEdit={() => setItemUpdate(item.id)}
+                />
               ))}
             </div>
-            <div className="py-1 ">
+
+            <div className="py-1">
               <Menu.Item>
                 {({ active }) => (
                   <button
