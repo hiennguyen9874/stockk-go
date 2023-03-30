@@ -55,7 +55,7 @@ const WatchListItem: FC<WatchListItemProps> = ({
             }
           )}
         >
-          {/* <button
+          <button
             type="button"
             className="flex flex-row items-center justify-center px-2 py-2"
             onClick={(e) => {
@@ -71,52 +71,27 @@ const WatchListItem: FC<WatchListItemProps> = ({
               <WatchListIcon />
             </div>
 
-            <input
-              ref={inputRef}
-              type="text"
-              className="bg-transparent border-none focus:border-none disabled:cursor-pointer"
-              value={item.name}
-              disabled={!isEdit}
-              onChange={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onChange(e.target.value);
-              }}
-              onClick={(e) => {
-                if (isEdit) {
+            <div className="grow">
+              <input
+                ref={inputRef}
+                type="text"
+                className="w-full bg-transparent border-none focus:border-none disabled:cursor-pointer"
+                value={item.name}
+                disabled={!isEdit}
+                onChange={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                }
-              }}
-            />
-          </button> */}
-
-          <button
-            type="button"
-            className="flex flex-row flex-nowrap items-center justify-center px-2 py-2 mr-auto"
-          >
-            <div className="pr-1.5 pt-[2px] grow-0">
-              <WatchListIcon />
+                  onChange(e.target.value);
+                }}
+                onClick={(e) => {
+                  if (isEdit) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+              />
+              {/* <span>A</span> */}
             </div>
-
-            <input
-              ref={inputRef}
-              type="text"
-              className="bg-transparent border-none focus:border-none disabled:cursor-pointer grow-1 shrink"
-              value={item.name}
-              disabled={!isEdit}
-              onChange={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onChange(e.target.value);
-              }}
-              onClick={(e) => {
-                if (isEdit) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-              }}
-            />
           </button>
 
           <div className="flex flex-row items-center justify-center px-2 py-2">
@@ -213,7 +188,7 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
               'focus:outline-none'
             )}
           >
-            <div className="w-full py-1">
+            <div className="w-full py-1 bg-red">
               {items.map((item) => (
                 <WatchListItem
                   key={item.id}
