@@ -7,7 +7,8 @@ import type {
 } from '@reduxjs/toolkit/query';
 
 import type { RootState } from 'app/store';
-import { logout, setTokenUser } from 'features/auth/authSlice';
+
+import type { TokenResponse } from './types';
 
 // Create our baseQuery instance
 const baseQuery = fetchBaseQuery({
@@ -23,24 +24,6 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-interface UserResponse {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  verified: boolean;
-}
-
-interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: UserResponse;
-}
-
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -48,12 +31,30 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
   if (result.error && result.error.status === 401) {
+    const { token } = (api.getState() as RootState).auth;
+
+    const headers = token
+      ? {
+          authorization: token.refreshToken,
+        }
+      : undefined;
+
     // try to get a new token
-    const refreshResult = await baseQuery('/refreshToken', api, extraOptions);
+    const refreshResult = await baseQuery(
+      {
+        url: '/refreshToken',
+        method: 'GET',
+        headers,
+      },
+      api,
+      extraOptions
+    );
+
     if (refreshResult.data) {
       // store the new token
-      api.dispatch(
-        setTokenUser({
+      api.dispatch({
+        type: 'auth/setTokenUser',
+        payload: {
           token: {
             accessToken: (refreshResult.data as TokenResponse).access_token,
             refreshToken: (refreshResult.data as TokenResponse).refresh_token,
@@ -67,18 +68,21 @@ const baseQueryWithReauth: BaseQueryFn<
               .is_superuser,
             verified: (refreshResult.data as TokenResponse).user.verified,
           },
-        })
-      );
+        },
+      });
       // retry the initial query
       result = await baseQuery(args, api, extraOptions);
     } else {
-      api.dispatch(logout());
+      api.dispatch({
+        type: 'auth/logout',
+        payload: undefined,
+      });
     }
   }
   return result;
 };
 
-const baseQueryWithRetry = retry(baseQuery, { maxRetries: 6 });
+const baseQueryWithRetry = retry(baseQueryWithReauth, { maxRetries: 6 });
 
 /**
  * Create a base API to inject endpoints into elsewhere.

@@ -34,12 +34,12 @@ const Chart: FC = () => {
         </div>
 
         <div className="w-96 ml-1 bg-slate-800 border-solid border-x-2 rounded-md border-slate-900">
-          <div className="h-full flex flex-row">
-            <div className="h-full mr-auto truncate">
+          <div className="h-full w-full flex flex-row">
+            <div className="h-full w-full mr-auto truncate">
               <WatchLists setSymbol={(newSymbol) => setSymbol(newSymbol)} />
             </div>
 
-            <div className="w-6 bg-slate-900">
+            <div className="h-full w-6 bg-slate-900">
               <div className="flex flex-col">
                 <SliderTabItem name="Watch list" isActive />
               </div>

@@ -40,13 +40,18 @@ const slice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout: () => initialState,
+    logout: () => {
+      localStorage.removeItem('user');
+      return emptyState;
+    },
     setTokenUser: (
       state,
       action: PayloadAction<{ token: IToken; user: IUser }>
     ) => {
       state.token = action.payload.token;
       state.user = action.payload.user;
+
+      localStorage.setItem('user', JSON.stringify(state));
     },
   },
   extraReducers: (builder) => {
@@ -71,7 +76,7 @@ const slice = createSlice({
 
         localStorage.setItem('user', JSON.stringify(state));
       })
-      .addMatcher(login.matchRejected, (state, action) => {
+      .addMatcher(login.matchRejected, (state) => {
         state.token = null;
         state.user = null;
         state.isAuthenticated = false;

@@ -1,20 +1,5 @@
 import { api } from './api';
-
-interface Response<T> {
-  data: T;
-  is_success: boolean;
-}
-
-interface UserResponse {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  verified: boolean;
-}
+import type { Response, UserResponse } from './types';
 
 export const userApi = api.injectEndpoints({
   endpoints: (builder) => ({

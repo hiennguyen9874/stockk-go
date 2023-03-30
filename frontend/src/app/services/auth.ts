@@ -1,29 +1,7 @@
 import { retry } from '@reduxjs/toolkit/query/react';
 
 import { api } from './api';
-
-interface UserSignIn {
-  email: string;
-  password: string;
-}
-
-interface UserResponse {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  verified: boolean;
-}
-
-interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: UserResponse;
-}
+import type { TokenResponse, UserSignIn } from './types';
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
