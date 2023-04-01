@@ -199,19 +199,19 @@ func (u *userUseCase) createToken(ctx context.Context, exp models.User) (string,
 	return accessToken, refreshToken, nil
 }
 
-func (u *userUseCase) SignIn(ctx context.Context, email string, password string) (string, string, error) {
+func (u *userUseCase) SignIn(ctx context.Context, email string, password string) (string, string, *models.User, error) {
 	user, err := u.userPgRepo.GetByEmail(ctx, email)
 	if err != nil {
-		return "", "", httpErrors.ErrNotFound(err)
+		return "", "", nil, httpErrors.ErrNotFound(err)
 	}
 
 	if !cryptpass.ComparePassword(password, user.Password) {
-		return "", "", httpErrors.ErrWrongPassword(errors.New("wrong password"))
+		return "", "", nil, httpErrors.ErrWrongPassword(errors.New("wrong password"))
 	}
 
 	accessToken, refreshToken, err := u.createToken(ctx, *user)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	if err = u.userRedisRepo.Sadd(
@@ -219,10 +219,10 @@ func (u *userUseCase) SignIn(ctx context.Context, email string, password string)
 		u.GenerateRedisRefreshTokenKey(user.Id),
 		refreshToken,
 	); err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
-	return accessToken, refreshToken, nil
+	return accessToken, refreshToken, user, nil
 }
 
 func (u *userUseCase) IsActive(ctx context.Context, exp models.User) bool {
@@ -306,10 +306,10 @@ func (u *userUseCase) ParseIdFromRefreshToken(
 	return id, nil
 }
 
-func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string, string, error) {
+func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string, string, *models.User, error) {
 	idParsed, err := u.ParseIdFromRefreshToken(ctx, refreshToken)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	isMember, err := u.userRedisRepo.SIsMember(
@@ -318,11 +318,11 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		refreshToken,
 	)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	if !isMember {
-		return "", "",
+		return "", "", nil,
 			httpErrors.ErrNotFoundRefreshTokenRedis(errors.New("not found refresh token in redis"))
 	}
 
@@ -331,17 +331,17 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		u.GenerateRedisRefreshTokenKey(idParsed),
 		refreshToken,
 	); err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	user, err := u.Get(ctx, idParsed)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	accessToken, refreshToken, err := u.createToken(ctx, *user)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
 	if err = u.userRedisRepo.Sadd(
@@ -349,10 +349,10 @@ func (u *userUseCase) Refresh(ctx context.Context, refreshToken string) (string,
 		u.GenerateRedisRefreshTokenKey(user.Id),
 		refreshToken,
 	); err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 
-	return accessToken, refreshToken, err
+	return accessToken, refreshToken, user, nil
 }
 
 func (u *userUseCase) Logout(ctx context.Context, refreshToken string) error {

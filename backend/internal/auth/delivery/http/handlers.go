@@ -9,6 +9,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/auth"
 	"github.com/hiennguyen9874/stockk-go/internal/auth/presenter"
 	"github.com/hiennguyen9874/stockk-go/internal/middleware"
+	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/internal/users"
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 	"github.com/hiennguyen9874/stockk-go/pkg/jwt"
@@ -53,7 +54,7 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		accessToken, refreshToken, err := h.usersUC.SignIn(
+		accessToken, refreshToken, dbUser, err := h.usersUC.SignIn(
 			r.Context(),
 			user.Email,
 			user.Password,
@@ -67,6 +68,7 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			TokenType:    "bearer",
+			User:         *mapModelResponse(dbUser),
 		})
 	}
 }
@@ -88,7 +90,7 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 
 		refreshToken := middleware.TokenFromHeader(r)
 
-		accessToken, refreshToken, err := h.usersUC.Refresh(ctx, refreshToken)
+		accessToken, refreshToken, dbUser, err := h.usersUC.Refresh(ctx, refreshToken)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err))
 			return
@@ -98,6 +100,7 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			TokenType:    "bearer",
+			User:         *mapModelResponse(dbUser),
 		})
 	}
 }
@@ -302,5 +305,18 @@ func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Reques
 
 		render.Respond(w, r,
 			responses.CreateSuccessResponse("Password data updated successfully, please re-login"))
+	}
+}
+
+func mapModelResponse(exp *models.User) *presenter.UserResponse {
+	return &presenter.UserResponse{
+		Id:          exp.Id,
+		Name:        exp.Name,
+		Email:       exp.Email,
+		CreatedAt:   exp.CreatedAt,
+		UpdatedAt:   exp.UpdatedAt,
+		IsActive:    exp.IsActive,
+		IsSuperUser: exp.IsSuperUser,
+		Verified:    exp.Verified,
 	}
 }
