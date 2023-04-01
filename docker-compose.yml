@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- go run main.go migrate && go run main.go initdata && air -c .air.toml serve"
     ports:
-      - 5000:5000
+      - ${SERVER_PORT}:${SERVER_PORT}
     volumes:
       - ./backend:/app
     depends_on:
