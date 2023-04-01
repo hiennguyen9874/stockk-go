@@ -13,15 +13,3 @@ export interface UserResponse {
   is_superuser: boolean;
   verified: boolean;
 }
-
-export interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: UserResponse;
-}
-
-export interface Response<T> {
-  data: T;
-  is_success: boolean;
-}

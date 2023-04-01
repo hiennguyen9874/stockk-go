@@ -93,7 +93,9 @@ const TVChartContainer: FC<TVChartContainerProps> = ({
 
         tvWidgetRef.current?.subscribe('onAutoSaveNeeded', () => {
           tvWidgetRef.current?.saveChartToServer(
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             () => {},
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             () => {},
             {
               defaultChartName: 'Default layout',
@@ -147,6 +149,7 @@ const TVChartContainer: FC<TVChartContainerProps> = ({
     const chart = tvWidgetRef.current?.activeChart();
 
     if (chart && symbol) {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       chart.setSymbol(symbol, () => {});
     }
   }, [isReady, symbol]);

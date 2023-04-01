@@ -12,7 +12,7 @@ const Chart: FC = () => {
 
   return (
     <div className="w-screen h-screen">
-      <div className="h-full flex p-1.5 flex-row bg-slate-900">
+      <div className="h-full flex py-1.5 flex-row bg-slate-900">
         <div className="w-full h-full p-0 rounded-md flex flex-col justify-center items-center">
           <div className="w-full h-8 flex flex-row rounded-sm bg-slate-700">
             <CharTabItem

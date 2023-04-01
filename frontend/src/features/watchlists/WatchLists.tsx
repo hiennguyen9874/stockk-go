@@ -2,16 +2,24 @@ import type { FC } from 'react';
 import { useState, useEffect, useMemo } from 'react';
 
 import { WatchListsDropdown } from 'components/common/Dropdown';
-import { Item } from 'components/common/Dropdown/WatchListsDropdown';
 import { WatchListCard } from 'components/common/Card';
-import { useGetWatchListsQuery } from 'app/services/watchlists';
+import {
+  useGetWatchListsQuery,
+  useCreateWatchListMutation,
+  useDeleteWatchListMutation,
+  useUpdateWatchListMutation,
+} from 'app/services/watchlists';
+import { AddIcon } from 'components/common/Icon';
 
 interface WatchListProps {
   setSymbol: (symbol: string) => void;
 }
 
 const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
-  const { data: dataWatchLists } = useGetWatchListsQuery();
+  const { data: dataWatchLists, refetch } = useGetWatchListsQuery();
+  const [createWatchList] = useCreateWatchListMutation();
+  const [deleteWatchList] = useDeleteWatchListMutation();
+  const [updateWatchList] = useUpdateWatchListMutation();
 
   const [watchLists, setWatchLists] = useState<
     {
@@ -58,17 +66,39 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
         <WatchListsDropdown
           currentItem={currentItem}
           items={watchLists}
-          onClick={(item) => setCurrentWatchList(item.id)}
-          onEdit={(editId, editValue) =>
+          onClick={(item) => {
+            setCurrentWatchList(item.id);
+          }}
+          onEdit={async (editId, editValue) => {
+            let curWatchList: {
+              id: number;
+              name: string;
+              tickers: string[];
+            } | null = null;
+
             setWatchLists(
-              watchLists.map(({ id, name, tickers }) => ({
-                id,
-                name: id === editId ? editValue : name,
-                tickers,
-              }))
-            )
-          }
-          onDelete={(deleteId) => {
+              watchLists.map(({ id, name, tickers }) => {
+                if (id === editId) {
+                  curWatchList = {
+                    id,
+                    name: editValue,
+                    tickers,
+                  };
+                  return curWatchList;
+                }
+
+                return {
+                  id,
+                  name,
+                  tickers,
+                };
+              })
+            );
+
+            if (curWatchList !== null)
+              await updateWatchList(curWatchList).unwrap();
+          }}
+          onDelete={async (deleteId) => {
             const newWatchLists = watchLists.filter(
               ({ id }) => id !== deleteId
             );
@@ -77,9 +107,11 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
 
             setWatchLists(newWatchLists);
 
-            // TODO: Call api to remove watchList
+            await deleteWatchList(deleteId).unwrap();
+
+            refetch();
           }}
-          onAdd={() => {
+          onAdd={async () => {
             const newWatchLists = [
               ...watchLists,
               {
@@ -89,40 +121,50 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
               },
             ];
 
-            // TODO: Call api to remove watchLists
-
             if (watchLists.length === 0)
               setCurrentWatchList(newWatchLists[0].id);
 
             setWatchLists(newWatchLists);
 
-            // TODO: Call api to add watchLists
+            await createWatchList({
+              name: 'Danh mục mới',
+            }).unwrap();
+
+            refetch();
           }}
         />
       </div>
 
-      <div className="h-auto overflow-auto scroll-smooth">
-        {/* {currentItem !== null &&
-          currentItem.tickers.map((item, idx) => (
-            <WatchListCard
-              key={item}
-              symbol={item}
-              price={31.05}
-              description="Chứng khoán bản việt"
-              changePrice={-0.35}
-              changePercent={-1.11}
-              isLight={idx % 2 === 0}
-              onClick={() => setSymbol(item)}
-            />
-          ))}
-        <WatchListCard
-          symbol="FTS"
-          price={21.65}
-          description="Chứng khoán FPT"
-          changePrice={-0.35}
-          changePercent={-1.59}
-          onClick={() => setSymbol('FTS')}
-        /> */}
+      <div className="h-auto overflow-auto scroll-smooth grow">
+        <div className="w-full h-full flex flex-col divide-y divide-white divide-opacity-20">
+          <div className="grow">
+            {currentItem !== null &&
+              currentItem.tickers.map((item, idx) => (
+                <WatchListCard
+                  key={item}
+                  symbol={item}
+                  price={31.05}
+                  description="Chứng khoán bản việt"
+                  changePrice={-0.35}
+                  changePercent={-1.11}
+                  isLight={idx % 2 === 0}
+                  onClick={() => setSymbol(item)}
+                />
+              ))}
+          </div>
+
+          <div className="py-1">
+            <button
+              type="button"
+              className="group flex flex-row w-full items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100"
+            >
+              <div className="pr-1 pb-[1px]">
+                <AddIcon />
+              </div>
+              Thêm mã mới
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

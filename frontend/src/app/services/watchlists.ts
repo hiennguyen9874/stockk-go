@@ -1,26 +1,33 @@
 import { api } from './api';
-
-interface Response<T> {
-  data: T;
-  is_success: boolean;
-}
-
-interface WatchListCreate {
-  name: string;
-}
-
-interface WatchListResponse {
-  id: number;
-  created_at: string;
-  updated_at: string;
-  name: string;
-  tickers: string[];
-  owner_id: number;
-}
+import type {
+  Response,
+  WatchListCreate,
+  WatchListResponse,
+  WatchListUpdate,
+} from './types';
 
 export const watchListsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    createWatchList: builder.mutation<WatchListResponse, WatchListCreate>({
+    getWatchLists: builder.query<Response<WatchListResponse[]>, void>({
+      query: () => ({
+        url: 'watchlist',
+        method: 'GET',
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: 'WatchLists' as const,
+                id,
+              })),
+              { type: 'WatchLists', id: 'LIST' },
+            ]
+          : [{ type: 'WatchLists', id: 'LIST' }],
+    }),
+    createWatchList: builder.mutation<
+      Response<WatchListResponse>,
+      WatchListCreate
+    >({
       query: ({ name }) => ({
         url: 'watchlist',
         method: 'POST',
@@ -29,19 +36,59 @@ export const watchListsApi = api.injectEndpoints({
           tickers: [],
         },
       }),
+      invalidatesTags: ['WatchLists'],
     }),
-    getWatchLists: builder.query<Response<WatchListResponse[]>, void>({
-      query: () => ({
-        url: 'watchlist',
+    getWatchList: builder.query<Response<WatchListResponse>, number>({
+      query: (id) => ({
+        url: `watchlist/${id}`,
         method: 'GET',
       }),
+      providesTags: (watchlist) => [
+        { type: 'WatchLists', id: watchlist?.data.id },
+      ],
+    }),
+    updateWatchList: builder.mutation<
+      Response<WatchListResponse>,
+      WatchListUpdate
+    >({
+      query: ({ id, name, tickers }) => ({
+        url: `watchlist/${id}`,
+        method: 'PUT',
+        body: {
+          name,
+          tickers,
+        },
+      }),
+      invalidatesTags: (watchlist) => [
+        { type: 'WatchLists', id: watchlist?.data.id },
+      ],
+    }),
+    deleteWatchList: builder.mutation<Response<WatchListResponse>, number>({
+      query: (id) => ({
+        url: `watchlist/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (watchlist) => [
+        { type: 'WatchLists', id: watchlist?.data.id },
+      ],
     }),
   }),
 });
 
-export const { useCreateWatchListMutation, useGetWatchListsQuery } =
-  watchListsApi;
+export const {
+  useGetWatchListsQuery,
+  useCreateWatchListMutation,
+  useGetWatchListQuery,
+  useUpdateWatchListMutation,
+  useDeleteWatchListMutation,
+} = watchListsApi;
 
 export const {
-  endpoints: { createWatchList, getWatchLists },
+  endpoints: {
+    getWatchLists,
+    createWatchList,
+    getWatchList,
+    updateWatchList,
+    deleteWatchList,
+  },
 } = watchListsApi;

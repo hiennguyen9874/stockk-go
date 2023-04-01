@@ -23,8 +23,8 @@ interface WatchListItemProps {
   isEdit: boolean;
   onClick: () => void;
   onEdit: () => void;
-  onDelete: () => void;
-  onChange: (value: string) => void;
+  onDelete: () => Promise<void>;
+  onChange: (value: string) => Promise<void>;
 }
 
 const WatchListItem: FC<WatchListItemProps> = ({
@@ -58,10 +58,8 @@ const WatchListItem: FC<WatchListItemProps> = ({
           <button
             type="button"
             className="flex flex-row items-center justify-center px-2 py-2"
-            onClick={(e) => {
+            onClick={() => {
               if (!isEdit) {
-                // e.preventDefault();
-                // e.stopPropagation();
                 onClick();
               }
             }}
@@ -78,10 +76,11 @@ const WatchListItem: FC<WatchListItemProps> = ({
                 className="w-full bg-transparent border-none focus:border-none disabled:cursor-pointer"
                 value={item.name}
                 disabled={!isEdit}
-                onChange={(e) => {
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                onChange={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onChange(e.target.value);
+                  await onChange(e.target.value);
                 }}
                 onClick={(e) => {
                   if (isEdit) {
@@ -109,10 +108,11 @@ const WatchListItem: FC<WatchListItemProps> = ({
             <button
               type="button"
               className="mx-1 px-0.5 py-0.5 border-none rounded-sm cursor-pointer shadow-md bg-red-500"
-              onClick={(e) => {
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelete();
+                await onDelete();
               }}
             >
               <RemoveIcon />
@@ -128,9 +128,9 @@ interface WatchListsProps {
   currentItem: Item | null;
   items: Item[];
   onClick: (item: Item) => void;
-  onEdit: (id: number, value: string) => void;
-  onDelete: (id: number) => void;
-  onAdd: () => void;
+  onEdit: (id: number, value: string) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  onAdd: () => Promise<void>;
 }
 
 const WatchListsDropdown: FC<WatchListsProps> = ({
@@ -177,6 +177,12 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
           leave="transition ease-in duration-75"
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
+          beforeEnter={() => {
+            setItemUpdate(null);
+          }}
+          afterLeave={() => {
+            setItemUpdate(null);
+          }}
         >
           <Menu.Items
             className={cx(
@@ -196,6 +202,7 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
                   isActive={currentItem !== null && currentItem.id === item.id}
                   isEdit={item.id === itemUpdate}
                   onClick={() => {
+                    setItemUpdate(null);
                     onClick(item);
                   }}
                   onEdit={() => {
@@ -203,8 +210,13 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
                       setItemUpdate(item.id);
                     else setItemUpdate(null);
                   }}
-                  onDelete={() => onDelete(item.id)}
-                  onChange={(value) => onEdit(item.id, value)}
+                  onDelete={async () => {
+                    setItemUpdate(null);
+                    await onDelete(item.id);
+                  }}
+                  onChange={async (value) => {
+                    await onEdit(item.id, value);
+                  }}
                 />
               ))}
             </div>
