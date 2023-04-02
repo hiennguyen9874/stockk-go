@@ -28,5 +28,7 @@
       "scrollable",
       "simplejwt",
       "tsparticles"
-  ]
+],
+"python.defaultInterpreterPath": "~/.pyenv/versions/datascience/bin/python",
+"python.languageServer": "Pylance"
 }
