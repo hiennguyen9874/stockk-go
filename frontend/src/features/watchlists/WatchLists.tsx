@@ -2,7 +2,6 @@ import type { FC } from 'react';
 import { useState, useEffect, useMemo } from 'react';
 
 import { WatchListsDropdown } from 'components/common/Dropdown';
-import { WatchListCard } from 'components/common/Card';
 import {
   useGetWatchListsQuery,
   useCreateWatchListMutation,
@@ -10,7 +9,7 @@ import {
   useUpdateWatchListMutation,
 } from 'app/services/watchlists';
 import { AddIcon } from 'components/common/Icon';
-import WatchListItem from 'features/stocksnapshot/WatchListItem';
+import WatchListItem from 'features/ticker/WatchListItem';
 
 interface WatchListProps {
   setSymbol: (symbol: string) => void;
@@ -62,7 +61,7 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
   }, [currentWatchList, watchLists]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full w-full flex flex-col">
       <div className="h-10">
         <WatchListsDropdown
           currentItem={currentItem}
@@ -136,22 +135,11 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
         />
       </div>
 
-      <div className="h-auto overflow-auto scroll-smooth grow">
+      <div className="w-full overflow-y-auto scroll-smooth grow">
         <div className="w-full h-full flex flex-col divide-y divide-white divide-opacity-20">
-          <div className="grow">
+          <div className="w-full grow">
             {currentItem !== null &&
               currentItem.tickers.map((item, idx) => (
-                // <WatchListCard
-                //   key={item}
-                //   symbol={item}
-                //   price={31.05}
-                //   description="Chứng khoán bản việt"
-                //   changePrice={-0.35}
-                //   changePercent={-1.11}
-                //   isLight={idx % 2 === 0}
-                //   onClick={() => setSymbol(item)}
-                // />
-
                 <WatchListItem
                   key={item}
                   symbol={item}
@@ -161,10 +149,10 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
               ))}
           </div>
 
-          <div className="py-1">
+          <div className="w-full py-1 flex flex-row justify-center">
             <button
               type="button"
-              className="group flex flex-row w-full items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100"
+              className="group flex flex-row items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100"
             >
               <div className="pr-1 pb-[1px]">
                 <AddIcon />

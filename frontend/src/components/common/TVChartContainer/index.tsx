@@ -1,5 +1,12 @@
 import type { FC } from 'react';
-import { useState, useEffect, useRef, memo, useMemo } from 'react';
+import {
+  useLayoutEffect,
+  useState,
+  useEffect,
+  useRef,
+  memo,
+  useMemo,
+} from 'react';
 
 import type {
   ChartingLibraryWidgetOptions,
@@ -141,7 +148,7 @@ const TVChartContainer: FC<TVChartContainerProps> = ({
     userId,
   ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!tvWidgetRef.current) return;
 
     if (!isReady) return;

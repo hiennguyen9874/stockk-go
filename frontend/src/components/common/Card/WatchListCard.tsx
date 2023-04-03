@@ -26,7 +26,7 @@ const WatchListCard: FC<WatchListCardProps> = ({
   return (
     <div
       className={cx(
-        'h-14 flex flex-col justify-between px-2 pt-0.5 pb-1',
+        'w-full h-14 flex flex-col justify-between px-2 pt-0.5 pb-1',
         'rounded-sm',
         'cursor-pointer',
         'bg-slate-800',

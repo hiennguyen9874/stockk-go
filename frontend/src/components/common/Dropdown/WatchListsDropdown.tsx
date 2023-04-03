@@ -186,15 +186,16 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
         >
           <Menu.Items
             className={cx(
-              'absolute right-0 mt-1 px-1.5 w-full origin-top-right',
+              'absolute w-full h-[50vh] right-0 mt-1 px-1.5 origin-top-right',
               'divide-y divide-white divide-opacity-20',
               'rounded-md shadow-lg',
               'bg-slate-700',
               'ring-1 ring-black ring-opacity-5',
-              'focus:outline-none'
+              'focus:outline-none',
+              'flex flex-col'
             )}
           >
-            <div className="w-full py-1 bg-red">
+            <div className="w-full grow overflow-y-auto py-1 bg-red">
               {items.map((item) => (
                 <WatchListItem
                   key={item.id}
