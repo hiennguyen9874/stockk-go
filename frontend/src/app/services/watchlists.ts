@@ -17,12 +17,12 @@ export const watchListsApi = api.injectEndpoints({
         result
           ? [
               ...result.data.map(({ id }) => ({
-                type: 'WatchLists' as const,
+                type: 'WatchList' as const,
                 id,
               })),
-              { type: 'WatchLists', id: 'LIST' },
+              { type: 'WatchList', id: 'LIST' },
             ]
-          : [{ type: 'WatchLists', id: 'LIST' }],
+          : [{ type: 'WatchList', id: 'LIST' }],
     }),
     createWatchList: builder.mutation<
       Response<WatchListResponse>,
@@ -36,7 +36,7 @@ export const watchListsApi = api.injectEndpoints({
           tickers: [],
         },
       }),
-      invalidatesTags: ['WatchLists'],
+      invalidatesTags: ['WatchList'],
     }),
     getWatchList: builder.query<Response<WatchListResponse>, number>({
       query: (id) => ({
@@ -44,7 +44,7 @@ export const watchListsApi = api.injectEndpoints({
         method: 'GET',
       }),
       providesTags: (watchlist) => [
-        { type: 'WatchLists', id: watchlist?.data.id },
+        { type: 'WatchList', id: watchlist?.data.id },
       ],
     }),
     updateWatchList: builder.mutation<
@@ -60,7 +60,7 @@ export const watchListsApi = api.injectEndpoints({
         },
       }),
       invalidatesTags: (watchlist) => [
-        { type: 'WatchLists', id: watchlist?.data.id },
+        { type: 'WatchList', id: watchlist?.data.id },
       ],
     }),
     deleteWatchList: builder.mutation<Response<WatchListResponse>, number>({
@@ -69,7 +69,7 @@ export const watchListsApi = api.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: (watchlist) => [
-        { type: 'WatchLists', id: watchlist?.data.id },
+        { type: 'WatchList', id: watchlist?.data.id },
       ],
     }),
   }),

@@ -10,6 +10,7 @@ import {
   useUpdateWatchListMutation,
 } from 'app/services/watchlists';
 import { AddIcon } from 'components/common/Icon';
+import WatchListItem from 'features/stocksnapshot/WatchListItem';
 
 interface WatchListProps {
   setSymbol: (symbol: string) => void;
@@ -140,15 +141,22 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
           <div className="grow">
             {currentItem !== null &&
               currentItem.tickers.map((item, idx) => (
-                <WatchListCard
+                // <WatchListCard
+                //   key={item}
+                //   symbol={item}
+                //   price={31.05}
+                //   description="Chứng khoán bản việt"
+                //   changePrice={-0.35}
+                //   changePercent={-1.11}
+                //   isLight={idx % 2 === 0}
+                //   onClick={() => setSymbol(item)}
+                // />
+
+                <WatchListItem
                   key={item}
                   symbol={item}
-                  price={31.05}
-                  description="Chứng khoán bản việt"
-                  changePrice={-0.35}
-                  changePercent={-1.11}
                   isLight={idx % 2 === 0}
-                  onClick={() => setSymbol(item)}
+                  onSet={() => setSymbol(item)}
                 />
               ))}
           </div>

@@ -10,6 +10,7 @@ interface WatchListCardProps {
   changePercent: number;
   isLight?: boolean;
   onClick: () => void;
+  status: 'ceil' | 'floor' | 'increase' | 'decrease' | 'reference';
 }
 
 const WatchListCard: FC<WatchListCardProps> = ({
@@ -20,6 +21,7 @@ const WatchListCard: FC<WatchListCardProps> = ({
   changePercent,
   isLight,
   onClick,
+  status,
 }) => {
   return (
     <div
@@ -48,9 +50,11 @@ const WatchListCard: FC<WatchListCardProps> = ({
         <div className="truncate">{description}</div>
         <div
           className={cx('ml-4 text-sm font-bold', {
-            'text-red-500': changePercent < 0,
-            'text-green-500': changePercent > 0,
-            'text-yellow-500': changePercent === 0,
+            'text-[#ff3747]': status === 'decrease',
+            'text-[#00f4b0]': status === 'increase',
+            'text-[#fbac20]': status === 'reference',
+            'text-[#e683ff]': status === 'ceil',
+            'text-[#64baff]': status === 'floor',
           })}
         >{`${changePrice.toFixed(2)}/${changePercent.toFixed(2)}%`}</div>
       </div>
