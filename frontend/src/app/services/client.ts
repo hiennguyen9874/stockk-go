@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Response, ClientResponse } from './types';
+import type { Response, ClientResponse, ClientCreate } from './types';
 
 export const clientApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,11 +19,32 @@ export const clientApi = api.injectEndpoints({
             ]
           : [{ type: 'Client', id: 'LIST' }],
     }),
+    deleteClient: builder.mutation<Response<ClientResponse>, number>({
+      query: (id) => ({
+        url: `client/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (client) => [{ type: 'Client', id: client?.data.id }],
+      extraOptions: { maxRetries: 0 },
+    }),
+    createClient: builder.mutation<Response<ClientResponse>, ClientCreate>({
+      query: (clientCreate) => ({
+        url: 'client',
+        method: 'POST',
+        body: clientCreate,
+      }),
+      invalidatesTags: ['Client'],
+      extraOptions: { maxRetries: 0 },
+    }),
   }),
 });
 
-export const { useGetClientsQuery } = clientApi;
+export const {
+  useGetClientsQuery,
+  useDeleteClientMutation,
+  useCreateClientMutation,
+} = clientApi;
 
 export const {
-  endpoints: { getClients },
+  endpoints: { getClients, deleteClient, createClient },
 } = clientApi;
