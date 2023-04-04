@@ -11,6 +11,7 @@ interface WatchListCardProps {
   isLight?: boolean;
   onClick: () => void;
   status: 'ceil' | 'floor' | 'increase' | 'decrease' | 'reference';
+  className?: string;
 }
 
 const WatchListCard: FC<WatchListCardProps> = ({
@@ -22,6 +23,7 @@ const WatchListCard: FC<WatchListCardProps> = ({
   isLight,
   onClick,
   status,
+  className,
 }) => {
   return (
     <div
@@ -29,13 +31,13 @@ const WatchListCard: FC<WatchListCardProps> = ({
         'w-full h-14 flex flex-col justify-between px-2 pt-0.5 pb-1',
         'rounded-sm',
         'cursor-pointer',
-        'bg-slate-800',
         'text-sm font-sans font-normal',
         'text-gray-100',
-        'hover:bg-slate-600',
         {
-          'bg-slate-700 hover:bg-slate-600': isLight,
-        }
+          'bg-[#243143] hover:bg-slate-600': isLight,
+          'bg-[#1e293b] hover:bg-slate-600': !isLight,
+        },
+        className
       )}
       role="button"
       aria-hidden="true"
@@ -64,6 +66,7 @@ const WatchListCard: FC<WatchListCardProps> = ({
 
 WatchListCard.defaultProps = {
   isLight: false,
+  className: '',
 };
 
 export default memo(WatchListCard);

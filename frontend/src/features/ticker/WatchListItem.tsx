@@ -10,9 +10,15 @@ interface WatchListItemProps {
   symbol: string;
   isLight: boolean;
   onSet: () => void;
+  className?: string;
 }
 
-const WatchListItem: FC<WatchListItemProps> = ({ symbol, isLight, onSet }) => {
+const WatchListItem: FC<WatchListItemProps> = ({
+  symbol,
+  isLight,
+  onSet,
+  className,
+}) => {
   const { data: tickerSnapshot } = useGetTickerSnapshotQuery(symbol, {
     pollingInterval: 10000,
   });
@@ -52,10 +58,15 @@ const WatchListItem: FC<WatchListItemProps> = ({ symbol, isLight, onSet }) => {
 
             return 'reference';
           })()}
+          className={className}
         />
       )}
     </>
   );
+};
+
+WatchListItem.defaultProps = {
+  className: '',
 };
 
 export default WatchListItem;

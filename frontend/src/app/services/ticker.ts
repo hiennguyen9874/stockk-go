@@ -8,7 +8,26 @@ export const tickerApi = api.injectEndpoints({
         url: `ticker/${symbol}`,
         method: 'GET',
       }),
-      providesTags: (ticker) => [{ type: 'Ticker', id: ticker?.data.id }],
+      providesTags: (result) => [{ type: 'Ticker', id: result?.data.id }],
+    }),
+    searchBySymbol: builder.query<Response<TickerResponse[]>, string>({
+      query: (symbol) => ({
+        url: 'ticker/search',
+        method: 'POST',
+        params: {
+          symbol,
+        },
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: 'Ticker' as const,
+                id,
+              })),
+              { type: 'Ticker', id: 'LIST' },
+            ]
+          : [{ type: 'Ticker', id: 'LIST' }],
     }),
     getTickerSnapshot: builder.query<Response<TickerSnapshotResponse>, string>({
       query: (symbol) => ({
@@ -22,8 +41,12 @@ export const tickerApi = api.injectEndpoints({
   }),
 });
 
-export const { useGetTickerQuery, useGetTickerSnapshotQuery } = tickerApi;
+export const {
+  useGetTickerQuery,
+  useGetTickerSnapshotQuery,
+  useSearchBySymbolQuery,
+} = tickerApi;
 
 export const {
-  endpoints: { getTicker, getTickerSnapshot },
+  endpoints: { getTicker, getTickerSnapshot, searchBySymbol },
 } = tickerApi;
