@@ -30,13 +30,13 @@ func (h *studyTemplateHandler) CreateOrUpdate() func(w http.ResponseWriter, r *h
 		clientId := q.Get("client")
 		userId := q.Get("user")
 
-		r.ParseMultipartForm(0)
+		r.ParseMultipartForm(0) //nolint:errcheck
 		templateName := r.FormValue("name")
 		content := r.FormValue("content")
 
 		_, _, _, err := h.studyTemplatesUC.CreateOrUpdateWithOwnerName(ctx, clientId, userId, templateName, content)
 		if err != nil {
-			render.Render(w, r, CreateStudyTemplateErrorResponse(err))
+			render.Render(w, r, CreateStudyTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -56,7 +56,7 @@ func (h *studyTemplateHandler) Get() func(w http.ResponseWriter, r *http.Request
 		if templateName == "" {
 			studyTemplates, err := h.studyTemplatesUC.GetAllByOwner(ctx, clientId, userId)
 			if err != nil {
-				render.Render(w, r, CreateStudyTemplateErrorResponse(err))
+				render.Render(w, r, CreateStudyTemplateErrorResponse(err)) //nolint:errcheck
 				return
 			}
 
@@ -69,7 +69,7 @@ func (h *studyTemplateHandler) Get() func(w http.ResponseWriter, r *http.Request
 
 		studyTemplate, err := h.studyTemplatesUC.GetByOwnerName(r.Context(), clientId, userId, templateName)
 		if err != nil {
-			render.Render(w, r, CreateStudyTemplateErrorResponse(err))
+			render.Render(w, r, CreateStudyTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -93,7 +93,7 @@ func (h *studyTemplateHandler) Delete() func(w http.ResponseWriter, r *http.Requ
 
 		_, err := h.studyTemplatesUC.DeleteByOwnerName(ctx, clientId, userId, templateName)
 		if err != nil {
-			render.Render(w, r, CreateStudyTemplateErrorResponse(err))
+			render.Render(w, r, CreateStudyTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

@@ -99,7 +99,7 @@ func (h *dchartHandler) GetSymbols() func(w http.ResponseWriter, r *http.Request
 
 		ticker, err := h.tickersUC.GetBySymbol(ctx, symbol)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -136,7 +136,7 @@ func (h *dchartHandler) Search() func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		limitQ, err := strconv.Atoi(q.Get("limit"))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
@@ -146,13 +146,13 @@ func (h *dchartHandler) Search() func(w http.ResponseWriter, r *http.Request) {
 
 		typeQ := q.Get("type")
 		if typeQ != "" && typeQ != "stock" {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrBadRequest(fmt.Errorf("not support type: %v", typeQ))))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrBadRequest(fmt.Errorf("not support type: %v", typeQ)))) //nolint:errcheck
 			return
 		}
 
 		tickers, err := h.tickersUC.SearchBySymbol(ctx, queryQ, limitQ, exchangeQ, true)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -183,25 +183,25 @@ func (h *dchartHandler) History() func(w http.ResponseWriter, r *http.Request) {
 
 		resolutionQ, err := convertResolution(q.Get("resolution"))
 		if err != nil {
-			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		fromQ, err := strconv.ParseInt(q.Get("from"), 10, 64)
 		if err != nil {
-			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		toQ, err := strconv.ParseInt(q.Get("to"), 10, 64)
 		if err != nil {
-			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		countbackQ, err := strconv.Atoi(q.Get("countback"))
 		if err != nil {
-			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -212,7 +212,7 @@ func (h *dchartHandler) History() func(w http.ResponseWriter, r *http.Request) {
 			bars, err = h.barUC.GetByFromTo(ctx, resolutionQ, symbolQ, time.Unix(fromQ, 0), time.Unix(toQ, 0))
 		}
 		if err != nil {
-			render.Render(w, r, CreateDchartHistoryErrorResponse(err))
+			render.Render(w, r, CreateDchartHistoryErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

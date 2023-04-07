@@ -26,6 +26,7 @@ type Config struct {
 	InfluxDB       InfluxDBConfig
 	Crawler        CrawlerConfig
 	TaskRedis      TaskRedisConfig
+	Sentry         SentryConfig
 }
 
 type ServerConfig struct {
@@ -120,6 +121,11 @@ type CrawlerConfig struct {
 	DefaultActive           []string
 }
 
+type SentryConfig struct {
+	Dsn         string
+	Environment string
+}
+
 func ToSnakeCase(str string) string {
 	snake := regexp.MustCompile("(.)([A-Z][a-z]+)").ReplaceAllString(str, "${1}_${2}")
 	snake = regexp.MustCompile("([a-z0-9])([A-Z])").ReplaceAllString(snake, "${1}_${2}")
@@ -142,7 +148,7 @@ func BindEnvs(vp *viper.Viper, iface interface{}, partsKey []string, partsEnvKey
 			key := strings.ToLower(strings.Join(append(partsKey, t.Name), "."))
 			envKey := strings.ToUpper(strings.Join(append(partsEnvKey, tv), "_"))
 
-			vp.BindEnv(key, envKey)
+			vp.BindEnv(key, envKey) //nolint:errcheck
 		}
 	}
 }

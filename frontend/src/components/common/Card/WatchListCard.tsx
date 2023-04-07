@@ -10,6 +10,8 @@ interface WatchListCardProps {
   changePercent: number;
   isLight?: boolean;
   onClick: () => void;
+  status: 'ceil' | 'floor' | 'increase' | 'decrease' | 'reference';
+  className?: string;
 }
 
 const WatchListCard: FC<WatchListCardProps> = ({
@@ -20,20 +22,22 @@ const WatchListCard: FC<WatchListCardProps> = ({
   changePercent,
   isLight,
   onClick,
+  status,
+  className,
 }) => {
   return (
     <div
       className={cx(
-        'h-14 flex flex-col justify-between px-2 pt-0.5 pb-1',
+        'w-full h-14 flex flex-col justify-between px-2 pt-0.5 pb-1',
         'rounded-sm',
         'cursor-pointer',
-        'bg-slate-800',
         'text-sm font-sans font-normal',
         'text-gray-100',
-        'hover:bg-slate-600',
         {
-          'bg-slate-700 hover:bg-slate-600': isLight,
-        }
+          'bg-[#243143] hover:bg-slate-600': isLight,
+          'bg-[#1e293b] hover:bg-slate-600': !isLight,
+        },
+        className
       )}
       role="button"
       aria-hidden="true"
@@ -48,9 +52,11 @@ const WatchListCard: FC<WatchListCardProps> = ({
         <div className="truncate">{description}</div>
         <div
           className={cx('ml-4 text-sm font-bold', {
-            'text-red-500': changePercent < 0,
-            'text-green-500': changePercent > 0,
-            'text-yellow-500': changePercent === 0,
+            'text-[#ff3747]': status === 'decrease',
+            'text-[#00f4b0]': status === 'increase',
+            'text-[#fbac20]': status === 'reference',
+            'text-[#e683ff]': status === 'ceil',
+            'text-[#64baff]': status === 'floor',
           })}
         >{`${changePrice.toFixed(2)}/${changePercent.toFixed(2)}%`}</div>
       </div>
@@ -60,6 +66,7 @@ const WatchListCard: FC<WatchListCardProps> = ({
 
 WatchListCard.defaultProps = {
   isLight: false,
+  className: '',
 };
 
 export default memo(WatchListCard);

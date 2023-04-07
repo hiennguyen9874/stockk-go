@@ -90,7 +90,7 @@ func (u *barUseCase) convertResolutionToBucket(ctx context.Context, resolution s
 // 	}
 // }
 
-func (u *barUseCase) genRedisLastTimestampKey(symbol string, resolution string) string {
+func (u *barUseCase) genRedisLastTimestampKey(symbol string, resolution string) string { //nolint:unused
 	return fmt.Sprintf("%s:%s:%s", "LastTimeStamp", resolution, symbol)
 }
 

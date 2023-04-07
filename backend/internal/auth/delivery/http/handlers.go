@@ -44,13 +44,13 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := new(presenter.UserSignIn)
 
-		r.ParseMultipartForm(0)
+		r.ParseMultipartForm(0) //nolint:errcheck
 		user.Email = r.FormValue("username")
 		user.Password = r.FormValue("password")
 
 		err := utils.ValidateStruct(r.Context(), user)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
@@ -60,7 +60,7 @@ func (h *userHandler) SignIn() func(w http.ResponseWriter, r *http.Request) {
 			user.Password,
 		)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -92,7 +92,7 @@ func (h *userHandler) RefreshToken() func(w http.ResponseWriter, r *http.Request
 
 		accessToken, refreshToken, dbUser, err := h.usersUC.Refresh(ctx, refreshToken)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -119,13 +119,13 @@ func (h *userHandler) GetPublicKey() func(w http.ResponseWriter, r *http.Request
 	return func(w http.ResponseWriter, r *http.Request) {
 		publicKeyAccessToken, err := jwt.DecodeBase64(h.cfg.Jwt.AccessTokenPublicKey)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		publicKeyRefreshToken, err := jwt.DecodeBase64(h.cfg.Jwt.RefreshTokenPublicKey)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -155,7 +155,7 @@ func (h *userHandler) Logout() func(w http.ResponseWriter, r *http.Request) {
 
 		err := h.usersUC.Logout(ctx, refreshToken)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 	}
@@ -180,13 +180,13 @@ func (h *userHandler) LogoutAllToken() func(w http.ResponseWriter, r *http.Reque
 
 		id, err := h.usersUC.ParseIdFromRefreshToken(ctx, refreshToken)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = h.usersUC.LogoutAll(ctx, id)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 	}
@@ -211,7 +211,7 @@ func (h *userHandler) VerifyEmail() func(w http.ResponseWriter, r *http.Request)
 
 		err := h.usersUC.Verify(ctx, verificationCode)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -238,19 +238,19 @@ func (h *userHandler) ForgotPassword() func(w http.ResponseWriter, r *http.Reque
 
 		err := json.NewDecoder(r.Body).Decode(&forgotPassword)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), forgotPassword)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		err = h.usersUC.ForgotPassword(ctx, forgotPassword.Email)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -282,13 +282,13 @@ func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Reques
 
 		err := json.NewDecoder(r.Body).Decode(&resetPassword)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), resetPassword)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
@@ -299,7 +299,7 @@ func (h *userHandler) ResetPassword() func(w http.ResponseWriter, r *http.Reques
 			resetPassword.ConfirmPassword,
 		)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

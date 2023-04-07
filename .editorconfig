@@ -21,8 +21,21 @@ indent_size = 2
 [*.yml]
 indent_size = 2
 
-[*.py]
+# 4 space indentation
+[*.{py,java,r,R,ipynb}]
+indent_style = space
+indent_size = 4
 profile = black
+
+# 2 space indentation
+[*.{js,json,y{a,}ml,html,cwl}]
+indent_style = space
+indent_size = 2
+
+[*.{md,Rmd,rst}]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 2
 
 [*.ts]
 indent_size = 2

@@ -66,4 +66,4 @@ In this project use 3 layer architecture
 -   https://github.com/wentao-yang/StockAnalysisApplication
 -   https://github.com/landoyjx/charting_library_wiki
 -   https://github.com/serdimoa/charting
-- https://github.com/tradingview/yahoo_datafeed
+-   https://github.com/tradingview/yahoo_datafeed
