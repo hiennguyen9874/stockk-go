@@ -6,9 +6,15 @@ interface CharTabItemProps {
   name: string;
   isActive?: boolean;
   onClick: () => void;
+  onDelete: () => Promise<void>;
 }
 
-const CharTabItem: FC<CharTabItemProps> = ({ name, isActive, onClick }) => {
+const CharTabItem: FC<CharTabItemProps> = ({
+  name,
+  isActive,
+  onClick,
+  onDelete,
+}) => {
   return (
     <div
       className={cx(
@@ -35,7 +41,18 @@ const CharTabItem: FC<CharTabItemProps> = ({ name, isActive, onClick }) => {
           </span>
         </div>
         <div className="text-sm ml-2 mr-auto">{name}</div>
-        <div className="opacity-50 hover:opacity-100">
+
+        <button
+          type="button"
+          className="opacity-50 hover:opacity-100"
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            await onDelete();
+          }}
+        >
           <span>
             <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
               <desc>cross</desc>
@@ -45,7 +62,7 @@ const CharTabItem: FC<CharTabItemProps> = ({ name, isActive, onClick }) => {
               />
             </svg>
           </span>
-        </div>
+        </button>
       </div>
     </div>
   );

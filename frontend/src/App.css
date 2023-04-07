@@ -1,16 +1,20 @@
-.App {
-    text-align: center;
-    width: 100vw;
-    height: 100vh;
+::-webkit-scrollbar {
+  width: 4px;
 }
 
-.App-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 0;
-    background-color: #222;
-    color: #fff;
-    width: 100%;
-    height: 100%;
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

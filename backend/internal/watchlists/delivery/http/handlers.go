@@ -50,19 +50,19 @@ func (h *watchListHandler) Create() func(w http.ResponseWriter, r *http.Request)
 
 		err := json.NewDecoder(r.Body).Decode(&watchList)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(ctx, watchList)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -72,7 +72,7 @@ func (h *watchListHandler) Create() func(w http.ResponseWriter, r *http.Request)
 			mapModel(watchList),
 		)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -102,24 +102,24 @@ func (h *watchListHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		watchList, err := h.watchListsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && watchList.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
@@ -152,7 +152,7 @@ func (h *watchListHandler) GetMulti() func(w http.ResponseWriter, r *http.Reques
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -163,7 +163,7 @@ func (h *watchListHandler) GetMulti() func(w http.ResponseWriter, r *http.Reques
 			watchLists, err = h.watchListsUC.GetMultiByOwnerId(ctx, user.Id, limit, offset)
 		}
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelsResponse(watchLists)))
@@ -191,30 +191,30 @@ func (h *watchListHandler) Delete() func(w http.ResponseWriter, r *http.Request)
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		watchList, err := h.watchListsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && watchList.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
 		err = h.watchListsUC.DeleteWithoutGet(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -244,7 +244,7 @@ func (h *watchListHandler) Update() func(w http.ResponseWriter, r *http.Request)
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
@@ -252,30 +252,30 @@ func (h *watchListHandler) Update() func(w http.ResponseWriter, r *http.Request)
 
 		err = json.NewDecoder(r.Body).Decode(&watchList)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), watchList)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		dbWatchList, err := h.watchListsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && dbWatchList.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
@@ -289,7 +289,7 @@ func (h *watchListHandler) Update() func(w http.ResponseWriter, r *http.Request)
 
 		updatedWatchList, err := h.watchListsUC.Update(r.Context(), uint(id), values)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

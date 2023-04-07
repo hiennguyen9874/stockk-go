@@ -48,7 +48,7 @@ func (h *tickerHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 
 		tickers, err := h.tickersUC.GetMulti(r.Context(), limit, offset)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -77,7 +77,7 @@ func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Reques
 
 		ticker, err := h.tickersUC.GetBySymbol(r.Context(), symbol)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -111,13 +111,13 @@ func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *
 		isActiveString := q.Get("is_active")
 		isActive, err := strconv.ParseBool(isActiveString)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		updatedTicker, err := h.tickersUC.UpdateIsActiveBySymbol(ctx, symbol, isActive)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

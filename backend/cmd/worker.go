@@ -26,7 +26,7 @@ var workerCmd = &cobra.Command{
 		if err != nil {
 			appLogger.Fatal(err)
 		}
-		server.Start()
+		server.Start() //nolint:errcheck
 	},
 }
 

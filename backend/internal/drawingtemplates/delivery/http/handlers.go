@@ -30,14 +30,14 @@ func (h *drawingTemplateHandler) CreateOrUpdate() func(w http.ResponseWriter, r 
 		clientId := q.Get("client")
 		userId := q.Get("user")
 
-		r.ParseMultipartForm(0)
+		r.ParseMultipartForm(0) //nolint:errcheck
 		templateName := r.FormValue("name")
 		tool := r.FormValue("tool")
 		content := r.FormValue("content")
 
 		_, _, _, err := h.drawingTemplatesUC.CreateOrUpdateWithOwnerNameTool(ctx, clientId, userId, templateName, tool, content)
 		if err != nil {
-			render.Render(w, r, CreateDrawingTemplateErrorResponse(err))
+			render.Render(w, r, CreateDrawingTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -58,7 +58,7 @@ func (h *drawingTemplateHandler) Get() func(w http.ResponseWriter, r *http.Reque
 		if templateName == "" {
 			studyTemplates, err := h.drawingTemplatesUC.GetAllByOwnerTool(ctx, clientId, userId, tool)
 			if err != nil {
-				render.Render(w, r, CreateDrawingTemplateErrorResponse(err))
+				render.Render(w, r, CreateDrawingTemplateErrorResponse(err)) //nolint:errcheck
 				return
 			}
 
@@ -71,7 +71,7 @@ func (h *drawingTemplateHandler) Get() func(w http.ResponseWriter, r *http.Reque
 
 		studyTemplate, err := h.drawingTemplatesUC.GetByOwnerNameTool(r.Context(), clientId, userId, templateName, tool)
 		if err != nil {
-			render.Render(w, r, CreateDrawingTemplateErrorResponse(err))
+			render.Render(w, r, CreateDrawingTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -94,7 +94,7 @@ func (h *drawingTemplateHandler) Delete() func(w http.ResponseWriter, r *http.Re
 
 		_, err := h.drawingTemplatesUC.DeleteByOwnerNameTool(ctx, clientId, userId, templateName, tool)
 		if err != nil {
-			render.Render(w, r, CreateDrawingTemplateErrorResponse(err))
+			render.Render(w, r, CreateDrawingTemplateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

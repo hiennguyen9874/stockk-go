@@ -34,7 +34,7 @@ func (h *chartHandler) CreateOrUpdate() func(w http.ResponseWriter, r *http.Requ
 		userId := q.Get("user")
 
 		if chartId == "" {
-			r.ParseMultipartForm(0)
+			r.ParseMultipartForm(0) //nolint:errcheck
 
 			chart := new(presenter.ChartCreate)
 			chart.OwnerSource = clientId
@@ -46,13 +46,13 @@ func (h *chartHandler) CreateOrUpdate() func(w http.ResponseWriter, r *http.Requ
 
 			err := utils.ValidateStruct(ctx, chart)
 			if err != nil {
-				render.Render(w, r, CreateChartErrorResponse(err))
+				render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 				return
 			}
 
 			newChart, err := h.chartsUC.Create(ctx, mapModel(chart))
 			if err != nil {
-				render.Render(w, r, CreateChartErrorResponse(err))
+				render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 				return
 			}
 
@@ -65,7 +65,7 @@ func (h *chartHandler) CreateOrUpdate() func(w http.ResponseWriter, r *http.Requ
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -99,7 +99,7 @@ func (h *chartHandler) CreateOrUpdate() func(w http.ResponseWriter, r *http.Requ
 
 		_, err = h.chartsUC.Update(r.Context(), uint(id), values)
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -119,7 +119,7 @@ func (h *chartHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 		if chartId == "" {
 			charts, err := h.chartsUC.GetAllByOwner(ctx, clientId, userId)
 			if err != nil {
-				render.Render(w, r, CreateChartErrorResponse(err))
+				render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 				return
 			}
 
@@ -132,13 +132,13 @@ func (h *chartHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		chart, err := h.chartsUC.Get(r.Context(), uint(id))
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -160,13 +160,13 @@ func (h *chartHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chartId, 10, 32)
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, CreateChartErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		_, err = h.chartsUC.DeleteByIdOwner(ctx, uint(id), clientId, userId)
 		if err != nil {
-			render.Render(w, r, CreateChartErrorResponse(err))
+			render.Render(w, r, CreateChartErrorResponse(err)) //nolint:errcheck
 			return
 		}
 

@@ -2,7 +2,6 @@ import type { FC } from 'react';
 import { useState, useEffect, useMemo } from 'react';
 
 import { WatchListsDropdown } from 'components/common/Dropdown';
-import { WatchListCard } from 'components/common/Card';
 import {
   useGetWatchListsQuery,
   useCreateWatchListMutation,
@@ -10,6 +9,8 @@ import {
   useUpdateWatchListMutation,
 } from 'app/services/watchlists';
 import { AddIcon } from 'components/common/Icon';
+import Search from 'features/ticker/Search';
+import WatchListItem from 'features/ticker/WatchListItem';
 
 interface WatchListProps {
   setSymbol: (symbol: string) => void;
@@ -28,6 +29,8 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
       tickers: string[];
     }[]
   >([]);
+
+  const [isOpenSearch, setIsOpenSearch] = useState(false);
 
   const [currentWatchList, setCurrentWatchList] = useState<number | null>(null);
 
@@ -61,102 +64,99 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
   }, [currentWatchList, watchLists]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="h-10">
-        <WatchListsDropdown
-          currentItem={currentItem}
-          items={watchLists}
-          onClick={(item) => {
-            setCurrentWatchList(item.id);
-          }}
-          onEdit={async (editId, editValue) => {
-            let curWatchList: {
-              id: number;
-              name: string;
-              tickers: string[];
-            } | null = null;
+    <>
+      <div className="h-full w-full flex flex-col">
+        <div className="h-10">
+          <WatchListsDropdown
+            currentItem={currentItem}
+            items={watchLists}
+            onClick={(item) => {
+              setCurrentWatchList(item.id);
+            }}
+            onEdit={async (editId, editValue) => {
+              let curWatchList: {
+                id: number;
+                name: string;
+                tickers: string[];
+              } | null = null;
 
-            setWatchLists(
-              watchLists.map(({ id, name, tickers }) => {
-                if (id === editId) {
-                  curWatchList = {
+              setWatchLists(
+                watchLists.map(({ id, name, tickers }) => {
+                  if (id === editId) {
+                    curWatchList = {
+                      id,
+                      name: editValue,
+                      tickers,
+                    };
+                    return curWatchList;
+                  }
+
+                  return {
                     id,
-                    name: editValue,
+                    name,
                     tickers,
                   };
-                  return curWatchList;
-                }
+                })
+              );
 
-                return {
-                  id,
-                  name,
-                  tickers,
-                };
-              })
-            );
+              if (curWatchList !== null)
+                await updateWatchList(curWatchList).unwrap();
+            }}
+            onDelete={async (deleteId) => {
+              const newWatchLists = watchLists.filter(
+                ({ id }) => id !== deleteId
+              );
 
-            if (curWatchList !== null)
-              await updateWatchList(curWatchList).unwrap();
-          }}
-          onDelete={async (deleteId) => {
-            const newWatchLists = watchLists.filter(
-              ({ id }) => id !== deleteId
-            );
+              if (newWatchLists.length === 0) setCurrentWatchList(null);
 
-            if (newWatchLists.length === 0) setCurrentWatchList(null);
+              setWatchLists(newWatchLists);
 
-            setWatchLists(newWatchLists);
+              await deleteWatchList(deleteId).unwrap();
 
-            await deleteWatchList(deleteId).unwrap();
+              refetch();
+            }}
+            onAdd={async () => {
+              const newWatchLists = [
+                ...watchLists,
+                {
+                  id: Math.max(...watchLists.map(({ id }) => id)) + 1,
+                  name: 'Danh mục mới',
+                  tickers: [],
+                },
+              ];
 
-            refetch();
-          }}
-          onAdd={async () => {
-            const newWatchLists = [
-              ...watchLists,
-              {
-                id: Math.max(...watchLists.map(({ id }) => id)) + 1,
+              if (watchLists.length === 0)
+                setCurrentWatchList(newWatchLists[0].id);
+
+              setWatchLists(newWatchLists);
+
+              await createWatchList({
                 name: 'Danh mục mới',
-                tickers: [],
-              },
-            ];
+              }).unwrap();
 
-            if (watchLists.length === 0)
-              setCurrentWatchList(newWatchLists[0].id);
+              refetch();
+            }}
+          />
+        </div>
 
-            setWatchLists(newWatchLists);
-
-            await createWatchList({
-              name: 'Danh mục mới',
-            }).unwrap();
-
-            refetch();
-          }}
-        />
-      </div>
-
-      <div className="h-auto overflow-auto scroll-smooth grow">
-        <div className="w-full h-full flex flex-col divide-y divide-white divide-opacity-20">
-          <div className="grow">
+        <div className="w-full grow divide-y flex flex-col divide-white divide-opacity-20 overflow-hidden">
+          <div className="w-full mb-auto overflow-y-auto">
             {currentItem !== null &&
               currentItem.tickers.map((item, idx) => (
-                <WatchListCard
+                <WatchListItem
                   key={item}
                   symbol={item}
-                  price={31.05}
-                  description="Chứng khoán bản việt"
-                  changePrice={-0.35}
-                  changePercent={-1.11}
                   isLight={idx % 2 === 0}
-                  onClick={() => setSymbol(item)}
+                  onSet={() => setSymbol(item)}
                 />
               ))}
           </div>
 
-          <div className="py-1">
+          <div className="w-full py-1 flex flex-row justify-center">
             <button
               type="button"
-              className="group flex flex-row w-full items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100"
+              className="group flex flex-row items-center rounded-sm px-2 py-2 text-sm font-sans font-normal text-gray-100 border-none"
+              onClick={() => setIsOpenSearch(!isOpenSearch)}
             >
               <div className="pr-1 pb-[1px]">
                 <AddIcon />
@@ -166,7 +166,36 @@ const WatchLists: FC<WatchListProps> = ({ setSymbol }) => {
           </div>
         </div>
       </div>
-    </div>
+
+      <Search
+        isOpen={isOpenSearch}
+        onClose={() => setIsOpenSearch(false)}
+        onAddRemove={(symbol) => {
+          (async () => {
+            if (currentItem !== null) {
+              if (
+                currentItem.tickers.find((ticker) => ticker === symbol) ===
+                undefined
+              ) {
+                await updateWatchList({
+                  id: currentItem.id,
+                  name: currentItem.name,
+                  tickers: [...currentItem.tickers, symbol],
+                }).unwrap();
+              } else {
+                await updateWatchList({
+                  id: currentItem.id,
+                  name: currentItem.name,
+                  tickers: currentItem.tickers.filter(
+                    (ticker) => ticker !== symbol
+                  ),
+                }).unwrap();
+              }
+            }
+          })();
+        }}
+      />
+    </>
   );
 };
 
