@@ -44,7 +44,7 @@ func (h *stockSnapshotHandler) GetStockSnapshotBySymbol() func(w http.ResponseWr
 
 		stockSnapshot, err := h.stocksSnapshotUC.GetStockSnapshotBySymbol(r.Context(), symbol)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -81,7 +81,7 @@ func mapModelResponse(exp *models.StockSnapshot) *presenter.StockSnapshotRespons
 	}
 }
 
-func mapModelsResponse(exp []*models.StockSnapshot) []*presenter.StockSnapshotResponse {
+func mapModelsResponse(exp []*models.StockSnapshot) []*presenter.StockSnapshotResponse { //nolint:unused
 	out := make([]*presenter.StockSnapshotResponse, len(exp))
 	for i, ticker := range exp {
 		out[i] = mapModelResponse(ticker)

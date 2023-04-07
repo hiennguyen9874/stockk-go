@@ -17,8 +17,8 @@ type stockSnapshotUseCase struct {
 	tickerUC               tickers.TickerUseCaseI
 	stockSnapshotRedisRepo stockssnapshot.StockSnapshotRedisRepository
 	crawler                crawlers.Crawler
-	cfg                    *config.Config
-	logger                 logger.Logger
+	cfg                    *config.Config //nolint:unused
+	logger                 logger.Logger  //nolint:unused
 }
 
 func CreateTickerUseCaseI(

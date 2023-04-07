@@ -150,7 +150,7 @@ func (h *tickerHandler) SearchBySymbol() func(w http.ResponseWriter, r *http.Req
 
 		tickers, err := h.tickersUC.SearchBySymbol(ctx, symbol, -1, "", true)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
