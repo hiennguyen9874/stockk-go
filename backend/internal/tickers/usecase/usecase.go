@@ -170,6 +170,6 @@ func (u *tickerUseCase) GetAllActive(ctx context.Context, isActive bool) ([]*mod
 	return tickers, nil
 }
 
-func (u *tickerUseCase) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
-	return u.tickerPgRepo.SearchBySymbol(ctx, symbol, limit, exchange)
+func (u *tickerUseCase) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string, isActive bool) ([]*models.Ticker, error) {
+	return u.tickerPgRepo.SearchBySymbol(ctx, symbol, limit, exchange, isActive)
 }

@@ -39,3 +39,12 @@ func (r *ClientPgRepo) DeleteWithoutGet(ctx context.Context, id uint) error {
 	}
 	return nil
 }
+
+func (r *ClientPgRepo) CountWithOwner(ctx context.Context, ownerId uint) (int64, error) {
+	var count int64
+
+	if result := r.DB.WithContext(ctx).Model(&models.Client{}).Where("owner_id = ?", ownerId).Count(&count); result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
+}

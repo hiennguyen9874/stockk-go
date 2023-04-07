@@ -29,6 +29,9 @@ import (
 	drawingTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/repository"
 	drawingTemplateUseCase "github.com/hiennguyen9874/stockk-go/internal/drawingtemplates/usecase"
 	apiMiddleware "github.com/hiennguyen9874/stockk-go/internal/middleware"
+	stockSnapshotHttp "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/delivery/http"
+	stockSnapshotRepository "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/repository"
+	stockSnapshotUseCase "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/usecase"
 	studyTemplateHttp "github.com/hiennguyen9874/stockk-go/internal/studytemplates/delivery/http"
 	studyTemplateRepository "github.com/hiennguyen9874/stockk-go/internal/studytemplates/repository"
 	studyTemplateUseCase "github.com/hiennguyen9874/stockk-go/internal/studytemplates/usecase"
@@ -67,6 +70,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	drawingTemplatePgRepo := drawingTemplateRepository.CreateDrawingTemplatePgRepository(db)
 	clientPgRepo := clientRepository.CreateClientPgRepository(db)
 	watchListPgRePo := watchListRepository.CreateWatchListPgRepository(db)
+	stockSnapshotRedisRepo := stockSnapshotRepository.CreateStockSnapshotRedisRepository(redisClient)
 
 	// Distributor
 	userRedisTaskDistributor := userDistributor.NewUserRedisTaskDistributor(taskRedisClient, cfg, logger)
@@ -80,6 +84,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	drawingTemplateUseCase := drawingTemplateUseCase.DrawingTemplateUseCaseI(drawingTemplatePgRepo, cfg, logger)
 	clientUC := clientUseCase.CreateClientUseCaseI(clientPgRepo, cfg, logger)
 	watchListUC := watchListUseCase.CreateWatchListUseCaseI(watchListPgRePo, cfg, logger)
+	stockSnapshotUC := stockSnapshotUseCase.CreateTickerUseCaseI(tickerUC, stockSnapshotRedisRepo, cfg, logger)
 
 	// Handler
 	userHandler := userHttp.CreateUserHandler(userUC, cfg, logger)
@@ -91,6 +96,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	drawingTemplateHandler := drawingTemplateHttp.CreateDrawingTemplateHandler(drawingTemplateUseCase, cfg, logger)
 	clientHandler := clientHttp.CreateClientHandler(clientUC, cfg, logger)
 	watchListHandler := watchListHttp.CreateWatchListHandler(watchListUC, cfg, logger)
+	stockSnapshothandler := stockSnapshotHttp.CreatestockSnapshotHandler(stockSnapshotUC, cfg, logger)
 
 	// middleware
 	mw := apiMiddleware.CreateMiddlewareManager(cfg, logger, userUC)
@@ -121,6 +127,7 @@ func New(db *gorm.DB, redisClient *redis.Client, taskRedisClient *asynq.Client, 
 	dchartHttp.MapDchartRoute(apiRouter, dchartHandler, mw)
 	clientHttp.MapClientRoute(apiRouter, clientHandler, mw)
 	watchListHttp.MapWatchListRoute(apiRouter, watchListHandler, mw)
+	stockSnapshotHttp.MapStockSnapshotRoute(apiRouter, stockSnapshothandler, mw)
 
 	// Storage api
 	storageRouter := chi.NewRouter()

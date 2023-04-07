@@ -690,6 +690,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/stocksnapshot/{symbol}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Get stock snapshot by symbol.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stocksnapshot"
+                ],
+                "summary": "Read stock snapshot by symbol",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticker symbol",
+                        "name": "symbol",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-presenter_TickerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/ticker": {
             "get": {
                 "security": [
@@ -739,6 +806,74 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ticker/search": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Password": []
+                    }
+                ],
+                "description": "Search symbol.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickers"
+                ],
+                "summary": "Search symbol",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "symbol",
+                        "description": "symbol",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse-array_presenter_TickerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/responses.ErrorResponse"
                         }
@@ -929,7 +1064,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-array_presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -984,7 +1119,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1030,7 +1165,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1097,7 +1232,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1166,7 +1301,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1233,7 +1368,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1307,7 +1442,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1372,7 +1507,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1512,7 +1647,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse-presenter_UserResponse"
+                            "$ref": "#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse"
                         }
                     },
                     "400": {
@@ -1873,6 +2008,64 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_hiennguyen9874_stockk-go_internal_auth_presenter.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_superuser": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_superuser": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
         "httpErrors.ErrResponse": {
             "type": "object",
             "properties": {
@@ -2023,6 +2216,9 @@ const docTemplate = `{
                 },
                 "token_type": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_auth_presenter.UserResponse"
                 }
             }
         },
@@ -2052,35 +2248,6 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 8,
                     "example": "password"
-                }
-            }
-        },
-        "presenter.UserResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "is_superuser": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "verified": {
-                    "type": "boolean"
                 }
             }
         },
@@ -2211,6 +2378,21 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse"
+                    }
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "responses.SuccessResponse-array_presenter_ClientResponse": {
             "type": "object",
             "properties": {
@@ -2241,21 +2423,6 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.SuccessResponse-array_presenter_UserResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/presenter.UserResponse"
-                    }
-                },
-                "is_success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "responses.SuccessResponse-array_presenter_WatchListResponse": {
             "type": "object",
             "properties": {
@@ -2264,6 +2431,18 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/presenter.WatchListResponse"
                     }
+                },
+                "is_success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse"
                 },
                 "is_success": {
                     "type": "boolean",
@@ -2288,18 +2467,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/presenter.TickerResponse"
-                },
-                "is_success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "responses.SuccessResponse-presenter_UserResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/presenter.UserResponse"
                 },
                 "is_success": {
                     "type": "boolean",

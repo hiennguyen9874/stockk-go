@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/clients"
@@ -31,9 +32,32 @@ func (u *clientUseCase) GetMultiByOwnerId(ctx context.Context, ownerId uint, lim
 }
 
 func (u *clientUseCase) CreateWithOwner(ctx context.Context, ownerId uint, exp *models.Client) (*models.Client, error) {
+	count, err := u.pgRepo.CountWithOwner(ctx, ownerId)
+	if err != nil {
+		return nil, err
+	}
+
+	if count >= 8 {
+		return nil, errors.New("can not create more than 8 chart")
+	}
+
 	return u.pgRepo.CreateWithOwner(ctx, ownerId, exp)
 }
 
 func (u *clientUseCase) DeleteWithoutGet(ctx context.Context, id uint) error {
+	ticker, err := u.pgRepo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	count, err := u.pgRepo.CountWithOwner(ctx, ticker.OwnerId)
+	if err != nil {
+		return err
+	}
+
+	if count <= 1 {
+		return errors.New("can not remove when remain only one chart")
+	}
+
 	return u.pgRepo.DeleteWithoutGet(ctx, id)
 }

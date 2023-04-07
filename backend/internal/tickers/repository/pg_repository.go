@@ -42,7 +42,7 @@ func (r *TickerPgRepo) GetAllActive(ctx context.Context, isActive bool) ([]*mode
 	return objs, nil
 }
 
-func (r *TickerPgRepo) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string) ([]*models.Ticker, error) {
+func (r *TickerPgRepo) SearchBySymbol(ctx context.Context, symbol string, limit int, exchange string, isActive bool) ([]*models.Ticker, error) {
 	var objs []*models.Ticker
 
 	query := r.DB.WithContext(ctx)
@@ -58,6 +58,8 @@ func (r *TickerPgRepo) SearchBySymbol(ctx context.Context, symbol string, limit 
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
+
+	query = query.Where("is_active = ?", isActive)
 
 	query.Order("symbol").Find(&objs)
 

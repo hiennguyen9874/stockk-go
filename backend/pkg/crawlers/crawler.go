@@ -25,6 +25,7 @@ const (
 type Crawler interface {
 	CrawlStockSymbols(ctx context.Context) ([]Ticker, error)
 	CrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error)
+	CrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error)
 	VNDMapExchange(exchange string) (string, error)
 	VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error)
 	VNDMapResolutionToString(resolution Resolution) (string, error)
@@ -33,6 +34,7 @@ type Crawler interface {
 	SSICrawlStockSymbols(ctx context.Context) ([]Ticker, error)
 	SSIMapResolutionToString(resolution Resolution) (string, error)
 	SSICrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error)
+	VNDCrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error)
 }
 
 type crawler struct {
@@ -57,6 +59,33 @@ type Bar struct {
 	Volume int64
 }
 
+type StockSnapshot struct {
+	Ticker      string
+	RefPrice    float32
+	CeilPrice   float32
+	FloorPrice  float32
+	TltVol      float32
+	TltVal      float32
+	PriceB3     float32
+	PriceB2     float32
+	PriceB1     float32
+	VolB3       float32
+	VolB2       float32
+	VolB1       float32
+	Price       float32
+	Vol         float32
+	PriceS3     float32
+	PriceS2     float32
+	PriceS1     float32
+	VolS3       float32
+	VolS2       float32
+	VolS1       float32
+	High        float32
+	Low         float32
+	BuyForeign  float32
+	SellForeign float32
+}
+
 func NewCrawler(cfg *config.Config, logger logger.Logger) Crawler {
 	return &crawler{cfg: cfg, logger: logger}
 }
@@ -78,6 +107,15 @@ func (cr *crawler) CrawlStockHistory(ctx context.Context, symbol string, resolut
 		return cr.VNDCrawlStockHistory(ctx, symbol, resolution, from, to)
 	case "SSI":
 		return cr.SSICrawlStockHistory(ctx, symbol, resolution, from, to)
+	default:
+		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.Source)
+	}
+}
+
+func (cr *crawler) CrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error) {
+	switch cr.cfg.Crawler.Source {
+	case "VND":
+		return cr.VNDCrawlStockSnapshot(ctx, symbols)
 	default:
 		return nil, fmt.Errorf("not support crawler source: %v", cr.cfg.Crawler.Source)
 	}

@@ -1,5 +1,43 @@
 basePath: /api
 definitions:
+  github_com_hiennguyen9874_stockk-go_internal_auth_presenter.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_superuser:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_superuser:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+      verified:
+        type: boolean
+    type: object
   httpErrors.ErrResponse:
     properties:
       msg:
@@ -104,6 +142,8 @@ definitions:
         type: string
       token_type:
         type: string
+      user:
+        $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_auth_presenter.UserResponse'
     type: object
   presenter.UserCreate:
     properties:
@@ -126,25 +166,6 @@ definitions:
     - email
     - name
     - password
-    type: object
-  presenter.UserResponse:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      is_active:
-        type: boolean
-      is_superuser:
-        type: boolean
-      name:
-        type: string
-      updated_at:
-        type: string
-      verified:
-        type: boolean
     type: object
   presenter.UserUpdate:
     properties:
@@ -238,6 +259,16 @@ definitions:
         example: false
         type: boolean
     type: object
+  responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
+        type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
   responses.SuccessResponse-array_presenter_ClientResponse:
     properties:
       data:
@@ -258,22 +289,20 @@ definitions:
         example: true
         type: boolean
     type: object
-  responses.SuccessResponse-array_presenter_UserResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/presenter.UserResponse'
-        type: array
-      is_success:
-        example: true
-        type: boolean
-    type: object
   responses.SuccessResponse-array_presenter_WatchListResponse:
     properties:
       data:
         items:
           $ref: '#/definitions/presenter.WatchListResponse'
         type: array
+      is_success:
+        example: true
+        type: boolean
+    type: object
+  responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_hiennguyen9874_stockk-go_internal_users_presenter.UserResponse'
       is_success:
         example: true
         type: boolean
@@ -290,14 +319,6 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/presenter.TickerResponse'
-      is_success:
-        example: true
-        type: boolean
-    type: object
-  responses.SuccessResponse-presenter_UserResponse:
-    properties:
-      data:
-        $ref: '#/definitions/presenter.UserResponse'
       is_success:
         example: true
         type: boolean
@@ -755,6 +776,49 @@ paths:
       summary: Update client
       tags:
       - clients
+  /stocksnapshot/{symbol}:
+    get:
+      consumes:
+      - application/json
+      description: Get stock snapshot by symbol.
+      parameters:
+      - description: Ticker symbol
+        in: path
+        name: symbol
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-presenter_TickerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Read stock snapshot by symbol
+      tags:
+      - stocksnapshot
   /ticker:
     get:
       consumes:
@@ -885,6 +949,50 @@ paths:
       summary: Update ticker
       tags:
       - tickers
+  /ticker/search:
+    post:
+      consumes:
+      - application/json
+      description: Search symbol.
+      parameters:
+      - description: symbol
+        format: symbol
+        in: query
+        name: symbol
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse-array_presenter_TickerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - OAuth2Password: []
+      summary: Search symbol
+      tags:
+      - tickers
   /user:
     get:
       consumes:
@@ -907,7 +1015,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-array_presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-array_github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -942,7 +1050,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -977,7 +1085,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1019,7 +1127,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1067,7 +1175,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1157,7 +1265,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1194,7 +1302,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1237,7 +1345,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1281,7 +1389,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.SuccessResponse-presenter_UserResponse'
+            $ref: '#/definitions/responses.SuccessResponse-github_com_hiennguyen9874_stockk-go_internal_users_presenter_UserResponse'
         "400":
           description: Bad Request
           schema:
