@@ -4,6 +4,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/internal/worker"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/sentry"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,12 @@ var workerCmd = &cobra.Command{
 		appLogger := logger.NewApiLogger(cfg)
 		appLogger.InitLogger()
 		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+
+		err := sentry.Init(cfg)
+		if err != nil {
+			appLogger.Fatalf("Sentry init: %s", err)
+		}
+		defer sentry.Flush()
 
 		server, err := worker.NewTaskProcessor(cfg, appLogger)
 		if err != nil {

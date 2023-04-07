@@ -26,6 +26,7 @@ type Config struct {
 	InfluxDB       InfluxDBConfig
 	Crawler        CrawlerConfig
 	TaskRedis      TaskRedisConfig
+	Sentry         SentryConfig
 }
 
 type ServerConfig struct {
@@ -118,6 +119,11 @@ type CrawlerConfig struct {
 	TickerInsertBatchSize   int
 	BarInsertBatchSize      int
 	DefaultActive           []string
+}
+
+type SentryConfig struct {
+	Dsn         string
+	Environment string
 }
 
 func ToSnakeCase(str string) string {

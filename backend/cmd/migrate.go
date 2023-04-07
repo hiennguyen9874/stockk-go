@@ -5,6 +5,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/internal/models"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/sentry"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 )
@@ -19,6 +20,12 @@ var migrateCmd = &cobra.Command{
 		appLogger := logger.NewApiLogger(cfg)
 		appLogger.InitLogger()
 		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+
+		err := sentry.Init(cfg)
+		if err != nil {
+			appLogger.Fatalf("Sentry init: %s", err)
+		}
+		defer sentry.Flush()
 
 		psqlDB, err := postgres.NewPsqlDB(cfg)
 		if err != nil {

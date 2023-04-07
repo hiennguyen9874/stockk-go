@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
@@ -12,6 +15,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
+	"github.com/hiennguyen9874/stockk-go/pkg/sentry"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +31,12 @@ var crawlHistoryDCmd = &cobra.Command{
 		appLogger := logger.NewApiLogger(cfg)
 		appLogger.InitLogger()
 		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
+
+		err := sentry.Init(cfg)
+		if err != nil {
+			appLogger.Fatalf("Sentry init: %s", err)
+		}
+		defer sentry.Flush()
 
 		psqlDB, err := postgres.NewPsqlDB(cfg)
 		if err != nil {
@@ -52,28 +62,36 @@ var crawlHistoryDCmd = &cobra.Command{
 
 		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, tickerRedisRepo, cfg, appLogger)
 
-		for {
-			status, err := influxDB.Ping(ctx)
-			if err != nil {
-				appLogger.Warn(err)
-				time.Sleep(1 * time.Hour)
-				continue
-			}
-			if !status {
-				appLogger.Warn("influxdb not connected")
-				time.Sleep(1 * time.Hour)
-				continue
-			}
+		go func() {
+			for {
+				status, err := influxDB.Ping(ctx)
+				if err != nil {
+					appLogger.Warn(err)
+					time.Sleep(1 * time.Hour)
+					continue
+				}
+				if !status {
+					appLogger.Warn("influxdb not connected")
+					time.Sleep(1 * time.Hour)
+					continue
+				}
 
-			appLogger.Info("Start syncing....")
-			err = barUseCase.SyncDAllSymbol(ctx, cfg.Crawler.TickerDownloadBatchSize, cfg.Crawler.TickerInsertBatchSize, cfg.Crawler.BarInsertBatchSize)
-			if err != nil {
-				appLogger.Warn(err)
-			}
-			appLogger.Info("Done sync, sleep 30s!")
+				appLogger.Info("Start syncing....")
+				err = barUseCase.SyncDAllSymbol(ctx, cfg.Crawler.TickerDownloadBatchSize, cfg.Crawler.TickerInsertBatchSize, cfg.Crawler.BarInsertBatchSize)
+				if err != nil {
+					appLogger.Warn(err)
+				}
+				appLogger.Info("Done sync, sleep 30s!")
 
-			time.Sleep(1 * time.Hour)
-		}
+				time.Sleep(1 * time.Hour)
+			}
+		}()
+
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+		sig := <-quit
+
+		appLogger.Infof("Shutting down server... Reason: %s", sig)
 	},
 }
 
