@@ -21,7 +21,10 @@ var migrateCmd = &cobra.Command{
 		appLogger.InitLogger()
 		appLogger.Infof("AppVersion: %s, LogLevel: %s, Mode: %s", cfg.Server.AppVersion, cfg.Logger.Level, cfg.Server.Mode)
 
-		sentry.Init(cfg)
+		err := sentry.Init(cfg)
+		if err != nil {
+			appLogger.Fatalf("Sentry init: %s", err)
+		}
 		defer sentry.Flush()
 
 		psqlDB, err := postgres.NewPsqlDB(cfg)
