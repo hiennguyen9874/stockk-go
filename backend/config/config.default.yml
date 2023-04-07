@@ -71,6 +71,10 @@ taskRedis:
   Addr: redis:6379
   Db: 1
 
+sentry:
+  Dsn: https://b72a6135c0ca4ddd9117d9e234fa3f65@o4504964895735808.ingest.sentry.io/4504964897439744
+  Environment: Development
+
 crawler:
   Source: SSI
   TickerDownloadBatchSize: 5

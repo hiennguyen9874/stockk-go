@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/config"
-	barRepository "github.com/hiennguyen9874/stockk-go/internal/bars/repository"
-	barUseCase "github.com/hiennguyen9874/stockk-go/internal/bars/usecase"
+	stockSnapshotRepository "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/repository"
+	stockSnapshotUseCase "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/usecase"
 	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
-	"github.com/hiennguyen9874/stockk-go/pkg/db/influxdb"
+	tickerUseCase "github.com/hiennguyen9874/stockk-go/internal/tickers/usecase"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
@@ -19,13 +19,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var crawlHistoryMCmd = &cobra.Command{
-	Use:   "crawlhistorym",
-	Short: "crawl history",
-	Long:  "crawl history",
+var stockSnapshotCmd = &cobra.Command{
+	Use:   "crawlstocksnapshot",
+	Short: "crawl stock snapshot",
+	Long:  "crawl stock snapshot",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-
 		cfg := config.GetCfg()
 
 		appLogger := logger.NewApiLogger(cfg)
@@ -42,43 +40,23 @@ var crawlHistoryMCmd = &cobra.Command{
 			appLogger.Infof("Postgres connected")
 		}
 
-		influxDB, err := influxdb.NewInfluxDB(cfg)
-		if err != nil {
-			appLogger.Fatalf("InfluxDB init: %s", err)
-		} else {
-			appLogger.Infof("InfluxDB connected")
-		}
-
 		redisClient := redis.NewRedis(cfg)
 
 		// Repository
 		tickerPgRepo := tickerRepository.CreateTickerPgRepository(psqlDB)
 		tickerRedisRepo := tickerRepository.CreateTickerRedisRepository(redisClient)
-		barInfluxDBRepo := barRepository.CreateBarRepo(influxDB, cfg.InfluxDB.Org)
-		barRedisRepo := barRepository.CreateBarRedisRepository(redisClient)
+		stockSnapshotRedisRepo := stockSnapshotRepository.CreateStockSnapshotRedisRepository(redisClient)
 
-		barUseCase := barUseCase.CreateBarUseCaseI(barInfluxDBRepo, barRedisRepo, tickerPgRepo, tickerRedisRepo, cfg, appLogger)
+		// UseCase
+		tickerUC := tickerUseCase.CreateTickerUseCaseI(tickerPgRepo, tickerRedisRepo, cfg, appLogger)
+		stockSnapshotUC := stockSnapshotUseCase.CreateTickerUseCaseI(tickerUC, stockSnapshotRedisRepo, cfg, appLogger)
+
+		ctx := context.Background()
 
 		go func() {
 			for {
-				status, err := influxDB.Ping(ctx)
-				if err != nil {
-					appLogger.Warn(err)
-					time.Sleep(30 * time.Second)
-					continue
-				}
-				if !status {
-					appLogger.Warn("influxdb not connected")
-					time.Sleep(30 * time.Second)
-					continue
-				}
+				stockSnapshotUC.CrawlAllStocksSnapshot(ctx)
 
-				appLogger.Info("Start syncing....")
-				err = barUseCase.SyncMAllSymbol(ctx, cfg.Crawler.TickerDownloadBatchSize, cfg.Crawler.TickerInsertBatchSize, cfg.Crawler.BarInsertBatchSize)
-				if err != nil {
-					appLogger.Warn(err)
-				}
-				appLogger.Info("Done sync, sleep 30s!")
 				time.Sleep(30 * time.Second)
 			}
 		}()
@@ -92,5 +70,5 @@ var crawlHistoryMCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(crawlHistoryMCmd)
+	RootCmd.AddCommand(stockSnapshotCmd)
 }
