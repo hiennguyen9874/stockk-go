@@ -49,19 +49,19 @@ func (h *clientHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 
 		err := json.NewDecoder(r.Body).Decode(&client)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(ctx, client)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -71,7 +71,7 @@ func (h *clientHandler) Create() func(w http.ResponseWriter, r *http.Request) {
 			mapModel(client),
 		)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -101,24 +101,24 @@ func (h *clientHandler) Get() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		client, err := h.clientsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && client.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
@@ -151,7 +151,7 @@ func (h *clientHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -162,7 +162,7 @@ func (h *clientHandler) GetMulti() func(w http.ResponseWriter, r *http.Request) 
 			clients, err = h.clientsUC.GetMultiByOwnerId(ctx, user.Id, limit, offset)
 		}
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 		render.Respond(w, r, responses.CreateSuccessResponse(mapModelsResponse(clients)))
@@ -190,30 +190,30 @@ func (h *clientHandler) Delete() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		client, err := h.clientsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && client.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
 		err = h.clientsUC.DeleteWithoutGet(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
@@ -243,7 +243,7 @@ func (h *clientHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 
 		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
@@ -251,30 +251,30 @@ func (h *clientHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 
 		err = json.NewDecoder(r.Body).Decode(&client)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		err = utils.ValidateStruct(r.Context(), client)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrValidation(err))) //nolint:errcheck
 			return
 		}
 
 		user, err := middleware.GetUserFromCtx(ctx)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		dbClient, err := h.clientsUC.Get(ctx, uint(id))
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
 		if !user.IsSuperUser && dbClient.OwnerId != user.Id {
-			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err)))
+			render.Render(w, r, responses.CreateErrorResponse(httpErrors.ErrNotEnoughPrivileges(err))) //nolint:errcheck
 			return
 		}
 
@@ -288,7 +288,7 @@ func (h *clientHandler) Update() func(w http.ResponseWriter, r *http.Request) {
 
 		updatedClient, err := h.clientsUC.Update(r.Context(), uint(id), values)
 		if err != nil {
-			render.Render(w, r, responses.CreateErrorResponse(err))
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return
 		}
 
