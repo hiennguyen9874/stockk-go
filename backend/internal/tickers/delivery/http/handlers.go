@@ -125,6 +125,39 @@ func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *
 	}
 }
 
+// Update godoc
+// @Summary Search symbol
+// @Description Search symbol.
+// @Tags tickers
+// @Accept json
+// @Produce json
+// @Param symbol query string true "symbol" Format(symbol)
+// @Success 200 {object} responses.SuccessResponse[[]presenter.TickerResponse]
+// @Failure 400	{object} responses.ErrorResponse
+// @Failure 401	{object} responses.ErrorResponse
+// @Failure 403	{object} responses.ErrorResponse
+// @Failure 404	{object} responses.ErrorResponse
+// @Failure 422	{object} responses.ErrorResponse
+// @Security OAuth2Password
+// @Router /ticker/search [post]
+func (h *tickerHandler) SearchBySymbol() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		q := r.URL.Query()
+
+		symbol := q.Get("symbol")
+
+		tickers, err := h.tickersUC.SearchBySymbol(ctx, symbol, -1, "", true)
+		if err != nil {
+			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
+			return
+		}
+
+		render.Respond(w, r, responses.CreateSuccessResponse(mapModelsResponse(tickers)))
+	}
+}
+
 func mapModelResponse(exp *models.Ticker) *presenter.TickerResponse {
 	return &presenter.TickerResponse{
 		Id:        exp.Id,

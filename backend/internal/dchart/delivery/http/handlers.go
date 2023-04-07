@@ -150,7 +150,7 @@ func (h *dchartHandler) Search() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		tickers, err := h.tickersUC.SearchBySymbol(ctx, queryQ, limitQ, exchangeQ)
+		tickers, err := h.tickersUC.SearchBySymbol(ctx, queryQ, limitQ, exchangeQ, true)
 		if err != nil {
 			render.Render(w, r, responses.CreateErrorResponse(err)) //nolint:errcheck
 			return

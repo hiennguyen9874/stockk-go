@@ -76,12 +76,15 @@ sentry:
   Environment: Development
 
 crawler:
-  Source: SSI
+  Source: VND
   TickerDownloadBatchSize: 5
   TickerInsertBatchSize: 5
   BarInsertBatchSize: 5
   DefaultActive:
     [
+      "VNINDEX",
+      "VN30",
+      "VN30F1M",
       "ACB",
       "ANV",
       "ASM",

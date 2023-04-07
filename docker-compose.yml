@@ -64,12 +64,28 @@ services:
     env_file:
       - ${COMPOSE_ENV_FILE}
 
-  history-crawler-m:
+  # history-crawler-m:
+  #   image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
+  #   build:
+  #     context: backend
+  #     dockerfile: Dockerfile
+  #   command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 120; go run main.go migrate && go run main.go crawlhistorym"
+  #   volumes:
+  #     - ./backend:/app
+  #   depends_on:
+  #     - db
+  #     - redis
+  #     - influxdb
+  #     - backend
+  #   env_file:
+  #     - ${COMPOSE_ENV_FILE}
+
+  snapshot-crawler:
     image: hiennguyen9874/stockk-go:${SERVER_APP_VERSION}-dev
     build:
       context: backend
       dockerfile: Dockerfile
-    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 120; go run main.go migrate && go run main.go crawlhistorym"
+    command: sh -c "wait-for-it -w db:5432 -w redis:6379 -w influxdb:8086 -t 5 -- sleep 120; go run main.go migrate && go run main.go crawlstocksnapshot"
     volumes:
       - ./backend:/app
     depends_on:

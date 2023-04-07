@@ -12,4 +12,5 @@ type ClientPgRepository interface {
 	GetMultiByOwnerId(ctx context.Context, ownerId uint, limit, offset int) ([]*models.Client, error)
 	CreateWithOwner(ctx context.Context, ownerId uint, exp *models.Client) (*models.Client, error)
 	DeleteWithoutGet(ctx context.Context, id uint) error
+	CountWithOwner(ctx context.Context, ownerId uint) (int64, error)
 }
