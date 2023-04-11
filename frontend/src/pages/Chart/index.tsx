@@ -11,8 +11,6 @@ const Chart: FC = () => {
   const [symbol, setSymbol] = useState('TCB');
   const [chartIdx, setChartIdx] = useState<number>(0);
 
-  console.log(symbol);
-
   return (
     <div className="w-screen h-screen">
       <div className="h-full flex py-1.5 flex-row bg-slate-900">
@@ -21,6 +19,7 @@ const Chart: FC = () => {
             chartIdx={chartIdx}
             setChartIdx={setChartIdx}
             setSymbol={setSymbol}
+            symbol={symbol}
           />
 
           <div className="w-full h-full">

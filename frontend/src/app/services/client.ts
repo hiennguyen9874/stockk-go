@@ -1,5 +1,10 @@
 import { api } from './api';
-import type { Response, ClientResponse, ClientCreate } from './types';
+import type {
+  Response,
+  ClientResponse,
+  ClientCreate,
+  ClientUpdate,
+} from './types';
 
 export const clientApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -36,6 +41,17 @@ export const clientApi = api.injectEndpoints({
       invalidatesTags: ['Client'],
       extraOptions: { maxRetries: 0 },
     }),
+    updateClient: builder.mutation<Response<ClientResponse>, ClientUpdate>({
+      query: (clientUpdate) => ({
+        url: `client/${clientUpdate.id}`,
+        method: 'PUT',
+        body: {
+          current_ticker: clientUpdate.current_ticker,
+          current_resolution: clientUpdate.current_resolution,
+        },
+      }),
+      invalidatesTags: (client) => [{ type: 'Client', id: client?.data.id }],
+    }),
   }),
 });
 
@@ -43,8 +59,9 @@ export const {
   useGetClientsQuery,
   useDeleteClientMutation,
   useCreateClientMutation,
+  useUpdateClientMutation,
 } = clientApi;
 
 export const {
-  endpoints: { getClients, deleteClient, createClient },
+  endpoints: { getClients, deleteClient, createClient, updateClient },
 } = clientApi;
