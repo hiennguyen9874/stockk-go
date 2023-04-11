@@ -82,13 +82,28 @@ const TVChartContainer: FC<TVChartContainerProps> = ({
         auto_save_delay: 5,
         theme: 'Dark',
         timezone,
-        settings_adapter: {
-          setValue: (key: string, value: string): void => {
-            localStorage.setItem(key, value);
-          },
-          removeValue: (key: string): void => {
-            localStorage.removeItem(key);
-          },
+        overrides: {
+          'mainSeriesProperties.candleStyle.upColor': 'rgba(60, 220, 150, 1)',
+          'mainSeriesProperties.candleStyle.downColor': 'rgba(255, 88, 88, 1)',
+          'mainSeriesProperties.candleStyle.borderColor': '#378658',
+          'mainSeriesProperties.candleStyle.borderUpColor':
+            'rgba(60, 220, 150, 1)',
+          'mainSeriesProperties.candleStyle.borderDownColor':
+            'rgba(255, 88, 88, 1)',
+          'mainSeriesProperties.candleStyle.wickColor': '#B5B5B8',
+          'mainSeriesProperties.candleStyle.wickUpColor':
+            'rgba(60, 220, 150, 1)',
+          'mainSeriesProperties.candleStyle.wickDownColor':
+            'rgba(255, 88, 88, 1)',
+          'dataWindowProperties.background': 'rgba( 255, 254, 206, 0.2)',
+          'dataWindowProperties.border': 'rgba( 96, 96, 144, 1)',
+          'paneProperties.backgroundType': 'solid',
+          'paneProperties.background': 'rgba(35, 38, 50, 1)',
+          'paneProperties.vertGridProperties.color': 'rgba(50, 54, 67, 1)',
+          'paneProperties.vertGridProperties.style': 0,
+          'paneProperties.horzGridProperties.color': 'rgba(50, 54, 67, 1)',
+          'paneProperties.horzGridProperties.style': 0,
+          'scalesProperties.lineColor': 'rgba(50, 54, 67, 1)',
         },
       };
 

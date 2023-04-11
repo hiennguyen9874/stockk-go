@@ -22,13 +22,24 @@ const ChartTab: FC<ChartTabProps> = ({ chartIdx, setChartIdx, setSymbol }) => {
   const [deleteClient] = useDeleteClientMutation();
 
   useEffect(() => {
-    if (clients !== undefined) {
+    if (clients !== undefined && clients.data.length > 0) {
       if (clients.data.find((x) => x.id === chartIdx) === undefined) {
         setChartIdx(clients.data[0].id);
         setSymbol(clients.data[0].current_ticker);
       }
     }
   }, [chartIdx, clients, setChartIdx, setSymbol]);
+
+  useEffect(() => {
+    if (clients !== undefined && clients.data.length === 0) {
+      (async () => {
+        await createClient({
+          current_ticker: 'TCB',
+          current_resolution: 'D',
+        }).unwrap();
+      })();
+    }
+  }, [clients, createClient]);
 
   return (
     <div className="w-full h-8 flex flex-row justify-between rounded-sm bg-slate-700">

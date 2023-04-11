@@ -40,6 +40,8 @@ const Search = ({ isOpen, onClose, onAddRemove }: SearchProps) => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
                 if (e.code === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
                   if (inputValue !== '' && tickers && tickers.data.length > 0) {
                     onAddRemove(tickers.data[0].symbol);
                   }

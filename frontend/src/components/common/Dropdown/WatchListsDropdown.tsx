@@ -186,7 +186,7 @@ const WatchListsDropdown: FC<WatchListsProps> = ({
         >
           <Menu.Items
             className={cx(
-              'absolute w-full h-[50vh] right-0 mt-1 px-1.5 origin-top-right',
+              'absolute w-full max-h-[50vh] right-0 mt-1 px-1.5 origin-top-right',
               'divide-y divide-white divide-opacity-20',
               'rounded-md shadow-lg',
               'bg-slate-700',
