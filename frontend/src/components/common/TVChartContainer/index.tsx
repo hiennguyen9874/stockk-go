@@ -83,27 +83,33 @@ const TVChartContainer: FC<TVChartContainerProps> = ({
         theme: 'Dark',
         timezone,
         overrides: {
-          'mainSeriesProperties.candleStyle.upColor': 'rgba(60, 220, 150, 1)',
-          'mainSeriesProperties.candleStyle.downColor': 'rgba(255, 88, 88, 1)',
+          'mainSeriesProperties.candleStyle.upColor': 'rgba(8, 153, 129, 1)',
+          'mainSeriesProperties.candleStyle.downColor': 'rgba(242, 54, 69, 1)',
+          'mainSeriesProperties.candleStyle.drawWick': true,
+          'mainSeriesProperties.candleStyle.drawBorder': true,
           'mainSeriesProperties.candleStyle.borderColor': '#378658',
           'mainSeriesProperties.candleStyle.borderUpColor':
-            'rgba(60, 220, 150, 1)',
+            'rgba(8, 153, 129, 1)',
           'mainSeriesProperties.candleStyle.borderDownColor':
-            'rgba(255, 88, 88, 1)',
+            'rgba(242, 54, 69, 1)',
           'mainSeriesProperties.candleStyle.wickColor': '#B5B5B8',
           'mainSeriesProperties.candleStyle.wickUpColor':
-            'rgba(60, 220, 150, 1)',
+            'rgba(8, 153, 129, 1)',
           'mainSeriesProperties.candleStyle.wickDownColor':
-            'rgba(255, 88, 88, 1)',
-          'dataWindowProperties.background': 'rgba( 255, 254, 206, 0.2)',
+            'rgba(242, 54, 69, 1)',
+          'dataWindowProperties.background': 'rgba(35, 38, 50, 1)',
           'dataWindowProperties.border': 'rgba( 96, 96, 144, 1)',
-          'paneProperties.backgroundType': 'solid',
+          'paneProperties.backgroundType': 'gradient',
           'paneProperties.background': 'rgba(35, 38, 50, 1)',
-          'paneProperties.vertGridProperties.color': 'rgba(50, 54, 67, 1)',
+          'paneProperties.backgroundGradientStartColor': '#181C27',
+          'paneProperties.backgroundGradientEndColor': '#131722',
+          'paneProperties.vertGridProperties.color':
+            'rgba(240, 243, 250, 0.06)',
           'paneProperties.vertGridProperties.style': 0,
-          'paneProperties.horzGridProperties.color': 'rgba(50, 54, 67, 1)',
+          'paneProperties.horzGridProperties.color':
+            'rgba(240, 243, 250, 0.06)',
           'paneProperties.horzGridProperties.style': 0,
-          'scalesProperties.lineColor': 'rgba(50, 54, 67, 1)',
+          'scalesProperties.lineColor': 'rgba(240, 243, 250, 0)',
         },
       };
 
