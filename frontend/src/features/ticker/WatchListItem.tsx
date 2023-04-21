@@ -31,29 +31,40 @@ const WatchListItem: FC<WatchListItemProps> = ({
         <WatchListCard
           key={symbol}
           symbol={symbol}
-          price={tickerSnapshot.data.price}
+          price={tickerSnapshot.data.match_price}
           description={ticker.data.full_name}
           changePrice={
-            tickerSnapshot.data.price - tickerSnapshot.data.ref_price
+            tickerSnapshot.data.match_price - tickerSnapshot.data.basic_price
           }
           changePercent={
-            ((tickerSnapshot.data.price - tickerSnapshot.data.ref_price) *
+            ((tickerSnapshot.data.match_price -
+              tickerSnapshot.data.basic_price) *
               100) /
-            tickerSnapshot.data.ref_price
+            tickerSnapshot.data.basic_price
           }
           isLight={isLight}
           onClick={() => onSet()}
           status={(() => {
-            if (tickerSnapshot.data.price === tickerSnapshot.data.ceil_price)
+            if (
+              tickerSnapshot.data.match_price ===
+              tickerSnapshot.data.ceiling_price
+            )
               return 'ceil';
 
-            if (tickerSnapshot.data.price === tickerSnapshot.data.floor_price)
+            if (
+              tickerSnapshot.data.match_price ===
+              tickerSnapshot.data.floor_price
+            )
               return 'floor';
 
-            if (tickerSnapshot.data.price < tickerSnapshot.data.ref_price)
+            if (
+              tickerSnapshot.data.match_price < tickerSnapshot.data.basic_price
+            )
               return 'decrease';
 
-            if (tickerSnapshot.data.price > tickerSnapshot.data.ref_price)
+            if (
+              tickerSnapshot.data.match_price > tickerSnapshot.data.basic_price
+            )
               return 'increase';
 
             return 'reference';

@@ -13,6 +13,7 @@ export interface ClientResponse {
 }
 
 export interface ClientUpdate {
+  id: number;
   current_ticker: string;
   current_resolution: string;
 }
