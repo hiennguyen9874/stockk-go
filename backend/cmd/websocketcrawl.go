@@ -70,7 +70,12 @@ var websocketCrawlCmd = &cobra.Command{
 
 		go func() {
 			for {
-				websocketCrawlers.Connect()
+				err := websocketCrawlers.Connect()
+				if err != nil {
+					appLogger.Warnf("can't not connect to websocket: %v", err)
+					time.Sleep(10 * time.Second)
+					continue
+				}
 
 				errCh := make(chan error)
 
@@ -252,7 +257,7 @@ var websocketCrawlCmd = &cobra.Command{
 					}
 				}()
 
-				err := <-errCh
+				err = <-errCh
 				if err != nil {
 					appLogger.Warnf("error: %v", err)
 				}
