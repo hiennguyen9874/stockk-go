@@ -49,9 +49,9 @@ autolabeler:
       - '/fix\/.+/'
     title:
       - "/fix/i"
-  - label: "feature"
+  - label: "enhancement"
     branch:
-      - '/feature\/.+/'
+      - '/feat\/.+/'
     body:
       - "/JIRA-[0-9]{1,4}/"
   - label: "skip-changelog"
