@@ -21,7 +21,7 @@ func CreateWatchListPgRepository(db *gorm.DB) watchlists.WatchListPgRepository {
 
 func (r *WatchListPgRepo) GetMultiByOwnerId(ctx context.Context, ownerId uint, limit, offset int) ([]*models.WatchList, error) {
 	var objs []*models.WatchList
-	r.DB.WithContext(ctx).Where("owner_id = ?", ownerId).Order("created_at").Limit(limit).Offset(offset).Find(&objs)
+	r.DB.WithContext(ctx).Where("owner_id = ?", ownerId).Order("id").Limit(limit).Offset(offset).Find(&objs)
 	return objs, nil
 }
 

@@ -3,16 +3,15 @@ package crawlers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
+	"github.com/hiennguyen9874/stockk-go/pkg/vnd"
 )
 
 func (cr *crawler) VNDMapExchange(exchange string) (string, error) {
@@ -238,269 +237,121 @@ func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) 
 
 	var snapshots []StockSnapshot
 
-	convertToFloat := func(valString string) (float32, error) {
-		if valString == "" {
-			return 0, nil
-		}
-
-		valFloat64, err := strconv.ParseFloat(valString, 32)
-		if err != nil {
-			return 0, err
-		}
-
-		return float32(valFloat64), nil
-	}
-
 	for _, msg := range response {
-		snapshotArray, _ := cr.VNDTransformMessage(ctx, msg)
+		messageArray := vnd.DecodeMessage(msg)
+
+		messageDict, err := vnd.MessageArrayToDict("S", messageArray)
+		if err != nil {
+			return nil, err
+		}
 
 		var snapshot StockSnapshot
 
-		if snapshotArray[1] == "S" && snapshotArray[2] == "10" {
-			snapshot.Ticker = snapshotArray[0]
-
-			refprice, err := convertToFloat(snapshotArray[3])
+		if value, ok := messageDict["accumulatedVal"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
-			snapshot.RefPrice = float32(refprice)
-			ceilprice, err := convertToFloat(snapshotArray[5])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.CeilPrice = float32(ceilprice)
-			floorprice, err := convertToFloat(snapshotArray[4])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.FloorPrice = float32(floorprice)
-			tltvol, err := convertToFloat(snapshotArray[26])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.TltVol = float32(tltvol)
-			tltval, err := convertToFloat(snapshotArray[25])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.TltVal = float32(tltval)
-			priceb3, err := convertToFloat(snapshotArray[8])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB3 = float32(priceb3)
-			priceb2, err := convertToFloat(snapshotArray[7])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB2 = float32(priceb2)
-			priceb1, err := convertToFloat(snapshotArray[6])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB1 = float32(priceb1)
-			volb3, err := convertToFloat(snapshotArray[11])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB3 = float32(volb3)
-			volb2, err := convertToFloat(snapshotArray[10])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB2 = float32(volb2)
-			volb1, err := convertToFloat(snapshotArray[9])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB1 = float32(volb1)
-			price, err := convertToFloat(snapshotArray[27])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Price = float32(price)
-			vol, err := convertToFloat(snapshotArray[28])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Vol = float32(vol)
-			prices3, err := convertToFloat(snapshotArray[14])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS3 = float32(prices3)
-			prices2, err := convertToFloat(snapshotArray[13])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS2 = float32(prices2)
-			prices1, err := convertToFloat(snapshotArray[12])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS1 = float32(prices1)
-			vols3, err := convertToFloat(snapshotArray[15])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS3 = float32(vols3)
-			vols2, err := convertToFloat(snapshotArray[16])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS2 = float32(vols2)
-			vols1, err := convertToFloat(snapshotArray[17])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS1 = float32(vols1)
-			high, err := convertToFloat(snapshotArray[23])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.High = float32(high)
-			low, err := convertToFloat(snapshotArray[24])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Low = float32(low)
-			buyforeign, err := convertToFloat(snapshotArray[21])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.BuyForeign = float32(buyforeign)
-			sellforeign, err := convertToFloat(snapshotArray[22])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.SellForeign = float32(sellforeign)
-
-			snapshots = append(snapshots, snapshot)
-
-		} else if snapshotArray[1] == "ST" && (snapshotArray[2] == "02" || snapshotArray[2] == "03") {
-			snapshot.Ticker = snapshotArray[0]
-
-			refprice, err := convertToFloat(snapshotArray[3])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.RefPrice = float32(refprice)
-			ceilprice, err := convertToFloat(snapshotArray[5])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.CeilPrice = float32(ceilprice)
-			floorprice, err := convertToFloat(snapshotArray[4])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.FloorPrice = float32(floorprice)
-			tltvol, err := convertToFloat(snapshotArray[54])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.TltVol = float32(tltvol)
-			tltval, err := convertToFloat(snapshotArray[53])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.TltVal = float32(tltval)
-			priceb3, err := convertToFloat(snapshotArray[8])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB3 = float32(priceb3)
-			priceb2, err := convertToFloat(snapshotArray[7])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB2 = float32(priceb2)
-			priceb1, err := convertToFloat(snapshotArray[6])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceB1 = float32(priceb1)
-			volb3, err := convertToFloat(snapshotArray[18])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB3 = float32(volb3)
-			volb2, err := convertToFloat(snapshotArray[17])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB2 = float32(volb2)
-			volb1, err := convertToFloat(snapshotArray[16])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolB1 = float32(volb1)
-			price, err := convertToFloat(snapshotArray[55])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Price = float32(price)
-			vol, err := convertToFloat(snapshotArray[56])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Vol = float32(vol)
-			prices3, err := convertToFloat(snapshotArray[28])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS3 = float32(prices3)
-			prices2, err := convertToFloat(snapshotArray[27])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS2 = float32(prices2)
-			prices1, err := convertToFloat(snapshotArray[26])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.PriceS1 = float32(prices1)
-			vols3, err := convertToFloat(snapshotArray[38])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS3 = float32(vols3)
-			vols2, err := convertToFloat(snapshotArray[37])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS2 = float32(vols2)
-			vols1, err := convertToFloat(snapshotArray[36])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.VolS1 = float32(vols1)
-			high, err := convertToFloat(snapshotArray[51])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.High = float32(high)
-			low, err := convertToFloat(snapshotArray[52])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.Low = float32(low)
-			buyforeign, err := convertToFloat(snapshotArray[49])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.BuyForeign = float32(buyforeign)
-			sellforeign, err := convertToFloat(snapshotArray[50])
-			if err != nil {
-				return nil, err
-			}
-			snapshot.SellForeign = float32(sellforeign)
-
-			snapshots = append(snapshots, snapshot)
-		} else {
-			return nil, errors.New("not support message")
+			snapshot.AccumulatedVal = valueFloat
 		}
+		if value, ok := messageDict["accumulatedVol"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.AccumulatedVol = valueFloat
+		}
+		if value, ok := messageDict["basicPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.BasicPrice = valueFloat
+		}
+		if value, ok := messageDict["buyForeignQtty"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.BuyForeignQtty = valueFloat
+		}
+		if value, ok := messageDict["ceilingPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.CeilingPrice = valueFloat
+		}
+		if value, ok := messageDict["code"]; ok && value != "" {
+			snapshot.Code = value
+		}
+		if value, ok := messageDict["currentRoom"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.CurrentRoom = valueFloat
+		}
+		if value, ok := messageDict["floorCode"]; ok && value != "" {
+			snapshot.FloorCode = value
+		}
+		if value, ok := messageDict["floorPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.FloorPrice = valueFloat
+		}
+		if value, ok := messageDict["highestPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.HighestPrice = valueFloat
+		}
+		if value, ok := messageDict["lowestPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.LowestPrice = valueFloat
+		}
+		if value, ok := messageDict["matchPrice"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.MatchPrice = valueFloat
+		}
+		if value, ok := messageDict["matchQtty"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.MatchQtty = valueFloat
+		}
+		if value, ok := messageDict["projectOpen"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.ProjectOpen = valueFloat
+		}
+		if value, ok := messageDict["sellForeignQtty"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.SellForeignQtty = valueFloat
+		}
+		if value, ok := messageDict["totalRoom"]; ok && value != "" {
+			valueFloat, err := vnd.ConvertToFloat(value)
+			if err != nil {
+				return nil, err
+			}
+			snapshot.TotalRoom = valueFloat
+		}
+		snapshots = append(snapshots, snapshot)
 	}
-
 	return snapshots, nil
 }

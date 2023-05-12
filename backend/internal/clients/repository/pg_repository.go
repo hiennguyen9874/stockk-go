@@ -21,7 +21,7 @@ func CreateClientPgRepository(db *gorm.DB) clients.ClientPgRepository {
 
 func (r *ClientPgRepo) GetMultiByOwnerId(ctx context.Context, ownerId uint, limit, offset int) ([]*models.Client, error) {
 	var objs []*models.Client
-	r.DB.WithContext(ctx).Where("owner_id = ?", ownerId).Order("created_at").Limit(limit).Offset(offset).Find(&objs)
+	r.DB.WithContext(ctx).Where("owner_id = ?", ownerId).Order("id").Limit(limit).Offset(offset).Find(&objs)
 	return objs, nil
 }
 

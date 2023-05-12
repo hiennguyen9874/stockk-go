@@ -902,7 +902,7 @@ paths:
       summary: Read ticker
       tags:
       - tickers
-    put:
+    patch:
       consumes:
       - application/json
       description: Update an ticker by Symbol.

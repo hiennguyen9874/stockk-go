@@ -66,31 +66,23 @@ func (u *stockSnapshotUseCase) CrawlAllStocksSnapshot(ctx context.Context) error
 			go func(stockSnapshot crawlers.StockSnapshot) {
 				defer wg.Done()
 
-				err := u.stockSnapshotRedisRepo.CreateObj(ctx, u.GenerateRedisStockSnapshotKey(stockSnapshot.Ticker), &models.StockSnapshot{
-					Ticker:      stockSnapshot.Ticker,
-					RefPrice:    stockSnapshot.RefPrice,
-					CeilPrice:   stockSnapshot.CeilPrice,
-					FloorPrice:  stockSnapshot.FloorPrice,
-					TltVol:      stockSnapshot.TltVol,
-					TltVal:      stockSnapshot.TltVal,
-					PriceB3:     stockSnapshot.PriceB3,
-					PriceB2:     stockSnapshot.PriceB2,
-					PriceB1:     stockSnapshot.PriceB1,
-					VolB3:       stockSnapshot.VolB3,
-					VolB2:       stockSnapshot.VolB2,
-					VolB1:       stockSnapshot.VolB1,
-					Price:       stockSnapshot.Price,
-					Vol:         stockSnapshot.Vol,
-					PriceS3:     stockSnapshot.PriceS3,
-					PriceS2:     stockSnapshot.PriceS2,
-					PriceS1:     stockSnapshot.PriceS1,
-					VolS3:       stockSnapshot.VolS3,
-					VolS2:       stockSnapshot.VolS2,
-					VolS1:       stockSnapshot.VolS1,
-					High:        stockSnapshot.High,
-					Low:         stockSnapshot.Low,
-					BuyForeign:  stockSnapshot.BuyForeign,
-					SellForeign: stockSnapshot.SellForeign,
+				err := u.stockSnapshotRedisRepo.CreateObj(ctx, u.GenerateRedisStockSnapshotKey(stockSnapshot.Code), &models.StockSnapshot{
+					Ticker:          stockSnapshot.Code,
+					BasicPrice:      stockSnapshot.BasicPrice,
+					CeilingPrice:    stockSnapshot.CeilingPrice,
+					FloorPrice:      stockSnapshot.FloorPrice,
+					AccumulatedVol:  stockSnapshot.AccumulatedVol,
+					AccumulatedVal:  stockSnapshot.AccumulatedVal,
+					MatchPrice:      stockSnapshot.MatchPrice,
+					MatchQtty:       stockSnapshot.MatchQtty,
+					HighestPrice:    stockSnapshot.HighestPrice,
+					LowestPrice:     stockSnapshot.LowestPrice,
+					BuyForeignQtty:  stockSnapshot.BuyForeignQtty,
+					SellForeignQtty: stockSnapshot.SellForeignQtty,
+					ProjectOpen:     stockSnapshot.ProjectOpen,
+					CurrentRoom:     stockSnapshot.CurrentRoom,
+					FloorCode:       stockSnapshot.FloorCode,
+					TotalRoom:       stockSnapshot.TotalRoom,
 				}, -1)
 
 				if err != nil {
@@ -113,4 +105,95 @@ func (u *stockSnapshotUseCase) CrawlAllStocksSnapshot(ctx context.Context) error
 
 func (u *stockSnapshotUseCase) GetStockSnapshotBySymbol(ctx context.Context, symbol string) (*models.StockSnapshot, error) {
 	return u.stockSnapshotRedisRepo.GetObj(ctx, u.GenerateRedisStockSnapshotKey(symbol))
+}
+
+func (u *stockSnapshotUseCase) UpdateStockSnapshotBySymbol(ctx context.Context, symbol string, values map[string]interface{}) error {
+	stockSnapshot, err := u.stockSnapshotRedisRepo.GetObj(ctx, u.GenerateRedisStockSnapshotKey(symbol))
+	if err != nil {
+		return err
+	}
+
+	if stockSnapshot == nil {
+		stockSnapshot = &models.StockSnapshot{
+			Ticker: symbol,
+		}
+	}
+
+	if value, ok := values["BasicPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.BasicPrice = valueFloat
+		}
+	}
+	if value, ok := values["CeilingPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.CeilingPrice = valueFloat
+		}
+	}
+	if value, ok := values["FloorPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.FloorPrice = valueFloat
+		}
+	}
+	if value, ok := values["AccumulatedVol"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.AccumulatedVol = valueFloat
+		}
+	}
+	if value, ok := values["AccumulatedVal"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.AccumulatedVal = valueFloat
+		}
+	}
+	if value, ok := values["MatchPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.MatchPrice = valueFloat
+		}
+	}
+	if value, ok := values["MatchQtty"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.MatchQtty = valueFloat
+		}
+	}
+	if value, ok := values["HighestPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.HighestPrice = valueFloat
+		}
+	}
+	if value, ok := values["LowestPrice"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.LowestPrice = valueFloat
+		}
+	}
+	if value, ok := values["BuyForeignQtty"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.BuyForeignQtty = valueFloat
+		}
+	}
+	if value, ok := values["SellForeignQtty"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.SellForeignQtty = valueFloat
+		}
+	}
+	if value, ok := values["ProjectOpen"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.ProjectOpen = valueFloat
+		}
+	}
+	if value, ok := values["CurrentRoom"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.CurrentRoom = valueFloat
+		}
+	}
+	if value, ok := values["FloorCode"]; ok {
+		if valueStr, ok := value.(string); ok {
+			stockSnapshot.FloorCode = valueStr
+		}
+	}
+	if value, ok := values["TotalRoom"]; ok {
+		if valueFloat, ok := value.(float32); ok {
+			stockSnapshot.TotalRoom = valueFloat
+		}
+	}
+
+	return u.stockSnapshotRedisRepo.CreateObj(ctx, u.GenerateRedisStockSnapshotKey(stockSnapshot.Ticker), stockSnapshot, -1)
 }

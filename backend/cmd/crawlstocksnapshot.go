@@ -63,7 +63,7 @@ var stockSnapshotCmd = &cobra.Command{
 					appLogger.Warn(err)
 				}
 
-				time.Sleep(30 * time.Second)
+				time.Sleep(60 * time.Second)
 			}
 		}()
 

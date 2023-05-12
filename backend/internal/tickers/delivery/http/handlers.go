@@ -100,7 +100,7 @@ func (h *tickerHandler) GetBySymbol() func(w http.ResponseWriter, r *http.Reques
 // @Failure 404	{object} responses.ErrorResponse
 // @Failure 422	{object} responses.ErrorResponse
 // @Security OAuth2Password
-// @Router /ticker/{symbol} [put]
+// @Router /ticker/{symbol} [patch]
 func (h *tickerHandler) UpdateIsActiveBySymbol() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
