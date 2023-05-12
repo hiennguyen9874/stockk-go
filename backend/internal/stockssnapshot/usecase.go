@@ -9,4 +9,5 @@ import (
 type StockSnapshotUseCaseI interface {
 	CrawlAllStocksSnapshot(ctx context.Context) error
 	GetStockSnapshotBySymbol(ctx context.Context, symbol string) (*models.StockSnapshot, error)
+	UpdateStockSnapshotBySymbol(ctx context.Context, symbol string, values map[string]interface{}) error
 }
