@@ -953,7 +953,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "OAuth2Password": []

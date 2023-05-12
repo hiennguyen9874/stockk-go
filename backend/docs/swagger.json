@@ -944,7 +944,7 @@
                     }
                 }
             },
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "OAuth2Password": []
