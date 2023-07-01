@@ -60,7 +60,7 @@ var crawlSymbolCmd = &cobra.Command{
 
 				appLogger.Infof("Save %v ticker", len(savedTickers))
 
-				time.Sleep(10 * time.Minute)
+				time.Sleep(time.Duration(cfg.Crawler.DurationCrawlSymbol) * time.Second)
 			}
 		}()
 

@@ -114,11 +114,15 @@ type SmtpEmailConfig struct {
 }
 
 type CrawlerConfig struct {
-	Source                  string
-	TickerDownloadBatchSize int
-	TickerInsertBatchSize   int
-	BarInsertBatchSize      int
-	DefaultActive           []string
+	Source                     string
+	TickerDownloadBatchSize    int
+	TickerInsertBatchSize      int
+	BarInsertBatchSize         int
+	DurationCrawlHistoryD      int
+	DurationCrawlHistoryM      int
+	DurationCrawlStockSnapshot int
+	DurationCrawlSymbol        int
+	DefaultActive              []string
 }
 
 type SentryConfig struct {

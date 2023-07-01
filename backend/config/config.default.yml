@@ -80,6 +80,10 @@ crawler:
   TickerDownloadBatchSize: 5
   TickerInsertBatchSize: 5
   BarInsertBatchSize: 5
+  DurationCrawlHistoryD: 3600
+  DurationCrawlHistoryM: 60
+  DurationCrawlStockSnapshot: 60
+  DurationCrawlSymbol: 3600
   DefaultActive:
     [
       "VNINDEX",

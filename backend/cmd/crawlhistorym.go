@@ -67,12 +67,12 @@ var crawlHistoryMCmd = &cobra.Command{
 				status, err := influxDB.Ping(ctx)
 				if err != nil {
 					appLogger.Warn(err)
-					time.Sleep(30 * time.Second)
+					time.Sleep(time.Duration(cfg.Crawler.DurationCrawlHistoryM) * time.Second)
 					continue
 				}
 				if !status {
 					appLogger.Warn("influxdb not connected")
-					time.Sleep(30 * time.Second)
+					time.Sleep(time.Duration(cfg.Crawler.DurationCrawlHistoryM) * time.Second)
 					continue
 				}
 
@@ -82,7 +82,7 @@ var crawlHistoryMCmd = &cobra.Command{
 					appLogger.Warn(err)
 				}
 				appLogger.Info("Done sync, sleep 30s!")
-				time.Sleep(30 * time.Second)
+				time.Sleep(time.Duration(cfg.Crawler.DurationCrawlHistoryM) * time.Second)
 			}
 		}()
 

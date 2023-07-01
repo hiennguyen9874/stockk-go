@@ -63,7 +63,7 @@ var stockSnapshotCmd = &cobra.Command{
 					appLogger.Warn(err)
 				}
 
-				time.Sleep(60 * time.Second)
+				time.Sleep(time.Duration(cfg.Crawler.DurationCrawlStockSnapshot) * time.Second)
 			}
 		}()
 
