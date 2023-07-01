@@ -125,14 +125,17 @@ func (cr *restCrawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, erro
 func (cr *restCrawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
 	strResolution, err := cr.VNDMapResolutionToString(resolution)
 	if err != nil {
+		cr.logger.Warn("crawl history using vnd fail, error when map resolution to string")
 		return nil, err
 	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://dchart-api.vndirect.com.vn/dchart/history?resolution=%v&symbol=%v&from=%v&to=%v", strResolution, symbol, from, to), nil)
 	if err != nil {
+		cr.logger.Warn("crawl history using vnd fail, error create request")
 		log.Fatal(err)
 	}
+
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	req.Header.Set("Accept-Language", "vi,en;q=0.9")
 	req.Header.Set("Connection", "keep-alive")
@@ -150,7 +153,7 @@ func (cr *restCrawler) VNDCrawlStockHistory(ctx context.Context, symbol string, 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		cr.logger.Warn("crawl history using vnd fail")
+		cr.logger.Warn("crawl history using vnd fail, error when request")
 		return nil, httpErrors.ErrCallRequest(err)
 	}
 
@@ -158,7 +161,7 @@ func (cr *restCrawler) VNDCrawlStockHistory(ctx context.Context, symbol string, 
 
 	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		cr.logger.Warn("crawl history using vnd fail")
+		cr.logger.Warn("crawl history using vnd fail, error when read response")
 		return nil, httpErrors.ErrReadBodyRequest(err)
 	}
 
@@ -175,6 +178,7 @@ func (cr *restCrawler) VNDCrawlStockHistory(ctx context.Context, symbol string, 
 	var response VNDHistoryData
 	err = json.Unmarshal(responseData, &response)
 	if err != nil {
+		cr.logger.Warn("crawl history using vnd fail, error when deserialize response")
 		return nil, err
 	}
 

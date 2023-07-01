@@ -75,6 +75,7 @@ func (cr *restCrawler) SSICrawlStockSymbols(ctx context.Context) ([]Ticker, erro
 	var response SSIStocksResponse
 	err = json.Unmarshal(responseData, &response)
 	if err != nil {
+		cr.logger.Warn("crawl history using ssi fail, error when deserialize response")
 		return nil, err
 	}
 

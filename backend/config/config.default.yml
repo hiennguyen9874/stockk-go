@@ -76,7 +76,7 @@ sentry:
   Environment: Development
 
 crawler:
-  Source: VND
+  Source: SSI
   TickerDownloadBatchSize: 5
   TickerInsertBatchSize: 5
   BarInsertBatchSize: 5

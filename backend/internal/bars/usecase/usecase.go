@@ -37,7 +37,7 @@ func CreateBarUseCaseI(
 		barRedisRepo:    barRedisRepo,
 		tickerPgRepo:    tickerPgRepo,
 		tickerRedisRepo: tickerRedisRepo,
-		crawler:         crawlers.NewCrawler(cfg, logger),
+		crawler:         crawlers.NewRestCrawler(cfg, logger),
 		logger:          logger,
 	}
 }

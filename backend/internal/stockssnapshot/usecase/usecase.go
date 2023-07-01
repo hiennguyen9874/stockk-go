@@ -30,7 +30,7 @@ func CreateTickerUseCaseI(
 	return &stockSnapshotUseCase{
 		tickerUC:               tickerUC,
 		stockSnapshotRedisRepo: stockSnapshotRedisRepo,
-		crawler:                crawlers.NewCrawler(cfg, logger),
+		crawler:                crawlers.NewRestCrawler(cfg, logger),
 	}
 }
 

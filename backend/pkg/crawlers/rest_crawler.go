@@ -78,7 +78,7 @@ type StockSnapshot struct {
 	TotalRoom       float32
 }
 
-func NewCrawler(cfg *config.Config, logger logger.Logger) RestCrawler {
+func NewRestCrawler(cfg *config.Config, logger logger.Logger) RestCrawler {
 	return &restCrawler{cfg: cfg, logger: logger}
 }
 

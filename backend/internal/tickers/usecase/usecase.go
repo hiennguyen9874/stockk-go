@@ -33,7 +33,7 @@ func CreateTickerUseCaseI(
 		UseCase:         usecase.CreateUseCase[models.Ticker](tickerPgRepo, cfg, logger),
 		tickerPgRepo:    tickerPgRepo,
 		tickerRedisRepo: tickerRedisRepo,
-		crawler:         crawlers.NewCrawler(cfg, logger),
+		crawler:         crawlers.NewRestCrawler(cfg, logger),
 	}
 }
 
