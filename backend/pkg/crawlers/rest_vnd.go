@@ -11,10 +11,9 @@ import (
 	"time"
 
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
-	"github.com/hiennguyen9874/stockk-go/pkg/vnd"
 )
 
-func (cr *crawler) VNDMapExchange(exchange string) (string, error) {
+func (cr *restCrawler) VNDMapExchange(exchange string) (string, error) {
 	switch exchange {
 	case "UPCOM":
 		return "UPCOM", nil
@@ -27,7 +26,7 @@ func (cr *crawler) VNDMapExchange(exchange string) (string, error) {
 	}
 }
 
-func (cr *crawler) VNDMapResolutionToString(resolution Resolution) (string, error) {
+func (cr *restCrawler) VNDMapResolutionToString(resolution Resolution) (string, error) {
 	switch resolution {
 	case R1:
 		return "1", nil
@@ -46,7 +45,7 @@ func (cr *crawler) VNDMapResolutionToString(resolution Resolution) (string, erro
 	}
 }
 
-func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
+func (cr *restCrawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "https://api-finfo.vndirect.com.vn/v4/stocks?q=type:IFC,ETF,STOCK~status:LISTED&fields=code,companyName,companyNameEng,shortName,floor,industryName&size=3000", nil)
@@ -123,7 +122,7 @@ func (cr *crawler) VNDCrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	return tickers, nil
 }
 
-func (cr *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
+func (cr *restCrawler) VNDCrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
 	strResolution, err := cr.VNDMapResolutionToString(resolution)
 	if err != nil {
 		return nil, err
@@ -194,7 +193,7 @@ func (cr *crawler) VNDCrawlStockHistory(ctx context.Context, symbol string, reso
 	return bars, nil
 }
 
-func (cr *crawler) VNDTransformMessage(ctx context.Context, message string) ([]string, error) {
+func (cr *restCrawler) VNDTransformMessage(ctx context.Context, message string) ([]string, error) {
 	var decodeString strings.Builder
 
 	for i, char := range message {
@@ -204,7 +203,7 @@ func (cr *crawler) VNDTransformMessage(ctx context.Context, message string) ([]s
 	return strings.Split(decodeString.String(), "|")[1:], nil
 }
 
-func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error) {
+func (cr *restCrawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://price-api.vndirect.com.vn/stocks/snapshot?code=%v", strings.Join(symbols, ",")), nil)
 	if err != nil {
@@ -238,9 +237,9 @@ func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) 
 	var snapshots []StockSnapshot
 
 	for _, msg := range response {
-		messageArray := vnd.DecodeMessage(msg)
+		messageArray := VNDDecodeMessage(msg)
 
-		messageDict, err := vnd.MessageArrayToDict("S", messageArray)
+		messageDict, err := VNDMessageArrayToDict("S", messageArray)
 		if err != nil {
 			return nil, err
 		}
@@ -248,35 +247,35 @@ func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) 
 		var snapshot StockSnapshot
 
 		if value, ok := messageDict["accumulatedVal"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.AccumulatedVal = valueFloat
 		}
 		if value, ok := messageDict["accumulatedVol"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.AccumulatedVol = valueFloat
 		}
 		if value, ok := messageDict["basicPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.BasicPrice = valueFloat
 		}
 		if value, ok := messageDict["buyForeignQtty"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.BuyForeignQtty = valueFloat
 		}
 		if value, ok := messageDict["ceilingPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
@@ -286,7 +285,7 @@ func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) 
 			snapshot.Code = value
 		}
 		if value, ok := messageDict["currentRoom"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
@@ -296,56 +295,56 @@ func (cr *crawler) VNDCrawlStockSnapshot(ctx context.Context, symbols []string) 
 			snapshot.FloorCode = value
 		}
 		if value, ok := messageDict["floorPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.FloorPrice = valueFloat
 		}
 		if value, ok := messageDict["highestPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.HighestPrice = valueFloat
 		}
 		if value, ok := messageDict["lowestPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.LowestPrice = valueFloat
 		}
 		if value, ok := messageDict["matchPrice"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.MatchPrice = valueFloat
 		}
 		if value, ok := messageDict["matchQtty"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.MatchQtty = valueFloat
 		}
 		if value, ok := messageDict["projectOpen"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.ProjectOpen = valueFloat
 		}
 		if value, ok := messageDict["sellForeignQtty"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}
 			snapshot.SellForeignQtty = valueFloat
 		}
 		if value, ok := messageDict["totalRoom"]; ok && value != "" {
-			valueFloat, err := vnd.ConvertToFloat(value)
+			valueFloat, err := ConvertToFloat(value)
 			if err != nil {
 				return nil, err
 			}

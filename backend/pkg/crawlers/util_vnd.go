@@ -1,4 +1,4 @@
-package vnd
+package crawlers
 
 import (
 	"fmt"
@@ -23,16 +23,6 @@ func zipToDict(keys []string, values []string) (map[string]string, error) {
 	return pairs, nil
 }
 
-func DecodeMessage(message string) []string {
-	var decodeString strings.Builder
-
-	for i, char := range message {
-		decodeString.WriteRune(rune(int(char) + i%5))
-	}
-
-	return strings.Split(decodeString.String(), "|")
-}
-
 func ConvertToFloat(valString string) (float32, error) {
 	if valString == "" {
 		return 0, nil
@@ -46,7 +36,17 @@ func ConvertToFloat(valString string) (float32, error) {
 	return float32(valFloat64), nil
 }
 
-func MessageArrayToDict(messageType string, messageArray []string) (map[string]string, error) {
+func VNDDecodeMessage(message string) []string {
+	var decodeString strings.Builder
+
+	for i, char := range message {
+		decodeString.WriteRune(rune(int(char) + i%5))
+	}
+
+	return strings.Split(decodeString.String(), "|")
+}
+
+func VNDMessageArrayToDict(messageType string, messageArray []string) (map[string]string, error) {
 	switch strings.ToUpper(messageType) {
 	case "S":
 		switch strings.ToUpper(messageArray[0]) {

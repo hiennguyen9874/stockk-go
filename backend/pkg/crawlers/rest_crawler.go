@@ -22,7 +22,7 @@ const (
 	RM
 )
 
-type Crawler interface {
+type RestCrawler interface {
 	CrawlStockSymbols(ctx context.Context) ([]Ticker, error)
 	CrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error)
 	CrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error)
@@ -37,7 +37,7 @@ type Crawler interface {
 	VNDCrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error)
 }
 
-type crawler struct {
+type restCrawler struct {
 	cfg    *config.Config
 	logger logger.Logger
 }
@@ -78,11 +78,11 @@ type StockSnapshot struct {
 	TotalRoom       float32
 }
 
-func NewCrawler(cfg *config.Config, logger logger.Logger) Crawler {
-	return &crawler{cfg: cfg, logger: logger}
+func NewCrawler(cfg *config.Config, logger logger.Logger) RestCrawler {
+	return &restCrawler{cfg: cfg, logger: logger}
 }
 
-func (cr *crawler) CrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
+func (cr *restCrawler) CrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	switch cr.cfg.Crawler.Source {
 	case "VND":
 		return cr.VNDCrawlStockSymbols(ctx)
@@ -93,7 +93,7 @@ func (cr *crawler) CrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	}
 }
 
-func (cr *crawler) CrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
+func (cr *restCrawler) CrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
 	switch cr.cfg.Crawler.Source {
 	case "VND":
 		return cr.VNDCrawlStockHistory(ctx, symbol, resolution, from, to)
@@ -104,7 +104,7 @@ func (cr *crawler) CrawlStockHistory(ctx context.Context, symbol string, resolut
 	}
 }
 
-func (cr *crawler) CrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error) {
+func (cr *restCrawler) CrawlStockSnapshot(ctx context.Context, symbols []string) ([]StockSnapshot, error) {
 	switch cr.cfg.Crawler.Source {
 	case "VND":
 		return cr.VNDCrawlStockSnapshot(ctx, symbols)

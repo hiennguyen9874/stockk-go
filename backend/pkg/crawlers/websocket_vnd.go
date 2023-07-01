@@ -1,4 +1,4 @@
-package websocketCrawlers
+package crawlers
 
 import (
 	"fmt"
@@ -9,17 +9,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hiennguyen9874/stockk-go/config"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
-	"github.com/hiennguyen9874/stockk-go/pkg/vnd"
 )
 
-type WebsocketCrawlers interface {
-	Connect() error
-	Close() error
-	WriteMessage(messages []string) error
-	ReadMessage() <-chan Message
-}
-
-type websocketCrawlers struct {
+type vndWebsocketCrawlers struct {
 	connection  *websocket.Conn
 	isConnected bool
 	cfg         *config.Config
@@ -27,17 +19,11 @@ type websocketCrawlers struct {
 	mu          sync.Mutex
 }
 
-type Message struct {
-	MessageDict *map[string]string
-	MessageType *string
-	MessageErr  *error
+func NewVNDWebsocketCrawlers(cfg *config.Config, logger logger.Logger) WebsocketCrawlers {
+	return &vndWebsocketCrawlers{isConnected: false, cfg: cfg, logger: logger}
 }
 
-func NewWebsocketCrawlers(cfg *config.Config, logger logger.Logger) WebsocketCrawlers {
-	return &websocketCrawlers{isConnected: false, cfg: cfg, logger: logger}
-}
-
-func (wsc *websocketCrawlers) Connect() error {
+func (wsc *vndWebsocketCrawlers) Connect() error {
 	if wsc.isConnected {
 		return nil
 	}
@@ -63,11 +49,11 @@ func (wsc *websocketCrawlers) Connect() error {
 	return nil
 }
 
-func (wsc *websocketCrawlers) Close() error {
+func (wsc *vndWebsocketCrawlers) Close() error {
 	return wsc.connection.Close()
 }
 
-func (wsc *websocketCrawlers) WriteMessage(messages []string) error {
+func (wsc *vndWebsocketCrawlers) WriteMessage(messages []string) error {
 	for _, message := range messages {
 		wsc.mu.Lock()
 		err := wsc.connection.WriteMessage(websocket.TextMessage, []byte(message))
@@ -80,7 +66,7 @@ func (wsc *websocketCrawlers) WriteMessage(messages []string) error {
 	return nil
 }
 
-func (wsc *websocketCrawlers) ReadMessage() <-chan Message {
+func (wsc *vndWebsocketCrawlers) ReadMessage() <-chan Message {
 	type MessageRaw struct {
 		messageStr string
 		messageErr *error
@@ -118,7 +104,7 @@ func (wsc *websocketCrawlers) ReadMessage() <-chan Message {
 					MessageErr: message.messageErr,
 				}
 			} else {
-				decodeArr, decodeType, err := decodeWebsocketMessage(message.messageStr)
+				decodeArr, decodeType, err := vndDecodeWebsocketMessage(message.messageStr)
 				if err != nil {
 					resultCh <- Message{
 						MessageErr: &err,
@@ -136,7 +122,7 @@ func (wsc *websocketCrawlers) ReadMessage() <-chan Message {
 	return resultCh
 }
 
-func decodeWebsocketMessage(message string) (map[string]string, string, error) {
+func vndDecodeWebsocketMessage(message string) (map[string]string, string, error) {
 	messageSplit := strings.Split(message, "|")
 	messageType := messageSplit[0]
 	messageData := strings.Join(messageSplit[1:], "|")
@@ -146,9 +132,9 @@ func decodeWebsocketMessage(message string) (map[string]string, string, error) {
 		messageDecodeSplit := strings.Split(messageData, ":")
 		messageDecodeType := messageDecodeSplit[0]
 		messageDecodeData := strings.Join(messageDecodeSplit[1:], ":")
-		messageArray := vnd.DecodeMessage(messageDecodeData)
+		messageArray := VNDDecodeMessage(messageDecodeData)
 
-		messageDict, err := vnd.MessageArrayToDict(messageDecodeType, messageArray)
+		messageDict, err := VNDMessageArrayToDict(messageDecodeType, messageArray)
 		return messageDict, messageDecodeType, err
 	default:
 		return nil, "", fmt.Errorf("not implemented error: %v", messageType)

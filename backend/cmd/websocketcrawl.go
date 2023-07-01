@@ -14,12 +14,11 @@ import (
 	stockSnapshotUseCase "github.com/hiennguyen9874/stockk-go/internal/stockssnapshot/usecase"
 	tickerRepository "github.com/hiennguyen9874/stockk-go/internal/tickers/repository"
 	tickerUseCase "github.com/hiennguyen9874/stockk-go/internal/tickers/usecase"
+	"github.com/hiennguyen9874/stockk-go/pkg/crawlers"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/postgres"
 	"github.com/hiennguyen9874/stockk-go/pkg/db/redis"
 	"github.com/hiennguyen9874/stockk-go/pkg/logger"
 	"github.com/hiennguyen9874/stockk-go/pkg/sentry"
-	"github.com/hiennguyen9874/stockk-go/pkg/vnd"
-	"github.com/hiennguyen9874/stockk-go/pkg/websocketCrawlers"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +59,7 @@ var websocketCrawlCmd = &cobra.Command{
 
 		ctx := context.Background()
 
-		websocketCrawlers := websocketCrawlers.NewWebsocketCrawlers(cfg, appLogger)
+		websocketCrawlers := crawlers.NewVNDWebsocketCrawlers(cfg, appLogger)
 
 		err = websocketCrawlers.Connect()
 		if err != nil {
@@ -129,7 +128,7 @@ var websocketCrawlCmd = &cobra.Command{
 
 							if code, ok := (*message.MessageDict)["code"]; ok && code != "" {
 								if value, ok := (*message.MessageDict)["accumulatedVal"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -137,7 +136,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["AccumulatedVal"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["accumulatedVol"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -145,7 +144,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["AccumulatedVol"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["basicPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -153,7 +152,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["BasicPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["buyForeignQtty"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -161,7 +160,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["BuyForeignQtty"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["ceilingPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -169,7 +168,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["CeilingPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["currentRoom"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -180,7 +179,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["FloorCode"] = value
 								}
 								if value, ok := (*message.MessageDict)["floorPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -188,7 +187,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["FloorPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["highestPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -196,7 +195,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["HighestPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["lowestPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -204,7 +203,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["LowestPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["matchPrice"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -212,7 +211,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["MatchPrice"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["matchQtty"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -220,7 +219,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["MatchQtty"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["projectOpen"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -228,7 +227,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["ProjectOpen"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["sellForeignQtty"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return
@@ -236,7 +235,7 @@ var websocketCrawlCmd = &cobra.Command{
 									values["SellForeignQtty"] = valueFloat
 								}
 								if value, ok := (*message.MessageDict)["totalRoom"]; ok && value != "" {
-									valueFloat, err := vnd.ConvertToFloat(value)
+									valueFloat, err := crawlers.ConvertToFloat(value)
 									if err != nil {
 										errCh <- err
 										return

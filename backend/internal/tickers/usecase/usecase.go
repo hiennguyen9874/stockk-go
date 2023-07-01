@@ -20,7 +20,7 @@ type tickerUseCase struct {
 	usecase.UseCase[models.Ticker]
 	tickerPgRepo    tickers.TickerPgRepository
 	tickerRedisRepo tickers.TickerRedisRepository
-	crawler         crawlers.Crawler
+	crawler         crawlers.RestCrawler
 }
 
 func CreateTickerUseCaseI(

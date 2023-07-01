@@ -16,7 +16,7 @@ import (
 type stockSnapshotUseCase struct {
 	tickerUC               tickers.TickerUseCaseI
 	stockSnapshotRedisRepo stockssnapshot.StockSnapshotRedisRepository
-	crawler                crawlers.Crawler
+	crawler                crawlers.RestCrawler
 	cfg                    *config.Config //nolint:unused
 	logger                 logger.Logger  //nolint:unused
 }

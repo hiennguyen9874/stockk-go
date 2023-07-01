@@ -20,7 +20,7 @@ type barUseCase struct {
 	barRedisRepo    bars.BarRedisRepository
 	tickerPgRepo    tickers.TickerPgRepository
 	tickerRedisRepo tickers.TickerRedisRepository
-	crawler         crawlers.Crawler
+	crawler         crawlers.RestCrawler
 	logger          logger.Logger
 }
 

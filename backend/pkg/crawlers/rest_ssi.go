@@ -13,7 +13,7 @@ import (
 	"github.com/hiennguyen9874/stockk-go/pkg/httpErrors"
 )
 
-func (cr *crawler) SSIMapExchange(exchange string) (string, error) {
+func (cr *restCrawler) SSIMapExchange(exchange string) (string, error) {
 	switch exchange {
 	case "UpcomIndex":
 		return "UPCOM", nil
@@ -26,7 +26,7 @@ func (cr *crawler) SSIMapExchange(exchange string) (string, error) {
 	}
 }
 
-func (cr *crawler) SSICrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
+func (cr *restCrawler) SSICrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "https://fiin-core.ssi.com.vn/Master/GetListOrganization?language=vi", nil)
@@ -96,7 +96,7 @@ func (cr *crawler) SSICrawlStockSymbols(ctx context.Context) ([]Ticker, error) {
 	return tickers, nil
 }
 
-func (cr *crawler) SSIMapResolutionToString(resolution Resolution) (string, error) {
+func (cr *restCrawler) SSIMapResolutionToString(resolution Resolution) (string, error) {
 	switch resolution {
 	case R1:
 		return "1", nil
@@ -107,7 +107,7 @@ func (cr *crawler) SSIMapResolutionToString(resolution Resolution) (string, erro
 	}
 }
 
-func (cr *crawler) SSICrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
+func (cr *restCrawler) SSICrawlStockHistory(ctx context.Context, symbol string, resolution Resolution, from int64, to int64) ([]Bar, error) {
 	strResolution, err := cr.SSIMapResolutionToString(resolution)
 	if err != nil {
 		return nil, err
